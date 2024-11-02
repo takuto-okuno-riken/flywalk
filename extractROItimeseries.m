@@ -9,7 +9,7 @@ function extractROItimeseries
 
     % output time-series (smoothing, highpass filter, nuisance removal)
     hpfTh = [0]; % high-pass filter threshold
-    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
+%    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
 %    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60'};
 %    smooth = {'m10'};
     smooth = {''};
@@ -24,7 +24,8 @@ function extractROItimeseries
 
     % ROI name
 %    roitype = 'flyemroi';
-    roitype = 'bransonhemi';
+%    roitype = 'bransonhemi';
+    roitype = 'hemicube4';
 
     TR = 1 / 1.8;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -44,7 +45,13 @@ function extractROItimeseries
         Vm(Vm<1) = 0;
         V = niftiread('data/JRC2018_branson_atlasCal_invFDACal.nii.gz'); % ROI mask should have same transform with 4D nifti data
         V = V .* Vm;
-        roimax = max(V,[],'all');
+        roimax = max(V(:));
+        for i=1:roimax
+            roiIdxs{i} = find(V==i);
+        end
+    case 'hemicube4'
+        V = niftiread('data/hemiCube4atlasCal.nii.gz'); % ROI mask should have same transform with 4D nifti data
+        roimax = max(V(:));
         for i=1:roimax
             roiIdxs{i} = find(V==i);
         end

@@ -28,7 +28,8 @@ function analyzeFuncConnectivity
 
     % ROI name
 %    roitype = 'flyemroi';
-    roitype = 'bransonhemi';
+%    roitype = 'bransonhemi';
+    roitype = 'hemicube4';
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -43,6 +44,7 @@ function analyzeFuncConnectivity
     case 'bransonhemi'
         load('data/branson_connectlist.mat');
         ids = primaryIds;
+    case 'hemicube4'
     end
     C = countMat(ids,ids); W = weightMat(ids,ids);
 
