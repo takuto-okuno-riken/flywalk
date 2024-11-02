@@ -7,3 +7,6 @@
 *.dat
 *.xlsx
 *.nrrd
+hemi*.m
+nrrd_*.m
+nhdr_*.m
