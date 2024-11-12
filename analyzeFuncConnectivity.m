@@ -8,11 +8,9 @@ function analyzeFuncConnectivity
 %    preproc = 'r'; % for move correct only
 
     % output time-series (smoothing, highpass filter, nuisance removal)
-%    hpfTh = [0]; % high-pass filter threshold
-    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
-%    prefix = {'', 'hf', 's10', 's10hf', 's20', 's20hf', 's30', 's30hf', 's40', 's40hf', ...
-%         's50', 's50hf', 's60', 's50hf'};
-%    prefix = {'m10'};
+    hpfTh = [0]; % high-pass filter threshold
+%    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
+%    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60'};
     smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
@@ -20,16 +18,22 @@ function analyzeFuncConnectivity
         '24hmacomp','24hmgmacomp','24hmgmgsacomp','24hmtcomp','24hmtacomp', ... %27
         'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
-%    nuisance = {'', 'poltcomp'}; % good for flyemroi
-    nuisance = {'', 'tacomp'}; % good for bransonhemi
+%    nuisance = {'6hmtacomp'}; % good for flyemroi
+%    nuisance = {'6hmtacomp'}; % good for bransonhemi
+%    nuisance = {'tcomp'}; % good for hemicube4
+%    nuisance = {''};
 
     % using subjects (flys). sbj 7 shows NaN row in FC matrix
     sbjids = [1 2 3 4 5 6 8 9];
 
     % ROI name
-%    roitype = 'flyemroi';
+%    roitype = 'flyemroi';   % flyem ROI (Turner compatible)
+%    roitype = 'flyemroif';  % flyem ROI full
 %    roitype = 'bransonhemi';
-    roitype = 'hemicube4';
+%    roitype = 'hemiCube4';
+%    roitype = 'hemiRoi101'; % neuropil-FB
+%    roitype = 'hemiRoi57'; % neuropil-EB
+    roitype = 'hemiRoi57-51'; % neuropil-EB-bL(L)
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -37,26 +41,51 @@ function analyzeFuncConnectivity
     switch(roitype)
     case 'flyemroi'
         load('data/neuprint_connectlist.mat');
-    
-        ids = primaryIds;
-%        ids = [20	111	59	68	51	62	106	87	24	27	75	50	54]; % MB only
+        % for Turner et al. (2021) compatible.
         ids = [103	107	20	111	59	68	65	78  49	51	62	106	87	47 100 24	27	43	38	5	57	22	89	101	97	75	50	58	41	113	10	2	32	66	45	30	67	19	76	31	82	93	54	52	8	7	80	1	102	63	95	56];
+    case 'flyemroif'
+        load('data/neuprint_connectlist.mat');
+        ids = 1:roiNum;
     case 'bransonhemi'
         load('data/branson_connectlist.mat');
         ids = primaryIds;
-    case 'hemicube4'
+    otherwise
+        roitype = lower(roitype);
+        load(['data/' roitype '_connectlist.mat']);
+        ids = primaryIds;
+        weightMat2(isnan(weightMat2)) = 0;
+        countMat = countMat2; weightMat = weightMat2; % this doesn't have ROI original count, then copy from synapse transformed version.
     end
     C = countMat(ids,ids); W = weightMat(ids,ids);
+    C2 = countMat2(ids,ids,1); S = sycountMat(ids,ids,1); W2 = weightMat2(ids,ids,1); Wo = outweightMat(ids,ids,1);
+    W3 = W2 ./ S; W3(S==0) = 0; % pure ROI-input neuron connection weight
+    C2b = countMat2(ids,ids,2); Sb = sycountMat(ids,ids,2); W2b = weightMat2(ids,ids,2); Wob = outweightMat(ids,ids,2);
+    W3b = W2b ./ Sb; W3b(Sb==0) = 0; % pure ROI-input neuron connection weight
 
     % show corr between cell count v. synapse weight
-    corr(W(:),C(:))    % corr between cell count v. synapse weight
-    figure; scatter(W(:),C(:)); xlabel('synapse weight'); ylabel('cell count')
+    r = corr(W2(:),C2(:));    % corr between cell count v. synapse weight
+    disp(['corr between synapse weight2 vs. cell count2. r=' num2str(r)]);
+    figure; scatter(W2(:),C2(:)); xlabel('synapse weight2'); ylabel('cell count2');
+%{
+    r = corr(C(:),C2(:));    % corr between cell count v. synapse weight (for internal check)
+    disp(['corr between cell count vs. cell count2. r=' num2str(r)]);
+    figure; scatter(C2(:),C(:)); xlabel('cell count 2'); ylabel('cell count')
+%}
+    r = corr(S(:),C2(:));    % corr between cell count v. synapse weight
+    disp(['corr between synapse count vs. cell count2. r=' num2str(r)]);
+    figure; scatter(S(:),C2(:)); xlabel('synapse count'); ylabel('cell count2');
 
     n = length(ids);
     E = eye(n); E = logical(1-E);
 
     lC = log10(C); lC(lC<0) = 0;
     lW = log10(W); lW(lW<0) = 0;
+    lC2 = log10(C2); lC2(lC2<0) = 0;
+    lS = log10(S); lS(lS<0) = 0;
+    lW2 = log10(W2); lW2(lW2<0) = 0;
+    lC2b = log10(C2b); lC2b(lC2b<0) = 0;
+    lSb = log10(Sb); lSb(lSb<0) = 0;
+    lW2b = log10(W2b); lW2b(lW2b<0) = 0;
 %    lC = C;
 
     sbjR = [];
@@ -71,24 +100,24 @@ function analyzeFuncConnectivity
                 pftype = [smooth{k} hpfstr nuisance{n} preproc roitype];
                 rlabel{ii} = [smooth{k} hpfstr nuisance{n}]; ii=ii+1;
 
+                % load ROI time-series (from extractROItimeseries.m)
+                load(['results/' pftype '-ts.mat']);
+    
+                CM = {};
+                for i=1:length(sbjids)
+                    CX{sbjids(i)} = CX{sbjids(i)}';
+                    CM{i} = single(corr(CX{sbjids(i)})); %calcPartialCorrelation_(CX{i}',[],[],[],false,1e-3);
+                end
+                    
                 % transport first
                 outfile = ['results/' pftype '-func.mat'];
                 if exist(outfile,'file')
                     load(outfile);
                 else
-                    % load ROI time-series (from extractROItimeseries.m)
-                    load(['results/' pftype '-ts.mat']);
-        
-                    CM = {};
-                    for i=1:length(sbjids)
-                        CX{sbjids(i)} = CX{sbjids(i)}';
-%                        CX{i} = highpass(CX{i},hpfTh,1/TR);
-                        CM{i} = corr(CX{sbjids(i)}); %calcPartialCorrelation_(CX{i}',[],[],[],false,1e-3);
-                    end
                     [B2, RSS2, T2, df] = calcSeedCorrMixed(CX(sbjids));
                     
                     % output beta matrix
-                    save(outfile,'df','B2','RSS2','T2','CM','-v7.3');
+                    save(outfile,'T2','-v7.3');
                 end
 
                 D3 = []; D3z = [];
@@ -107,7 +136,7 @@ function analyzeFuncConnectivity
 
                 T3 = T2(ids,ids);
                 T3(isinf(T3)) = max(T3(~isinf(T3)));
-                figure; imagesc(abs(T3)); colorbar; title([pftype ' ROI FC matrix']);
+%                figure; imagesc(abs(T3)); colorbar; title([pftype ' ROI FC matrix']);
                 lT3 = log(T3); lT3(lT3<0) = 0;
 
                 % each flys [log10(cell count) vs. FC(z)]
@@ -125,18 +154,55 @@ function analyzeFuncConnectivity
                 % full ROIs (vs. mean group data)
                 R(1) = corr(lC(:),abs(Dmz(:)));
 %                figure; scatter(lC(:),abs(Dmz(:))); xlabel('log10(cell count)'); ylabel('FC(z)'); title(pftype);
-                disp(['prefix=' pftype ' : log10(cell count) vs. FC(z) = ' num2str(R(1))]);
+%                disp(['prefix=' pftype ' : log10(cell count) vs. FC(z) = ' num2str(R(1))]);
 
                 R(2) = corr(lW(:),abs(Dmz(:)));
 %                figure; scatter(lW(:),abs(Dmz(:))); xlabel('log10(synapse weight'); ylabel('FC(z)'); title(pftype);
-                disp(['prefix=' pftype ' : log10(synapse weight) vs. FC(z) = ' num2str(R(2))]);
+%                disp(['prefix=' pftype ' : log10(synapse weight) vs. FC(z) = ' num2str(R(2))]);
 
                 R(3) = corr(lC(:),abs(T3(:)));
 %                figure; scatter(lC(:),abs(T3(:))); xlabel('log10(cell count)'); ylabel('FC T-val'); title(pftype);
-                disp(['prefix=' pftype ' : log10(cell count) vs. FC T-val = ' num2str(R(3))]);
+%                disp(['prefix=' pftype ' : log10(cell count) vs. FC T-val = ' num2str(R(3))]);
 
                 R(4) = corr(lW(:),abs(T3(:)));
-                disp(['prefix=' pftype ' : log10(synapse weight) vs. FC T-val = ' num2str(R(4))]);
+%                disp(['prefix=' pftype ' : log10(synapse weight) vs. FC T-val = ' num2str(R(4))]);
+
+                R(5) = corr(lC2(:),abs(Dmz(:)));
+                disp(['prefix=' pftype ' : log10(cell count2) vs. FC(z) = ' num2str(R(5))]);
+                R(6) = corr(lW2(:),abs(Dmz(:)));
+                disp(['prefix=' pftype ' : log10(synapse weight2) vs. FC(z) = ' num2str(R(6))]);
+                R(7) = corr(lC2(:),abs(T3(:)));
+                disp(['prefix=' pftype ' : log10(cell count2) vs. FC T-val = ' num2str(R(7))]);
+                R(8) = corr(lW2(:),abs(T3(:)));
+                disp(['prefix=' pftype ' : log10(synapse weight2) vs. FC T-val = ' num2str(R(8))]);
+
+                R(9) = corr(lC2b(:),abs(Dmz(:)));
+                disp(['prefix=' pftype ' : log10(cell count2b) vs. FC(z) = ' num2str(R(9))]);
+                R(10) = corr(lW2b(:),abs(Dmz(:)));
+                disp(['prefix=' pftype ' : log10(synapse weight2b) vs. FC(z) = ' num2str(R(10))]);
+                R(11) = corr(lC2b(:),abs(T3(:)));
+                disp(['prefix=' pftype ' : log10(cell count2b) vs. FC T-val = ' num2str(R(11))]);
+                R(12) = corr(lW2b(:),abs(T3(:)));
+                disp(['prefix=' pftype ' : log10(synapse weight2b) vs. FC T-val = ' num2str(R(12))]);
+
+                R(13) = corr(lS(:),abs(Dmz(:)));
+                disp(['prefix=' pftype ' : log10(synapse count) vs. FC(z) = ' num2str(R(13))]);
+                R(14) = corr(lS(:),abs(T3(:)));
+                disp(['prefix=' pftype ' : log10(synapse count) vs. FC T-val = ' num2str(R(14))]);
+                R(15) = corr(W3(:),abs(Dmz(:)));
+                disp(['prefix=' pftype ' : ROI in-neuron weight vs. FC(z) = ' num2str(R(15))]);
+                R(16) = corr(W3(:),abs(T3(:)));
+                disp(['prefix=' pftype ' : ROI in-neuron weight vs. FC T-val = ' num2str(R(16))]);
+
+                R(17) = corr(lSb(:),abs(Dmz(:)));
+                disp(['prefix=' pftype ' : log10(synapse count b) vs. FC(z) = ' num2str(R(17))]);
+                R(18) = corr(lSb(:),abs(T3(:)));
+                disp(['prefix=' pftype ' : log10(synapse count b) vs. FC T-val = ' num2str(R(18))]);
+                R(19) = corr(W3b(:),abs(Dmz(:)));
+                disp(['prefix=' pftype ' : ROI in-neuron weight b vs. FC(z) = ' num2str(R(19))]);
+                R(20) = corr(W3b(:),abs(T3(:)));
+                disp(['prefix=' pftype ' : ROI in-neuron weight b vs. FC T-val = ' num2str(R(20))]);
+
                 Rm = [Rm, R'];
 
                 % calculate AUC
@@ -146,30 +212,84 @@ function analyzeFuncConnectivity
                     load(aucmat);
                 else
                     thN = 100;
-                    A = zeros(4,thN);
-                    As = cell(4,thN);
-                    for th = 1:thN
+                    aths = cell(thN,1);
+%                    for th = 1:thN
+                    parfor th = 1:thN
                         % include injection voxel in ground truth
                         cth = prctile(C(C>0),th-1);
                         ct = C; ct(ct<cth) = 0; ct(ct>0) = 1;
                         wth = prctile(W(W>0),th-1);
                         wt = W; wt(wt<wth) = 0; wt(wt>0) = 1;
+                        c2th = prctile(C2(C2>0),th-1);
+                        ct2 = C2; ct2(ct2<c2th) = 0; ct2(ct2>0) = 1;
+                        sth = prctile(S(S>0),th-1);
+                        st = S; st(st<sth) = 0; st(st>0) = 1;
+                        w2th = prctile(W2(W2>0),th-1);
+                        wt2 = W2; wt2(wt2<w2th) = 0; wt2(wt2>0) = 1;
+                        w3th = prctile(W3(W3>0),th-1);
+                        wt3 = W3; wt3(wt3<w3th) = 0; wt3(wt3>0) = 1;
+                        c2bth = prctile(C2b(C2b>0),th-1);
+                        ct2b = C2b; ct2b(ct2b<c2bth) = 0; ct2b(ct2b>0) = 1;
+                        sbth = prctile(Sb(Sb>0),th-1);
+                        stb = Sb; stb(stb<sbth) = 0; stb(stb>0) = 1;
+                        w2bth = prctile(W2b(W2b>0),th-1);
+                        wt2b = W2b; wt2b(wt2b<w2bth) = 0; wt2b(wt2b>0) = 1;
+                        w3bth = prctile(W3b(W3b>0),th-1);
+                        wt3b = W3b; wt3b(wt3b<w3bth) = 0; wt3b(wt3b>0) = 1;
 
+                        aucs = cell(16,1);
                         [~, ~, auc] = calcShowGroupROCcurve(ct(:)', abs(Dmz(:)'), ['FC(z) vs. cell count th=' num2str(th-1)], false);
-                        As{1,th} = auc;
-                        A(1,th) = nanmean(auc);
-
+                        aucs{1} = single(auc);
                         [~, ~, auc] = calcShowGroupROCcurve(wt(:)', abs(Dmz(:)'), ['FC(z) vs. synapse weight th=' num2str(th-1)], false);
-                        As{2,th} = auc;
-                        A(2,th) = nanmean(auc);
-
+                        aucs{2} = single(auc);
                         [~, ~, auc] = calcShowGroupROCcurve(ct(:)', abs(T3(:)'), ['FC T-val vs. cell count th=' num2str(th-1)], false);
-                        As{3,th} = auc;
-                        A(3,th) = nanmean(auc);
-
+                        aucs{3} = single(auc);
                         [~, ~, auc] = calcShowGroupROCcurve(wt(:)', abs(T3(:)'), ['FC T-val vs. synapse weight th=' num2str(th-1)], false);
-                        As{4,th} = auc;
-                        A(4,th) = nanmean(auc);
+                        aucs{4} = single(auc);
+
+                        [~, ~, auc] = calcShowGroupROCcurve(ct2b(:)', abs(Dmz(:)'), ['FC(z) vs. cell count2b th=' num2str(th-1)], false);
+                        aucs{5} = single(auc);
+                        [~, ~, auc] = calcShowGroupROCcurve(wt2b(:)', abs(Dmz(:)'), ['FC(z) vs. synapse weight2b th=' num2str(th-1)], false);
+                        aucs{6} = single(auc);
+                        [~, ~, auc] = calcShowGroupROCcurve(ct2b(:)', abs(T3(:)'), ['FC T-val vs. cell count2b th=' num2str(th-1)], false);
+                        aucs{7} = single(auc);
+                        [~, ~, auc] = calcShowGroupROCcurve(wt2b(:)', abs(T3(:)'), ['FC T-val vs. synapse weight2b th=' num2str(th-1)], false);
+                        aucs{8} = single(auc);
+
+                        [~, ~, auc] = calcShowGroupROCcurve(ct2(:)', abs(Dmz(:)'), ['FC(z) vs. cell count2 th=' num2str(th-1)], false);
+                        aucs{9} = single(auc);
+                        [~, ~, auc] = calcShowGroupROCcurve(wt2(:)', abs(Dmz(:)'), ['FC(z) vs. synapse weight2 th=' num2str(th-1)], false);
+                        aucs{10} = single(auc);
+                        [~, ~, auc] = calcShowGroupROCcurve(ct2(:)', abs(T3(:)'), ['FC T-val vs. cell count2 th=' num2str(th-1)], false);
+                        aucs{11} = single(auc);
+                        [~, ~, auc] = calcShowGroupROCcurve(wt2(:)', abs(T3(:)'), ['FC T-val vs. synapse weight2 th=' num2str(th-1)], false);
+                        aucs{12} = single(auc);
+
+                        [~, ~, auc] = calcShowGroupROCcurve(st(:)', abs(Dmz(:)'), ['FC(z) vs. synapse count th=' num2str(th-1)], false);
+                        aucs{13} = single(auc);
+                        [~, ~, auc] = calcShowGroupROCcurve(st(:)', abs(T3(:)'), ['FC T-val vs. synapse count th=' num2str(th-1)], false);
+                        aucs{14} = single(auc);
+                        [~, ~, auc] = calcShowGroupROCcurve(wt3(:)', abs(Dmz(:)'), ['FC(z) vs. ROI in-neuron weight th=' num2str(th-1)], false);
+                        aucs{15} = single(auc);
+                        [~, ~, auc] = calcShowGroupROCcurve(wt3(:)', abs(T3(:)'), ['FC T-val vs. ROI in-neuron weight th=' num2str(th-1)], false);
+                        aucs{16} = single(auc);
+
+                        [~, ~, auc] = calcShowGroupROCcurve(stb(:)', abs(Dmz(:)'), ['FC(z) vs. synapse count b th=' num2str(th-1)], false);
+                        aucs{17} = single(auc);
+                        [~, ~, auc] = calcShowGroupROCcurve(stb(:)', abs(T3(:)'), ['FC T-val vs. synapse count b th=' num2str(th-1)], false);
+                        aucs{18} = single(auc);
+                        [~, ~, auc] = calcShowGroupROCcurve(wt3b(:)', abs(Dmz(:)'), ['FC(z) vs. ROI in-neuron weight b th=' num2str(th-1)], false);
+                        aucs{19} = single(auc);
+                        [~, ~, auc] = calcShowGroupROCcurve(wt3b(:)', abs(T3(:)'), ['FC T-val vs. ROI in-neuron weight b th=' num2str(th-1)], false);
+                        aucs{20} = single(auc);
+                        aths{th} = aucs;
+                    end
+                    A = zeros(20,thN,'single');
+                    As = cell(20,thN);
+                    for th = 1:thN
+                        for j=1:20
+                            As{j,th} = aths{th}{j}; A(j,th) = nanmean(aths{th}{j});
+                        end
                     end
                     save(aucmat,'A','As');
                 end
@@ -181,15 +301,32 @@ function analyzeFuncConnectivity
         end
     end
     % FC-SC correlation (4-type mixed box plot)
-    figure; boxplot(Rm,'Labels',rlabel); title('FC-SC correlation (4-type mixed plot)');
+    figure; boxplot(Rm(5:8,:),'Labels',rlabel); title('FC-SC correlation (4-type mixed plot)');
+    hold on; plot(Rm(5:8,:)'); hold off; legend;
 
     % FC-SC detection (FC(z) vs. cell count)
-    A1 = squeeze(AUC(1,:,:));
+    % cell count: only ROI was transformed. cell count2: synapse points were transformed and re-counted in all ROI. 
+%{
+    A1 = squeeze(AUC(1,:,:)); % for internal check
     figure; boxplot(A1,'Labels',rlabel); title('FC-SC detection (FC(z) vs. cell count)');
+    A5 = squeeze(AUC(5,:,:));
+    figure; boxplot(A5,'Labels',rlabel); title('FC-SC detection (FC(z) vs. cell count2)');
 
-    A2 = squeeze(AUC(2,:,:));
+    A2 = squeeze(AUC(2,:,:)); % for internal check
     figure; boxplot(A2,'Labels',rlabel); title('FC-SC detection (FC(z) vs. synapse weight)');
+    A6 = squeeze(AUC(6,:,:));
+    figure; boxplot(A6,'Labels',rlabel); title('FC-SC detection (FC(z) vs. synapse weight2)');
+%}
+    AA = squeeze(AUC(17,:,:));
+    figure; boxplot(AA,'Labels',rlabel); title('FC-SC detection (FC(z) vs. synapse count b)');
+    AA = squeeze(AUC(18,:,:));
+    figure; boxplot(AA,'Labels',rlabel); title('FC-SC detection (FC T-val vs. synapse count b)');
+    AA = squeeze(AUC(19,:,:));
+    figure; boxplot(AA,'Labels',rlabel); title('FC-SC detection (FC(z) vs. ROI in-neuron weight b)');
+    AA = squeeze(AUC(20,:,:));
+    figure; boxplot(AA,'Labels',rlabel); title('FC-SC detection (FC T-val vs. ROI in-neuron weight b)');
 
-    AA = reshape(AUC,[4*size(AUC,2),size(AUC,3)]);
-    figure; boxplot(A2,'Labels',rlabel); title('FC-SC detection (4-type mixed plot)');
+    AA = squeeze(nanmean(AUC,2));
+    figure; boxplot(AA(5:8,:),'Labels',rlabel); title('FC-SC detection (4-type mixed plot)');
+    hold on; plot(AA(5:8,:)'); hold off; legend;
 end

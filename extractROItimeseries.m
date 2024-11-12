@@ -10,24 +10,29 @@ function extractROItimeseries
     % output time-series (smoothing, highpass filter, nuisance removal)
     hpfTh = [0]; % high-pass filter threshold
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
-%    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60'};
+    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60'};
 %    smooth = {'m10'};
-    smooth = {''};
+%    smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
         '6hmacomp','6hmgmacomp','6hmgmgsacomp','6hmtcomp','6hmtacomp', ... %22
         '24hmacomp','24hmgmacomp','24hmgmgsacomp','24hmtcomp','24hmtacomp', ... %27
         'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
-%    nuisance = {'', 'poltcomp'}; % good for flyemroi
-    nuisance = {'', 'tacomp'}; % good for bransonhemi
+%    nuisance = {'', '6hmtacomp'}; % good for flyemroi
+%    nuisance = {'6hmtacomp'}; % good for bransonhemi
+%    nuisance = {'tcomp'}; % good for hemicube4
+    nuisance = {''};
 
     % ROI name
 %    roitype = 'flyemroi';
 %    roitype = 'bransonhemi';
-    roitype = 'hemicube4';
+%    roitype = 'hemiCube4';
+%    roitype = 'hemiRoi101'; % neuropil-FB
+%    roitype = 'hemiRoi57'; % neuropil-EB
+    roitype = 'hemiRoi57-51'; % neuropil-EB-bL(L)
 
-    TR = 1 / 1.8;
+    TR = 1 / 1.879714;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     roiIdxs = {};
@@ -49,8 +54,9 @@ function extractROItimeseries
         for i=1:roimax
             roiIdxs{i} = find(V==i);
         end
-    case 'hemicube4'
-        V = niftiread('data/hemiCube4atlasCal.nii.gz'); % ROI mask should have same transform with 4D nifti data
+    otherwise
+        V = niftiread(['data/' roitype 'atlasCal.nii.gz']); % ROI mask should have same transform with 4D nifti data
+        roitype = lower(roitype);
         roimax = max(V(:));
         for i=1:roimax
             roiIdxs{i} = find(V==i);
@@ -241,9 +247,9 @@ function extractROItimeseries
                         % show timeseries
 %                        figure; plot(X'); title(name);
                     end
-    
+%{
                     % fix data
-                    if strcmp(roitype,'flyemroi') && size(CX{1},2) > 3000
+                    if size(CX{1},2) > 3000
                         X = CX{1} + CXm{1};
                         X = X(:,1:2700); % because of strange movement
                 
@@ -253,6 +259,7 @@ function extractROItimeseries
                         CXm{1} = Xm;
 %                        figure; plot(X');
                     end
+%}
                     save(outfname,'CX','CXm');
                 end
             end

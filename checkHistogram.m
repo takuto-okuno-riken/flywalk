@@ -1,11 +1,23 @@
-% checking registered calcium imaging histogram, etc.
+% checking hemibrain ROI voxel size
+% checking histogram of registered calcium imaging nifti file
 
 function checkHistogram
     % load FDA cal mask
     mV = niftiread('data/thresholded_FDACal_mask.nii.gz');
     midx = find(mV>0);
 
-    % read nii files
+    % ---------------------------------------------------------------------
+    % checking hemibrain ROI voxel size
+    roinum = 114;
+    voxsize = [];
+    for i=1:roinum
+        info = niftiinfo(['data/flyemroi/roi' num2str(i) '.nii.gz']);
+        aV = niftiread(info);
+        voxsize(i) = length(find(aV>0));
+    end
+
+    % ---------------------------------------------------------------------
+    % checking histogram of registered calcium imaging nifti file
     listing = dir('registered/ar*green_FD_Warped.nii.gz');
     M = []; S = []; names = {};
     for i=1:length(listing)
