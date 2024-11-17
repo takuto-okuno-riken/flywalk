@@ -64,7 +64,8 @@ function makeVoxelROIatlas
     end
 
     % make neuropil specific voxel type atlas
-    roiids = {[101],[57],[57,51]}; % FB, EB, EB-bL(L)
+%    roiids = {[101],[57],[57,51],[51,62,20,111,100]}; % FB, EB, EB-bL(L),bL-b'L-aL-a'L-BU(L)
+    roiids = {1	5	7	27	30	32	43	52	54	57	59	63	65	67	78	82	89	93	95	100	101	106	113};
     for i=1:length(roiids)
         idstr = num2str(roiids{i}(1));
         for j=2:length(roiids{i}), idstr=[idstr '-' num2str(roiids{i}(j))]; end
@@ -101,4 +102,41 @@ function makeVoxelROIatlas
         end
         disp([atlas ' ROI count=' num2str(max(aV(:)))]);
     end
+
+    % make whole flyem ROI voxel atlas (except fibers)
+    primaryId = [1	2	4	5	7	8	10	15	16	18	19 20	22	24	27	28	30	31 32	33	34	38	41	42 43	45	47	49	50	51	52	54	56	57	58	59	62	63	65	66	67	68	75	76 78	80	82	87	89	91	93	95	97	98	100	101	102	103	106	107	111	112	113];
+    atlas = ['data/' name 'RoiWholeatlasCal.nii' ];
+    if exist([atlas '.gz'],'file')
+        atlasinfo = niftiinfo([atlas '.gz']);
+        aV = niftiread(atlasinfo);
+    else
+        info = niftiinfo(['data/flyemroi/roi' num2str(primaryId(1)) '.nii.gz']);
+        aV = niftiread(info); % ROI mask should have same transform with 4D nifti data
+        for i=1:length(primaryId)
+            bV = niftiread(['data/flyemroi/roi' num2str(primaryId(i)) '.nii.gz']);
+            bidx = find(bV>0);
+            aV(bidx) = primaryId(i);
+        end
+        % remove fibers
+        fV = niftiread('data/jrc2018f_IBN_fiber_bundle_mirror_maskCal_invFDACal.nii.gz');
+        aV(fV>127) = 0; 
+        idx = find(aV>0);
+        aV(idx) = 1:length(idx); % if comment out this line, ROI atlas can be saved
+
+        if max(aV(:)) > 65535
+            aV = int32(aV);
+            info.Datatype = 'int32';
+            info.BitsPerPixel = 32;
+        else
+            aV = uint16(aV);
+            info.Datatype = 'uint16';
+            info.BitsPerPixel = 16;
+        end
+
+        % set info. info.raw is not necessary to set (niftiwrite() does it)
+        info.Description = 'neuropil specific atlas';
+        % output nii file
+        niftiwrite(aV,atlas,info,'Compressed',true);
+    end
+    disp([atlas ' ROI count=' num2str(max(aV(:)))]);
 end

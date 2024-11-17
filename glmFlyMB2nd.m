@@ -17,6 +17,8 @@ function glmFlyMB2nd
     hpfstr = '';
     if hpfTh > 0, hpfstr = ['hf' num2str(round(1/hpfTh))]; end
 
+    path = 'results/glm/';
+
     % load background nii
     backNii = 'data/thresholded_FDACal.nii.gz';
     backinfo = niftiinfo(backNii);
@@ -65,7 +67,7 @@ function glmFlyMB2nd
     FWHMs = mean(FWHMs,1); % let's take the mean of FWHM.
 
     for tuM = tuM
-        betaBmat = [path smooth hpfstr nuisance preproc subject '-Tukey' num2str(tuM) 'full.mat'];
+        betaBmat = [path smooth hpfstr nuisance preproc 'fly-all-Tukey' num2str(tuM) 'full.mat'];
         if exist(betaBmat,'file')
             % load beta volumes
             load(betaBmat);
@@ -73,7 +75,7 @@ function glmFlyMB2nd
             % calc 2nd-level estimation
             [B, RSS, df, X2is, tRs, R] = calcGlmTukey(B1, X2, tuM);
 
-            [recel, FWHM] = estimateSmoothFWHM(R, RSS, df, atlasV);
+            [recel, FWHM] = estimateSmoothFWHM(R, RSS, df, maskV);
 
             % output beta matrix
             save(betaBmat,'B','RSS','X2is','tRs','recel','FWHM','df','-v7.3');
@@ -83,16 +85,17 @@ function glmFlyMB2nd
         Ts = calcGlmContrastImage(contrasts, B, RSS, X2is, tRs);
 
         % GLM contrast image
+        fname = betaBmat(13:end-8);
         thParam = {df, Pth};
-        clParam = {69, FWHMs}; % clustering parameter for GLM contrast
-%        thParam = {df, 0.01};
-%        clParam = {64, FWHMs}; % clustering parameter for GLM contrast
+        clParam = {41, FWHMs}; % clustering parameter for GLM contrast
+        thParam = {df, 0.01};
+%        clParam = {41, FWHMs}; % clustering parameter for GLM contrast
         [Tth, Vts, Vfs, Tmaxs, Tcnts] = plotGlmContrastImage(contnames, Ts, thParam, clParam, maskV, true, false, backV, ...
-            ['glmFlyMB ' '2nd-mix-Tukey' num2str(tuM) 'full'], rangePlus, rangeMinus, [], [], []);
+            fname, rangePlus, rangeMinus, [], [], []);
 
         % save T-value NIfTI volume
-        saveContrastNii(backNii,contnames,Vts,path,[cubename prefix 'D_2nd-mix-Tukey' num2str(tuM) 'th']);
-%        saveContrastNii(backNii,contnames,Vfs,path,[cubename prefix 'D_2nd-mix-Tukey' num2str(tuM) 'full']);
+        saveContrastNii(backNii,contnames,Vts,path,[fname 'th']);
+        saveContrastNii(backNii,contnames,Vfs,path,[fname 'full']);
     end
 end
 

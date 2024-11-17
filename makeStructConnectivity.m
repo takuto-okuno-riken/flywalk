@@ -144,7 +144,7 @@ function makeStructConnectivity
     if exist(fname,'file')
         load(fname);
     else
-        atlV = niftiread('data/hemiCube4atlasCal.nii.gz'); % ROI mask should have same transform with 4D nifti data
+        atlV = niftiread('data/hemiCube4atlasCal.nii.gz');
         roimax = max(atlV(:));
         sz = size(atlV);
 
@@ -170,7 +170,8 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from synapse list for fanshape body (FB) and others.
     % extract voxel ids from fanshape-body (FB), eliptic-body (EB), and other atlas.
-    roiids = {[101],[57],[57,51]}; % FB, EB, EB-bL(L)
+%    roiids = {[101],[57],[57,51],[51,62,20,111,100]}; % FB, EB, EB-bL(L), bL-b'L-aL-a'L-BU(L)
+    roiids = {1	5	7	27	30	32	43	52	54	57	59	63	65	67	78	82	89	93	95	100	101	106	113};
 
     for k = 1:length(roiids)
         idstr = num2str(roiids{k}(1));
@@ -181,7 +182,7 @@ function makeStructConnectivity
         if exist(fname,'file')
             load(fname);
         else
-            atlV = niftiread(['data/hemiRoi' idstr 'atlasCal.nii.gz']); % ROI mask should have same transform with 4D nifti data
+            atlV = niftiread(['data/hemiRoi' idstr 'atlasCal.nii.gz']);
             roimax = max(atlV(:));
             sz = size(atlV);
     
@@ -204,6 +205,38 @@ function makeStructConnectivity
         figure; imagesc(log(CM2)); colorbar; title(['hemiroi ' idstr ' cell count 2 matrix']);
         figure; imagesc(log(SM)); colorbar; title(['hemiroi ' idstr ' synapse count matrix']);
     end
+
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix from synapse list for all EM ROI voxels (except fibers).
+
+    clear countMat2; clear sycountMat; clear weightMat2;
+    fname = ['data/hemiroiwhole_connectlist.mat'];
+    if exist(fname,'file')
+        load(fname);
+    else
+        atlV = niftiread(['data/hemiRoiWholeatlasCal.nii.gz']);
+        roimax = max(atlV(:));
+        sz = size(atlV);
+
+        roiIdxs = {};
+        for i=1:roimax
+            roiIdxs{i} = find(atlV==i);
+        end
+
+        primaryIds = 1:roimax;
+        roiNum = length(primaryIds);
+
+        [countMat2, sycountMat, weightMat2, outweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0);
+
+        countMat = []; weightMat = [];
+        save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
+        save([fname(1:end-4) '_cnids.mat'],'Cnids','-v7.3');
+    end
+
+    ids = primaryIds;
+    CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
+    figure; imagesc(log(CM2)); colorbar; title(['hemiroi whole cell count 2 matrix']);
+    figure; imagesc(log(SM)); colorbar; title(['hemiroi whole synapse count matrix']);
 end
 
 function imagescLabel(mat, labelNames, titlestr)
