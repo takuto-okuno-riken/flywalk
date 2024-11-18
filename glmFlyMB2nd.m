@@ -33,9 +33,9 @@ function glmFlyMB2nd
     % contrast image params
     contnames = {'movement'};
     contrasts = {[1 0]'};
-    Pth = 0.001; % pvalue threshold
-    rangePlus = [nan 15];
-    rangeMinus = [nan 15];
+    Pth = 0.01; % pvalue threshold
+    rangePlus = [nan 10];
+    rangeMinus = [nan 10];
 
     % calc 2nd-level estimation
     B1 = [];
@@ -47,7 +47,7 @@ function glmFlyMB2nd
         name = listing(i).name;
         subject = name(7:13);
 
-        betaBmat = [path smooth hpfstr nuisance preproc subject '-Tukey' num2str(tuM) '.mat'];
+        betaBmat = [path smooth hpfstr nuisance preproc subject '-Tukey8.mat'];
         if ~exist(betaBmat,'file')
             disp(['file not found. please calc individual sessions first : ' betaBmat])
             continue;
@@ -88,8 +88,6 @@ function glmFlyMB2nd
         fname = betaBmat(13:end-8);
         thParam = {df, Pth};
         clParam = {41, FWHMs}; % clustering parameter for GLM contrast
-        thParam = {df, 0.01};
-%        clParam = {41, FWHMs}; % clustering parameter for GLM contrast
         [Tth, Vts, Vfs, Tmaxs, Tcnts] = plotGlmContrastImage(contnames, Ts, thParam, clParam, maskV, true, false, backV, ...
             fname, rangePlus, rangeMinus, [], [], []);
 
