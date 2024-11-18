@@ -1,5 +1,5 @@
-% analyze functional connectivity matrix (1st, 2nd level analysis).
-% need to run makeStructConnectivity.m, extractROItimeseries.m first.
+% analyze functional connectivity matrix (1st and 2nd level analysis).
+% this script should run after makeVoxelROIatlas.m, makeStructConnectivity.m, extractROItimeseries.m first.
 
 function analyzeFuncConnectivity
     %%%%%%%%%%%%%% set parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -10,8 +10,8 @@ function analyzeFuncConnectivity
     % output time-series (smoothing, highpass filter, nuisance removal)
     hpfTh = [0]; % high-pass filter threshold
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
-%    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60'};
-    smooth = {''};
+    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
+%    smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
         '6hmacomp','6hmgmacomp','6hmgmgsacomp','6hmtcomp','6hmtacomp', ... %22
@@ -21,21 +21,25 @@ function analyzeFuncConnectivity
 %    nuisance = {'6hmtacomp'}; % good for flyemroi
 %    nuisance = {'6hmtacomp'}; % good for bransonhemi
 %    nuisance = {'tcomp'}; % good for hemicube4
-%    nuisance = {''};
+    nuisance = {''};
 
     % using subjects (flys). sbj 7 shows NaN row in FC matrix
     sbjids = [1 2 3 4 5 6 8 9];
 
     % ROI name
-%    roitype = 'flyemroi';   % flyem ROI (Turner compatible)
-%    roitype = 'flyemroif';  % flyem ROI full
-%    roitype = 'bransonhemi';
-%    roitype = 'hemiCube4';
-%    roitype = 'hemiRoi101'; % neuropil-FB
-%    roitype = 'hemiRoi57'; % neuropil-EB
-    roitype = 'hemiRoi57-51'; % neuropil-EB-bL(L)
+%    roitypes = {'flyemroif'};  % flyem ROI full
+%    roitypes = {'flyemroi','bransonhemi''hemiCube4'}; % flyem ROI (Turner compatible)
+    % neuropil FB, EB, EB-bL(L), bL-b'L-aL-a'L-BU(L)
+    roitypes = {'hemiRoi101','hemiRoi57','hemiRoi57-51','hemiRoi51-62-20-111-100'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    for n = 1:length(roitypes)
+        analyzeFcROItype(roitypes{n}, preproc, hpfTh, smooth, nuisance, sbjids)
+    end
+end
+
+function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
 
     % load structural connectivity matrix (from makeStructConnectivity.m)
     switch(roitype)
@@ -301,32 +305,32 @@ function analyzeFuncConnectivity
         end
     end
     % FC-SC correlation (4-type mixed box plot)
-    figure; boxplot(Rm(5:8,:),'Labels',rlabel); title('FC-SC correlation (4-type mixed plot)');
+    figure; boxplot(Rm(5:8,:),'Labels',rlabel); title([roitype ' FC-SC correlation (4-type mixed plot)']);
     hold on; plot(Rm(5:8,:)'); hold off; legend;
 
     % FC-SC detection (FC(z) vs. cell count)
     % cell count: only ROI was transformed. cell count2: synapse points were transformed and re-counted in all ROI. 
 %{
     A1 = squeeze(AUC(1,:,:)); % for internal check
-    figure; boxplot(A1,'Labels',rlabel); title('FC-SC detection (FC(z) vs. cell count)');
+    figure; boxplot(A1,'Labels',rlabel); title([roitype ' FC-SC detection (FC(z) vs. cell count)']);
     A5 = squeeze(AUC(5,:,:));
-    figure; boxplot(A5,'Labels',rlabel); title('FC-SC detection (FC(z) vs. cell count2)');
+    figure; boxplot(A5,'Labels',rlabel); title([roitype ' FC-SC detection (FC(z) vs. cell count2)']);
 
     A2 = squeeze(AUC(2,:,:)); % for internal check
-    figure; boxplot(A2,'Labels',rlabel); title('FC-SC detection (FC(z) vs. synapse weight)');
+    figure; boxplot(A2,'Labels',rlabel); title([roitype ' FC-SC detection (FC(z) vs. synapse weight)']);
     A6 = squeeze(AUC(6,:,:));
-    figure; boxplot(A6,'Labels',rlabel); title('FC-SC detection (FC(z) vs. synapse weight2)');
+    figure; boxplot(A6,'Labels',rlabel); title([roitype ' FC-SC detection (FC(z) vs. synapse weight2)']);
 %}
     AA = squeeze(AUC(17,:,:));
-    figure; boxplot(AA,'Labels',rlabel); title('FC-SC detection (FC(z) vs. synapse count b)');
+    figure; boxplot(AA,'Labels',rlabel); title([roitype ' FC-SC detection (FC(z) vs. synapse count b)']);
     AA = squeeze(AUC(18,:,:));
-    figure; boxplot(AA,'Labels',rlabel); title('FC-SC detection (FC T-val vs. synapse count b)');
+    figure; boxplot(AA,'Labels',rlabel); title([roitype ' FC-SC detection (FC T-val vs. synapse count b)']);
     AA = squeeze(AUC(19,:,:));
-    figure; boxplot(AA,'Labels',rlabel); title('FC-SC detection (FC(z) vs. ROI in-neuron weight b)');
+    figure; boxplot(AA,'Labels',rlabel); title([roitype ' FC-SC detection (FC(z) vs. ROI in-neuron weight b)']);
     AA = squeeze(AUC(20,:,:));
-    figure; boxplot(AA,'Labels',rlabel); title('FC-SC detection (FC T-val vs. ROI in-neuron weight b)');
+    figure; boxplot(AA,'Labels',rlabel); title([roitype ' FC-SC detection (FC T-val vs. ROI in-neuron weight b)']);
 
     AA = squeeze(nanmean(AUC,2));
-    figure; boxplot(AA(5:8,:),'Labels',rlabel); title('FC-SC detection (4-type mixed plot)');
+    figure; boxplot(AA(5:8,:),'Labels',rlabel); title([roitype ' FC-SC detection (4-type mixed plot)']);
     hold on; plot(AA(5:8,:)'); hold off; legend;
 end
