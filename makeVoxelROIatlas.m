@@ -18,7 +18,7 @@ function makeVoxelROIatlas
     Vm = Vm .* single(Vfm); % and condition.
 
     % make cube ROI type atlas
-    for atlasSize = 6:-1:3
+    for atlasSize = 6:-1:2
         cubename = [name 'Cube' num2str(atlasSize)];
         atlas = ['data/' cubename 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
@@ -56,6 +56,52 @@ function makeVoxelROIatlas
 
             % set info. info.raw is not necessary to set (niftiwrite() does it)
             info.Description = 'Cube ROI';
+            % output nii file
+            niftiwrite(aV,atlas,info,'Compressed',true);
+        end
+
+        disp([atlas ' ROI count=' num2str(max(aV(:)))]);
+    end
+
+    % make piece ROI type atlas (take one voxel per 2,3,4... cube voxel)
+    for atlasSize = 4:-1:2
+        piecename = [name 'Piece' num2str(atlasSize)];
+        atlas = ['data/' piecename 'atlasCal.nii' ];
+        if exist([atlas '.gz'],'file')
+            atlasinfo = niftiinfo([atlas '.gz']);
+            aV = niftiread(atlasinfo);
+        else
+            c = 1;
+            sz = size(Vm);
+            aV = zeros(sz(1),sz(2),sz(3),'single');
+            for z=1:floor(sz(3)/atlasSize)
+                zi = 1+(z-1)*atlasSize;
+                for y=1:floor(sz(2)/atlasSize)
+                    yi = 1+(y-1)*atlasSize;
+                    for x=1:floor(sz(1)/atlasSize)
+                        xi = 1+(x-1)*atlasSize;
+                        Vi = Vm(xi,yi,zi);
+                        if Vi > 0
+                            aV(xi,yi,zi) = c; c = c + 1;
+                        end
+                    end
+                end
+            end
+            aV = aV .* Vm;
+
+            % use info as template for cubeAtlas, but direction is opposite.
+            if max(aV(:)) > 65535
+                aV = int32(aV);
+                info.Datatype = 'int32';
+                info.BitsPerPixel = 32;
+            else
+                aV = uint16(aV);
+                info.Datatype = 'uint16';
+                info.BitsPerPixel = 16;
+            end
+
+            % set info. info.raw is not necessary to set (niftiwrite() does it)
+            info.Description = 'Piece ROI';
             % output nii file
             niftiwrite(aV,atlas,info,'Compressed',true);
         end
