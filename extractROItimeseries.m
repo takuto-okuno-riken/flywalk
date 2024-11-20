@@ -27,9 +27,10 @@ function extractROItimeseries
 
     % ROI name
 %    roitypes = {'flyemroi','bransonhemi','hemiCube4'};
+    roitypes = {'hemiPiece3'};
     % neuropil FB, EB, EB-bL(L), bL-b'L-aL-a'L-BU(L)
 %    roitypes = {'hemiRoi101','hemiRoi57','hemiRoi57-51','hemiRoi51-62-20-111-100'};
-    roitypes = {'hemiRoi1','hemiRoi5','hemiRoi7','hemiRoi27','hemiRoi30','hemiRoi32','hemiRoi43','hemiRoi52'};
+%    roitypes = {'hemiRoi1','hemiRoi5','hemiRoi7','hemiRoi27','hemiRoi30','hemiRoi32','hemiRoi43','hemiRoi52'};
 %    roitypes = {'hemiRoi54','hemiRoi57','hemiRoi59','hemiRoi63','hemiRoi65','hemiRoi67','hemiRoi78','hemiRoi82'};
 %    roitypes = {'hemiRoi89','hemiRoi93','hemiRoi95','hemiRoi100','hemiRoi101','hemiRoi106','hemiRoi113'};
 
@@ -142,7 +143,7 @@ function extractTsROItype(roitypes, preproc, hpfTh, smooth, nuisance)
                             end
     
                             % nuisance regression
-                            Xn = [];
+                            Xn = []; perm = []; RiQ = []; dR2i = [];
                             if ~isempty(nuisance{n})
                                 hm = 0;
                                 if length(nuisance{n}) >= 3 && strcmp(nuisance{n}(1:3), '6hm')
@@ -221,12 +222,21 @@ function extractTsROItype(roitypes, preproc, hpfTh, smooth, nuisance)
     
                             sz = size(Vk);
                             Vk = reshape(Vk, [sz(1)*sz(2)*sz(3) sz(4)]);
-                
-                            X = [];
-                            for j=1:length(roiIdxs)
+
+                            roinum = length(roiIdxs);
+                            CZ = cell(1,roinum);
+                            for j=1:roinum
                                 midx = roiIdxs{j};
                                 if ~isempty(midx)
-                                    Z = Vk(midx,:);
+                                    CZ{j} = Vk(midx,:);
+                                end
+                            end
+                            clear Vk;
+
+                            CY = cell(1,roinum);
+                            parfor j=1:roinum
+                                if ~isempty(CZ{j})
+                                    Z = CZ{j};
                                     % nuisance regression out
                                     if ~isempty(Xn)
                                         disp(['apply nuisance regression out (' nuisance{n} ') : ROI(' num2str(j) ') time-series ...']);
@@ -245,10 +255,16 @@ function extractTsROItype(roitypes, preproc, hpfTh, smooth, nuisance)
                                     end
                                     x = nanmean(Z,1);
                                 else
-                                    x = nan(1,size(Vk,2));
+                                    x = nan(1,sz(4));
                                 end
-                                X = [X; x];
+                                CY{j} = x;
                             end
+                            X = nan(length(CY),sz(4));
+                            for j=1:length(CY)
+                                X(j,:) = CY{j};
+                            end
+                            clear CY;
+
                             Xm = nanmean(X,2);
                             X = X - Xm;
     
