@@ -6,7 +6,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from neuprint connectivity list.
     % list data was acquired by c.fetch_roi_connectivity() of neuprint python api.
-%{
+%%{
     % primary ROIs
     primaryIds = [103	107	20	111	59	68	65	78	34	4	49	51	62	106	87	47	100	24	27	43	38	5	57	22	89	101	97	75	50	58	41	113	10	2	32	66	45	30	67	19	76	31	82	93	54	52	8	7	74	42	80	1	102	63	95	56];
     roiNum = 114;
@@ -35,10 +35,32 @@ function makeStructConnectivity
             sz = size(V);
         end
 
-        [countMat2, sycountMat, weightMat2, outweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0);
+        [countMat2, sycountMat, weightMat2, outweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'hemiroi');
+
         save(fname,'connectlist','countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
         save([fname(1:end-4) '_cnids.mat'],'Cnids','-v7.3');
     end
+
+    % check large sparse version
+%{
+        roiIdxs = {};
+        listing = dir(['data/flyemroi/*.nii.gz']);
+        for i=1:length(listing)
+            V = niftiread(['data/flyemroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+            roiIdxs{i} = find(V>0);
+            sz = size(V);
+        end
+        [countMat3, sycountMat3] = makeSCcountMatrixLarge(roiIdxs, sz, 0.8, 0, 'hemiroi');
+        dcm = countMat2(:,:,2) - full(countMat3);
+        disp(['countMat2-countMat3 : '  num2str(sum(abs(dcm),'all'))]);
+        dsm = sycountMat(:,:,2) - full(sycountMat3);
+        disp(['sycountMat2-sycountMat3 : '  num2str(sum(abs(dsm),'all'))]);
+
+        [weightMat3] = makeSCweightMatrixLarge(sycountMat3, 'hemiroi');
+        swm = single(full(weightMat3) ./ sycountMat(:,:,2)); swm(isnan(swm)) = 0;
+        dwm = weightMat2(:,:,2) - sycountMat(:,:,2) .* swm;
+        disp(['weightMat2-weightMat3 : '  num2str(sum(abs(dwm),'all'))]);
+%}
 
     % find primary ROI ids from list 
     % !caution! neurite does not return full primary ROI connections
@@ -123,7 +145,7 @@ function makeStructConnectivity
             end
         end
 
-        [countMat2, sycountMat, weightMat2, outweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0);
+        [countMat2, sycountMat, weightMat2, outweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'branson');
         save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
     end
 %{
@@ -156,7 +178,7 @@ function makeStructConnectivity
         primaryIds = 1:roimax;
         roiNum = length(primaryIds);
 
-        [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0);
+        [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'hemicube4');
 
         countMat = []; weightMat = [];
         save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
@@ -189,7 +211,7 @@ function makeStructConnectivity
         primaryIds = 1:roimax;
         roiNum = length(primaryIds);
 
-        [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0);
+        [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'hemipiece3');
 
         countMat = []; weightMat = [];
         save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
@@ -227,7 +249,7 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0);
+            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, ['hemiroi' idstr]);
     
             countMat = []; weightMat = [];
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
@@ -260,19 +282,19 @@ function makeStructConnectivity
         primaryIds = 1:roimax;
         roiNum = length(primaryIds);
 
-        [countMat, sycountMat] = makeSCcountMatrixLarge(roiIdxs, sz, 0.8, 0);
+        [countMat, sycountMat] = makeSCcountMatrixLarge(roiIdxs, sz, 0.8, 0, 'hemiRoiWhole');
         
-        save([fname(1:end-4) '_cm.mat'],'countMat');
-        save([fname(1:end-4) '_sm.mat'],'sycountMat');
+        save([fname(1:end-4) '_cm.mat'],'countMat','-v7.3');
+        save([fname(1:end-4) '_sm.mat'],'sycountMat','-v7.3');
     end
     if exist([fname(1:end-4) '_wm.mat'],'file')
         load([fname(1:end-4) '_wm.mat']);
     else
         roiNum = size(sycountMat,1);
         primaryIds = 1:roiNum;
-        [weightMat] = makeSCweightMatrixLarge(sycountMat);
+        [weightMat] = makeSCweightMatrixLarge(sycountMat, 'hemiRoiWhole');
 
-        save([fname(1:end-4) '_wm.mat'],'weightMat','primaryIds','roiNum');
+        save([fname(1:end-4) '_wm.mat'],'weightMat','primaryIds','roiNum','-v7.3');
     end
 end
 
@@ -284,15 +306,17 @@ function imagescLabel(mat, labelNames, titlestr)
     set(gca,'YTickLabel',labelNames);
 end
 
-function [countMat, sycountMat, weightMat, outweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, rateTh, synTh)
+function [countMat, sycountMat, weightMat, outweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, rateTh, synTh, type)
 
     % read neuron info (id, connection number, size)
     Nid = []; Nstatus = [];
     load('data/hemibrain_v1_2_neurons.mat');
+    clear Nconn; clear Ncrop; clear Nsize; 
 
     % read synapse info
     Sdir = []; StoN = []; Srate = [];
     load('data/hemibrain_v1_2_synapses.mat');
+    clear StoS; clear Sloc;
 
     % read synapse location in FDA
     SlocFc = [];
@@ -315,6 +339,53 @@ function [countMat, sycountMat, weightMat, outweightMat, Ncount, Cnids] = makeSC
         save(cfile,'C','-v7.3');
     end
 
+    % use only accurate synapse more than 'rate'
+    idx = find(Srate < rateTh); % use only accurate synapse more than 'rate'
+    Sdir(idx) = 0; 
+    clear Srate;
+
+    roimax = length(roiIdxs);
+    nfile = ['results/cache-' type '_Nin_Nout.mat'];
+    if exist(nfile,'file')
+        load(nfile);
+    else
+        Nin = cell(roimax,1); Nout = cell(roimax,1);
+        for i=1:roimax
+            if isempty(roiIdxs{i}), continue; end
+            disp(['Nin_Nout ' num2str(i) ' / ' num2str(roimax)]);
+    
+            % find post synapses in that Cube ROI.
+    %        [x,y,z] = ind2sub(sz,roiIdxs{i}(10)); % check by ind2sub
+    %        C{x,y,z}
+            D = C(roiIdxs{i});
+            sids = [];
+            for j=1:length(D)
+                sids = [sids, D{j}];
+            end
+            sids = unique(sids);
+            idx = find(Sdir(sids)==2); % get post-synapse ids in this ROI
+            postsids = sids(idx);
+            outnids = unique(StoN(postsids)); % get (post-synapse) traced & orphan body-ids
+            % get pre and post neurons in ROI(i)
+            Nout{i}{1} = outnids; % all output cells (including orphan, etc)
+            logis = ismember(Nid,outnids);
+            Nout{i}{2} = Nid(logis & Nstatus==1); % output traced neuron in ROI(i)
+            logis = ismember(outnids, Nout{i}{2});
+            Nout{i}{3} = outnids(~logis); % output orphan bodys
+    
+            idx = find(Sdir(sids)==1); % get pre-synapse ids in this ROI
+            presids = sids(idx);
+            innids = unique(StoN(presids)); % get (pre-synapse) traced & orphan body-ids
+            Nin{i}{1} = innids; % all input cells (including orphan, etc)
+            logis = ismember(Nid,innids);
+            Nin{i}{2} = Nid(logis & Nstatus==1); % input traced neuron in ROI(i)
+            logis = ismember(innids, Nin{i}{2});
+            Nin{i}{3} = innids(~logis); % input orphan bodys
+        end
+        save(nfile,'Nin','Nout','-v7.3');
+    end
+    clear Nid; clear Nstatus;
+
     roimax = length(roiIdxs);
     sycountMat = nan(roimax,roimax,3,'single');
     countMat = nan(roimax,roimax,3,'single');
@@ -322,7 +393,6 @@ function [countMat, sycountMat, weightMat, outweightMat, Ncount, Cnids] = makeSC
     outweightMat = nan(roimax,roimax,3,'single');
 
     CC = cell(roimax,1);
-    Nin = cell(roimax,1); Nout = cell(roimax,1);
 %    for i=1:roimax
     parfor i=1:roimax
         if isempty(roiIdxs{i}), continue; end
@@ -331,36 +401,6 @@ function [countMat, sycountMat, weightMat, outweightMat, Ncount, Cnids] = makeSC
         % find post synapses in that Cube ROI.
 %        [x,y,z] = ind2sub(sz,roiIdxs{i}(10)); % check by ind2sub
 %        C{x,y,z}
-        D = C(roiIdxs{i});
-        sids = [];
-        for j=1:length(D)
-            sids = [sids, D{j}];
-        end
-        sids = unique(sids);
-        idx = find(Sdir(sids)==2); % get post-synapse ids in this ROI
-        postsids = sids(idx);
-        idx = find(Srate(postsids) >= rateTh); % use only accurate synapse more than 'rate'
-        postsids = postsids(idx);
-        outnids = unique(StoN(postsids)); % get (post-synapse) traced & orphan body-ids
-        % get pre and post neurons in ROI(i)
-        Nout{i}{1} = outnids; % all output cells (including orphan, etc)
-        logis = ismember(Nid,outnids);
-        idx = find(logis & Nstatus==1); % find traced cells (, so neurons)
-        Nout{i}{2} = Nid(idx); % output traced neuron in ROI(i)
-        logis = ismember(outnids, Nout{i}{2});
-        Nout{i}{3} = outnids(~logis); % output orphan bodys
-
-        idx = find(Sdir(sids)==1); % get pre-synapse ids in this ROI
-        presids = sids(idx);
-        idx = find(Srate(presids) >= rateTh); % use only accurate synapse more than 'rate'
-        presids = presids(idx);
-        innids = unique(StoN(presids)); % get (pre-synapse) traced & orphan body-ids
-        Nin{i}{1} = innids; % all input cells (including orphan, etc)
-        logis = ismember(Nid,innids);
-        idx = find(logis & Nstatus==1); % find traced cells (, so neurons)
-        Nin{i}{2} = Nid(idx); % input traced neuron in ROI(i)
-        logis = ismember(innids, Nin{i}{2});
-        Nin{i}{3} = innids(~logis); % input orphan bodys
 
         % three patterns, full (including orphan, etc), neurons, others (orphan, etc)
         CX = cell(roimax,3);
@@ -372,8 +412,6 @@ function [countMat, sycountMat, weightMat, outweightMat, Ncount, Cnids] = makeSC
             outsids = find(logi==1);
             idx = find(Sdir(outsids)==1); % get pre-synapse ids of output neurons
             presids = outsids(idx);
-            idx = find(Srate(presids) >= rateTh); % use only accurate synapse more than 'rate'
-            presids = presids(idx);
     
             % get connected synapse counts in each ROI (from ROI to connected ROI)
             Vs = zeros(sz(1),sz(2),sz(3),'int32');
@@ -413,6 +451,7 @@ function [countMat, sycountMat, weightMat, outweightMat, Ncount, Cnids] = makeSC
         end
         CC{i} = CX;
     end
+    clear SlocFc; clear Sdir;
 
     % calculate weight matrix (full, neurons, others)
     for p=1:3
@@ -466,7 +505,7 @@ function [countMat, sycountMat, weightMat, outweightMat, Ncount, Cnids] = makeSC
     end
 end
 
-function [countMat, sycountMat] = makeSCcountMatrixLarge(roiIdxs, sz, rateTh, synTh)
+function [countMat, sycountMat] = makeSCcountMatrixLarge(roiIdxs, sz, rateTh, synTh, type)
 
     % read neuron info (id, connection number, size)
     Nid = []; Nstatus = [];
@@ -505,14 +544,14 @@ function [countMat, sycountMat] = makeSCcountMatrixLarge(roiIdxs, sz, rateTh, sy
     clear Srate;
 
     roimax = length(roiIdxs);
-    nfile = 'results/cache-hemibrain_Nin_Nout.mat';
+    nfile = ['results/cache-' type '_L_Nin_Nout.mat'];
     if exist(nfile,'file')
         load(nfile);
     else
         Nin = cell(roimax,1); Nout = cell(roimax,1);
         for i=1:roimax
             if isempty(roiIdxs{i}), continue; end
-            disp(['ROI ' num2str(i) ' / ' num2str(roimax)]);
+            disp(['Nin_Nout ' num2str(i) ' / ' num2str(roimax)]);
     
             % find post synapses in that Cube ROI.
     %        [x,y,z] = ind2sub(sz,roiIdxs{i}(10)); % check by ind2sub
@@ -539,23 +578,17 @@ function [countMat, sycountMat] = makeSCcountMatrixLarge(roiIdxs, sz, rateTh, sy
         save(nfile,'Nin','Nout','-v7.3');
     end
 
-    plfile = 'results/cache-hemibrain_PS_LOC.mat';
-    if exist(plfile,'file')
-        load(plfile);
-    else
-        PS = cell(roimax,1); LOC = cell(roimax,1);
-        for i=1:roimax
-            if isempty(Nout{i}), continue; end
-            disp(['ROI ' num2str(i) ' / ' num2str(roimax)]);
-    
-            % ROI(i) output all cells to pre-synapses for other ROIs
-            logi = ismember(StoN,Nout{i}); % find synapses which belong to ROI(i) output neurons
-            outsids = find(logi==1);
-            idx = find(Sdir(outsids)==1); % get pre-synapse ids of output neurons
-            PS{i} = outsids(idx);
-            LOC{i} = SlocFc(PS{i},:); % get 3D location in FDA Cal template.
-        end
-        save(plfile,'PS','LOC','-v7.3');
+    PS = cell(roimax,1); LOC = cell(roimax,1);
+    for i=1:roimax
+        if isempty(Nout{i}), continue; end
+        disp(['pre-syn_loc ' num2str(i) ' / ' num2str(roimax)]);
+
+        % ROI(i) output all cells to pre-synapses for other ROIs
+        logi = ismember(StoN,Nout{i}); % find synapses which belong to ROI(i) output neurons
+        outsids = find(logi==1);
+        idx = find(Sdir(outsids)==1); % get pre-synapse ids of output neurons
+        PS{i} = outsids(idx);
+        LOC{i} = SlocFc(PS{i},:); % get 3D location in FDA Cal template.
     end
     clear SlocFc; clear Sdir; clear Nid; clear Nstatus;
 
@@ -617,10 +650,10 @@ function [countMat, sycountMat] = makeSCcountMatrixLarge(roiIdxs, sz, rateTh, sy
     clear PS; clear LOC;
 end
 
-function [weightMat] = makeSCweightMatrixLarge(sycountMat)
+function [weightMat] = makeSCweightMatrixLarge(sycountMat, type)
     roimax = size(sycountMat,1);
     Nout = {}; Nin = {};
-    nfile = 'results/cache-hemibrain_Nin_Nout.mat';
+    nfile = ['results/cache-' type '_L_Nin_Nout.mat'];
     load(nfile);
 
     delete(gcp('nocreate')); % shutdown pools
@@ -638,7 +671,7 @@ function [weightMat] = makeSCweightMatrixLarge(sycountMat)
             innids = Nin{j};
             % find input neuron rate from ROI(i)
             logi = ismember(innids,outnids);
-            S(j) = single(sum(logi)) / length(innids); % in-weight (from i to j)
+            S(j) = double(sum(logi)) / length(innids); % in-weight (from i to j)
         end
         weightMat(i,:) = S;
     end
