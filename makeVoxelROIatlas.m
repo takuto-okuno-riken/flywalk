@@ -18,7 +18,7 @@ function makeVoxelROIatlas
     Vm = Vm .* single(Vfm); % and condition.
 
     % make cube ROI type atlas
-    for atlasSize = 6:-1:2
+    for atlasSize = 12:-1:2
         cubename = [name 'Cube' num2str(atlasSize)];
         atlas = ['data/' cubename 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')

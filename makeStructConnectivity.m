@@ -160,67 +160,72 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from synapse list for cube ROI.
     % extract ROI ids from hemicube4 mask
+    for k=8:-4:4
+        idstr = ['hemiCube' num2str(k)];
+        fname = ['data/' lower(idstr) '_connectlist.mat'];
 
-    clear countMat2; clear sycountMat; clear weightMat2;
-    fname = 'data/hemicube4_connectlist.mat';
-    if exist(fname,'file')
-        load(fname);
-    else
-        atlV = niftiread('data/hemiCube4atlasCal.nii.gz');
-        roimax = max(atlV(:));
-        sz = size(atlV);
-
-        roiIdxs = {};
-        for i=1:roimax
-            roiIdxs{i} = find(atlV==i);
+        clear countMat2; clear sycountMat; clear weightMat2;
+        if exist(fname,'file')
+            load(fname);
+        else
+            atlV = niftiread(['data/' idstr 'atlasCal.nii.gz']);
+            roimax = max(atlV(:));
+            sz = size(atlV);
+    
+            roiIdxs = {};
+            for i=1:roimax
+                roiIdxs{i} = find(atlV==i);
+            end
+    
+            primaryIds = 1:roimax;
+            roiNum = length(primaryIds);
+    
+            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+    
+            countMat = []; weightMat = [];
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
         end
-
-        primaryIds = 1:roimax;
-        roiNum = length(primaryIds);
-
-        [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'hemicube4');
-
-        countMat = []; weightMat = [];
-        save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
+    
+        ids = primaryIds;
+        CM2 = countMat2(ids,ids); SM = sycountMat(ids,ids);
+        figure; imagesc(log(CM2)); colorbar; title([idstr ' cell count 2 matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapse count matrix']);
     end
-
-    ids = primaryIds;
-    CM2 = countMat2(ids,ids); SM = sycountMat(ids,ids);
-    figure; imagesc(log(CM2)); colorbar; title('hemicube4 cell count 2 matrix');
-    figure; imagesc(log(SM)); colorbar; title('hemicube4 synapse count matrix');
-
 
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from synapse list for piece ROI.
     % extract ROI ids from hemipiece3 mask
+    for k=3:-1:2
+        idstr = ['hemiPiece' num2str(k)];
+        fname = ['data/' lower(idstr) '_connectlist.mat'];
 
-    clear countMat2; clear sycountMat; clear weightMat2;
-    fname = 'data/hemipiece3_connectlist.mat';
-    if exist(fname,'file')
-        load(fname);
-    else
-        atlV = niftiread('data/hemiPiece3atlasCal.nii.gz');
-        roimax = max(atlV(:));
-        sz = size(atlV);
-
-        roiIdxs = {};
-        for i=1:roimax
-            roiIdxs{i} = find(atlV==i);
+        clear countMat2; clear sycountMat; clear weightMat2;
+        if exist(fname,'file')
+            load(fname);
+        else
+            atlV = niftiread(['data/' idstr 'atlasCal.nii.gz']);
+            roimax = max(atlV(:));
+            sz = size(atlV);
+    
+            roiIdxs = {};
+            for i=1:roimax
+                roiIdxs{i} = find(atlV==i);
+            end
+    
+            primaryIds = 1:roimax;
+            roiNum = length(primaryIds);
+    
+            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+    
+            countMat = []; weightMat = [];
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum','-v7.3');
         end
-
-        primaryIds = 1:roimax;
-        roiNum = length(primaryIds);
-
-        [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'hemipiece3');
-
-        countMat = []; weightMat = [];
-        save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
+    
+        ids = primaryIds;
+        CM2 = countMat2(ids,ids); SM = sycountMat(ids,ids);
+        figure; imagesc(log(CM2)); colorbar; title([idstr ' cell count 2 matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapse count matrix']);
     end
-
-    ids = primaryIds;
-    CM2 = countMat2(ids,ids); SM = sycountMat(ids,ids);
-    figure; imagesc(log(CM2)); colorbar; title('hemipiece3 cell count 2 matrix');
-    figure; imagesc(log(SM)); colorbar; title('hemipiece3 synapse count matrix');
 
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from synapse list for fanshape body (FB) and others.
