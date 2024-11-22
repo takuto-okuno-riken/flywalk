@@ -27,7 +27,8 @@ function extractROItimeseries
 
     % ROI name
 %    roitypes = {'flyemroi','bransonhemi','hemiCube4'};
-    roitypes = {'hemiPiece3'};
+%    roitypes = {'hemiPiece2'};
+    roitypes = {'hemiCube8'};
     % neuropil FB, EB, EB-bL(L), bL-b'L-aL-a'L-BU(L)
 %    roitypes = {'hemiRoi101','hemiRoi57','hemiRoi57-51','hemiRoi51-62-20-111-100'};
 %    roitypes = {'hemiRoi1','hemiRoi5','hemiRoi7','hemiRoi27','hemiRoi30','hemiRoi32','hemiRoi43','hemiRoi52'};
@@ -235,13 +236,14 @@ function extractTsROItype(roitypes, preproc, hpfTh, smooth, nuisance)
 
                             CY = cell(1,roinum);
                             parfor j=1:roinum
+%                            for j=1:roinum
                                 if ~isempty(CZ{j})
                                     Z = CZ{j};
                                     % nuisance regression out
                                     if ~isempty(Xn)
                                         disp(['apply nuisance regression out (' nuisance{n} ') : ROI(' num2str(j) ') time-series ...']);
                                         Z = Z - nanmean(Z,2);
-                                        for m=1:length(midx)
+                                        for m=1:size(Z,1)
                                             [~, R] = regressLinear(Z(m,:)', Xn, [], [], perm, RiQ, dR2i); % 1st step OLS regression
                                             Z(m,:) = R;
                                         end
