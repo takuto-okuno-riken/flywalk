@@ -1,4 +1,4 @@
-% make voxel ROI atlas. Two types of atlas, such as cube ROI type, and
+% make voxel ROI atlas. Some types of atlas, such as cube ROI type, piece ROI type and
 % neuropil specific voxel (ROI) type.
 
 function makeVoxelROIatlas
@@ -64,7 +64,7 @@ function makeVoxelROIatlas
     end
 
     % make piece ROI type atlas (take one voxel per 2,3,4... cube voxel)
-    for atlasSize = 4:-1:2
+    for atlasSize = [12 8 4 3 2]
         piecename = [name 'Piece' num2str(atlasSize)];
         atlas = ['data/' piecename 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
@@ -108,6 +108,39 @@ function makeVoxelROIatlas
 
         disp([atlas ' ROI count=' num2str(max(aV(:)))]);
     end
+
+    % make branson supervoxel based atlas
+    atlas = ['data/' name 'Branson7065atlasCal.nii' ];
+    if exist([atlas '.gz'],'file')
+        atlasinfo = niftiinfo([atlas '.gz']);
+        V = niftiread(atlasinfo);
+    else
+        mV = niftiread('data/jrc2018f_flyemhemibrainCal_invFDACal.nii.gz');
+        mV(mV>0) = 1; mV(mV<1) = 0;
+
+        info = niftiinfo('data/jrc2018f_branson7065Cal_invFDACal.nii.gz');
+        aV = niftiread(info); sz = size(aV);
+        amV = aV .* mV;
+        ids = unique(amV(:)); ids(ids==0) = [];
+        V = zeros(sz(1),sz(2),sz(3),'uint16');
+        roiid = 1;
+        for i=1:length(ids)
+            id = ids(i);
+            aidx = find(aV==id);
+            bidx = find(amV==id);
+            if length(aidx) == length(bidx)  % hemiem ROI should contain whole supervoxel.
+                V(bidx) = roiid;
+                roiid = roiid + 1;
+            end
+        end
+        info.Datatype = 'uint16';
+        info.BitsPerPixel = 16;
+        info.Description = 'branson 7065 supervoxels atlas';
+
+        % output nii file
+        niftiwrite(V,atlas,info,'Compressed',true);
+    end
+    disp([atlas ' ROI count=' num2str(max(V(:)))]);
 
     % make neuropil specific voxel type atlas
 %    roiids = {[101],[57],[57,51],[51,62,20,111,100]}; % FB, EB, EB-bL(L),bL-b'L-aL-a'L-BU(L)
