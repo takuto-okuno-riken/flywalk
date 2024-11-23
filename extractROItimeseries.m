@@ -26,14 +26,16 @@ function extractROItimeseries
 %    nuisance = {''};
 
     % ROI name
-%    roitypes = {'flyemroi','bransonhemi','hemiCube4'};
-%    roitypes = {'hemiPiece2'};
-    roitypes = {'hemiCube8'};
+%    roitypes = {'flyemroi','bransonhemi'};
+    roitypes = {'hemiBranson7065'};
+%    roitypes = {'hemiCube12','hemiCube8','hemiCube4'};
+%    roitypes = {'hemiPiece12','hemiPiece8','hemiPiece4'};
+%    roitypes = {'hemiPiece3','hemiPiece2'};
     % neuropil FB, EB, EB-bL(L), bL-b'L-aL-a'L-BU(L)
 %    roitypes = {'hemiRoi101','hemiRoi57','hemiRoi57-51','hemiRoi51-62-20-111-100'};
-%    roitypes = {'hemiRoi1','hemiRoi5','hemiRoi7','hemiRoi27','hemiRoi30','hemiRoi32','hemiRoi43','hemiRoi52'};
-%    roitypes = {'hemiRoi54','hemiRoi57','hemiRoi59','hemiRoi63','hemiRoi65','hemiRoi67','hemiRoi78','hemiRoi82'};
-%    roitypes = {'hemiRoi89','hemiRoi93','hemiRoi95','hemiRoi100','hemiRoi101','hemiRoi106','hemiRoi113'};
+%    roitypes = {'hemiRoi1','hemiRoi5','hemiRoi7','hemiRoi27','hemiRoi30','hemiRoi32','hemiRoi43','hemiRoi52', ...
+%        'hemiRoi54','hemiRoi57','hemiRoi59','hemiRoi63','hemiRoi65','hemiRoi67','hemiRoi78','hemiRoi82', ...
+%        'hemiRoi89','hemiRoi93','hemiRoi95','hemiRoi100','hemiRoi101','hemiRoi106','hemiRoi113'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

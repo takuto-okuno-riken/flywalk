@@ -161,7 +161,7 @@ function makeStructConnectivity
     % make structural connectivity matrix from branson 7065 atlas.
     % extract ROI ids from hemibrain mask
 
-    fname = 'data/branson7065_connectlist.mat';
+    fname = 'data/hemibranson7065_connectlist.mat';
     clear countMat2; clear sycountMat; clear weightMat2;
     if exist(fname,'file')
         load(fname);
