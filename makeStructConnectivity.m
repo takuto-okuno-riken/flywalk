@@ -190,6 +190,42 @@ function makeStructConnectivity
     figure; imagesc(log(SM)); colorbar; title(['branson7065 synapse count matrix']);
 
     % ---------------------------------------------------------------------
+    % make structural connectivity matrix from branson 7065 atlas.
+    % extract ROI ids from hemibrain mask
+
+    for k=[50 100 200]
+        idstr = ['hemiBranson7065km' num2str(k)];
+        fname = ['data/' lower(idstr) '_connectlist.mat'];
+
+        clear countMat2; clear sycountMat; clear weightMat2;
+        if exist(fname,'file')
+            load(fname);
+        else
+            atlV = niftiread(['data/hemiBranson7065km' num2str(k) 'atlasCal.nii.gz']);
+            roimax = max(atlV(:));
+            sz = size(atlV);
+    
+            roiIdxs = {};
+            for i=1:roimax
+                roiIdxs{i} = find(atlV==i);
+            end
+    
+            primaryIds = 1:roimax;
+            roiNum = length(primaryIds);
+    
+            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+    
+            countMat = []; weightMat = [];
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
+        end
+    
+        ids = primaryIds;
+        CM2 = countMat2(ids,ids); SM = sycountMat(ids,ids);
+        figure; imagesc(log(CM2)); colorbar; title([idstr ' cell count 2 matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapse count matrix']);
+    end
+
+    % ---------------------------------------------------------------------
     % make structural connectivity matrix from synapse list for cube ROI.
     % extract ROI ids from hemicube4 mask
     for k=[12 8 4]
