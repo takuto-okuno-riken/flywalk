@@ -218,4 +218,31 @@ function makeVoxelROIatlas
         niftiwrite(aV,atlas,info,'Compressed',true);
     end
     disp([atlas ' ROI count=' num2str(max(aV(:)))]);
+
+
+    % make ROI atlas based on k-means clustering of SC.
+    % this requires hemiroiwhole_connectlist_cm.mat file. so need to run
+    % makeStructConnectivity.m (whole flyem ROI) first.
+    % this needs Statistics and Machine Learning Toolbox.
+    for k=[100 200 500 1000]
+        atlas = ['data/' name 'kmeans' num2str(k) 'atlasCal.nii' ];
+        if exist([atlas '.gz'],'file')
+            atlasinfo = niftiinfo([atlas '.gz']);
+            aV = niftiread(atlasinfo);
+        else
+            load('data/hemiroiwhole_connectlist_cm.mat');
+            idx = kmeans(countMat,k);
+            
+            info = niftiinfo('data/hemiRoiWholeatlasCal.nii.gz');
+            aV = niftiread(info);
+            ridx = find(aV>0);
+            aV(ridx) = idx;
+    
+            % set info. info.raw is not necessary to set (niftiwrite() does it)
+            info.Description = 'k-mieans clustering based atlas';
+            % output nii file
+            niftiwrite(aV,atlas,info,'Compressed',true);
+        end
+        disp([atlas ' ROI count=' num2str(max(aV(:)))]);
+    end
 end
