@@ -216,9 +216,18 @@ function makeStructConnectivity
             [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
     
             countMat = []; weightMat = [];
-            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum','-v7.3');
         end
-    
+
+        if primaryIds(1) == 1 && primaryIds(k) == roiNum
+            % reorder by tree clustering
+            cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
+            eucD = pdist(cm2,'euclidean');
+            Z = linkage(eucD,'ward');
+            primaryIds = optimalleaforder(Z,eucD);
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum','-v7.3');
+        end
+
         ids = primaryIds;
         CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
         figure; imagesc(log(CM2)); colorbar; title([idstr ' cell count 2 matrix']);
