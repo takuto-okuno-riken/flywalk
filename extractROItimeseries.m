@@ -11,9 +11,9 @@ function extractROItimeseries
     % output time-series (smoothing, highpass filter, nuisance removal)
     hpfTh = [0]; % high-pass filter threshold
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
-    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
+%    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
 %    smooth = {'m10'};
-%    smooth = {''};
+    smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
         '6hmacomp','6hmgmacomp','6hmgmgsacomp','6hmtcomp','6hmtacomp', ... %22
@@ -23,12 +23,13 @@ function extractROItimeseries
 %    nuisance = {'', '6hmtacomp'}; % good for flyemroi
 %    nuisance = {'6hmtacomp'}; % good for bransonhemi
 %    nuisance = {'tcomp'}; % good for hemicube4
-    nuisance = {''};
+%    nuisance = {''};
 
     % ROI name
 %    roitypes = {'flyemroi','bransonhemi'};
 %    roitypes = {'hemiBranson7065'};
-    roitypes = {'hemiBranson7065km50'};
+%    roitypes = {'hemiBranson7065km50','hemiBranson7065km100','hemiBranson7065km200'};
+    roitypes = {'hemiKm50'};
 %    roitypes = {'hemiCube12','hemiCube8','hemiCube4'};
 %    roitypes = {'hemiPiece12','hemiPiece8','hemiPiece4'};
 %    roitypes = {'hemiPiece3','hemiPiece2'};

@@ -6,7 +6,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from neuprint connectivity list.
     % list data was acquired by c.fetch_roi_connectivity() of neuprint python api.
-%%{
+%{
     % primary ROIs
     primaryIds = [103	107	20	111	59	68	65	78	34	4	49	51	62	106	87	47	100	24	27	43	38	5	57	22	89	101	97	75	50	58	41	113	10	2	32	66	45	30	67	19	76	31	82	93	54	52	8	7	74	42	80	1	102	63	95	56];
     roiNum = 114;
@@ -345,7 +345,7 @@ function makeStructConnectivity
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from synapse list for all EM ROI voxels (except fibers).
-
+%{
     clear countMat2; clear sycountMat; clear weightMat2;
     fname = ['data/hemiroiwhole_connectlist.mat'];
     if exist([fname(1:end-4) '_cm.mat'],'file')
@@ -377,6 +377,51 @@ function makeStructConnectivity
         [weightMat] = makeSCweightMatrixLarge(sycountMat, 'hemiRoiWhole');
 
         save([fname(1:end-4) '_wm.mat'],'weightMat','primaryIds','roiNum','-v7.3');
+    end
+%}
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix from k-means atlas.
+    % extract ROI ids from hemibrain mask
+
+    for k=[50]
+        idstr = ['hemiKm' num2str(k)];
+        fname = ['data/' lower(idstr) '_connectlist.mat'];
+
+        clear countMat2; clear sycountMat; clear weightMat2;
+        if exist(fname,'file')
+            load(fname);
+        else
+            atlV = niftiread(['data/hemiKm' num2str(k) 'atlasCal.nii.gz']);
+            roimax = max(atlV(:));
+            sz = size(atlV);
+    
+            roiIdxs = {};
+            for i=1:roimax
+                roiIdxs{i} = find(atlV==i);
+            end
+    
+            primaryIds = 1:roimax;
+            roiNum = length(primaryIds);
+    
+            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+    
+            countMat = []; weightMat = [];
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum','-v7.3');
+        end
+
+        if primaryIds(1) == 1 && primaryIds(k) == roiNum
+            % reorder by tree clustering
+            cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
+            eucD = pdist(cm2,'euclidean');
+            Z = linkage(eucD,'ward');
+            primaryIds = optimalleaforder(Z,eucD);
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum','-v7.3');
+        end
+
+        ids = primaryIds;
+        CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM2)); colorbar; title([idstr ' cell count 2 matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapse count matrix']);
     end
 end
 

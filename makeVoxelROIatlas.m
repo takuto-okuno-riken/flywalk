@@ -273,19 +273,27 @@ function makeVoxelROIatlas
     % this requires hemiroiwhole_connectlist_cm.mat file. so need to run
     % makeStructConnectivity.m (whole flyem ROI) first.
     % this needs Statistics and Machine Learning Toolbox.
-    for k=[100 200 500 1000]
-        atlas = ['data/' name 'km' num2str(k) 'atlasCal.nii' ];
+    for k=[50 100 200 500 1000]
+        atlas = ['data/' name 'Km' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
             aV = niftiread(atlasinfo);
         else
             load('data/hemiroiwhole_connectlist_cm.mat');
-            idx = kmeans(countMat,k);
+            cm = single(full(countMat));
+            % to avoid zero for k-means
+            Xnorm = sqrt(sum(cm.^2, 2));
+            cm(Xnorm==0,1) = eps(max(Xnorm)) * 2;
+
+            idx = kmeans(cm,k,'Distance','cosine');
             
             info = niftiinfo('data/hemiRoiWholeatlasCal.nii.gz');
             aV = niftiread(info);
-            ridx = find(aV>0);
-            aV(ridx) = idx;
+            aidx = zeros(length(idx),1,'single');
+            parfor i=1:length(aidx)
+                aidx(i) = find(aV==i);
+            end
+            aV(aidx) = idx;
     
             % set info. info.raw is not necessary to set (niftiwrite() does it)
             info.Description = 'k-means clustering based atlas';
