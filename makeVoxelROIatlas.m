@@ -233,13 +233,26 @@ function makeVoxelROIatlas
             load('data/hemibranson7065_connectlist.mat');
             lcm2 = log10(countMat2(:,:,2));
             lcm2(lcm2<0) = 0;
-            idx = kmeans(lcm2,k);
+            % to avoid zero for k-means
+            Xnorm = sqrt(sum(lcm2.^2, 2));
+            lcm2(Xnorm==0,1) = eps(max(Xnorm)) * 2;
 
+            idx = kmeans(lcm2,k,'Distance','cosine');
+%{
             % check sorted group result
-%            [S,I] = sort(idx,'ascend');
-%            figure; imagesc(log10(countMat2(:,:,2))); colorbar;
-%            figure; imagesc(log10(countMat2(I,I,2))); colorbar;
+            [S,I] = sort(idx,'ascend');
+            figure; imagesc(log10(countMat2(:,:,2))); colorbar;
+            figure; imagesc(log10(countMat2(I,I,2))); colorbar;
 
+            M = zeros(k,k,'single');
+            for i=1:k
+                a = sum(countMat2(idx==i,:,2),1);
+                for j=1:k
+                    M(i,j) = sum(a(:,idx==j));
+                end
+            end
+            figure; imagesc(log10(M)); colorbar;
+%}
             info = niftiinfo('data/hemiBranson7065atlasCal.nii.gz');
             aV = niftiread(info);
             roimax = max(aV(:));
@@ -249,7 +262,7 @@ function makeVoxelROIatlas
             end
     
             % set info. info.raw is not necessary to set (niftiwrite() does it)
-            info.Description = 'k-mieans clustering based atlas';
+            info.Description = 'k-means clustering based atlas';
             % output nii file
             niftiwrite(aV,atlas,info,'Compressed',true);
         end
@@ -261,7 +274,7 @@ function makeVoxelROIatlas
     % makeStructConnectivity.m (whole flyem ROI) first.
     % this needs Statistics and Machine Learning Toolbox.
     for k=[100 200 500 1000]
-        atlas = ['data/' name 'kmeans' num2str(k) 'atlasCal.nii' ];
+        atlas = ['data/' name 'km' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
             aV = niftiread(atlasinfo);
@@ -275,7 +288,7 @@ function makeVoxelROIatlas
             aV(ridx) = idx;
     
             % set info. info.raw is not necessary to set (niftiwrite() does it)
-            info.Description = 'k-mieans clustering based atlas';
+            info.Description = 'k-means clustering based atlas';
             % output nii file
             niftiwrite(aV,atlas,info,'Compressed',true);
         end
