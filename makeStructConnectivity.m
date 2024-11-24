@@ -193,7 +193,7 @@ function makeStructConnectivity
     % make structural connectivity matrix from branson 7065 k-means atlas.
     % extract ROI ids from hemibrain mask
 
-    for k=[15 50 100 200]
+    for k=[50 100 200]
         idstr = ['hemiBranson7065km' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
