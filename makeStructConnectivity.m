@@ -185,12 +185,12 @@ function makeStructConnectivity
     end
 
     ids = primaryIds;
-    CM2 = countMat2(ids,ids); SM = sycountMat(ids,ids);
+    CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
     figure; imagesc(log(CM2)); colorbar; title(['branson7065 cell count 2 matrix']);
     figure; imagesc(log(SM)); colorbar; title(['branson7065 synapse count matrix']);
 
     % ---------------------------------------------------------------------
-    % make structural connectivity matrix from branson 7065 atlas.
+    % make structural connectivity matrix from branson 7065 k-means atlas.
     % extract ROI ids from hemibrain mask
 
     for k=[50 100 200]
@@ -220,7 +220,7 @@ function makeStructConnectivity
         end
     
         ids = primaryIds;
-        CM2 = countMat2(ids,ids); SM = sycountMat(ids,ids);
+        CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
         figure; imagesc(log(CM2)); colorbar; title([idstr ' cell count 2 matrix']);
         figure; imagesc(log(SM)); colorbar; title([idstr ' synapse count matrix']);
     end
@@ -255,7 +255,7 @@ function makeStructConnectivity
         end
     
         ids = primaryIds;
-        CM2 = countMat2(ids,ids); SM = sycountMat(ids,ids);
+        CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
         figure; imagesc(log(CM2)); colorbar; title([idstr ' cell count 2 matrix']);
         figure; imagesc(log(SM)); colorbar; title([idstr ' synapse count matrix']);
     end
@@ -572,7 +572,9 @@ function [countMat, sycountMat, weightMat, outweightMat, Ncount, Cnids] = makeSC
     for p=2:3
         for i=1:roimax
             for j=1:roimax
-                Cnids{i,j,p} = CC{i}{j,p};
+                if ~isempty(CC{i})
+                    Cnids{i,j,p} = CC{i}{j,p};
+                end
             end
         end
     end

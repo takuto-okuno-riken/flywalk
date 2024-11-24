@@ -231,8 +231,15 @@ function makeVoxelROIatlas
             aV = niftiread(atlasinfo);
         else
             load('data/hemibranson7065_connectlist.mat');
-            idx = kmeans(countMat2(:,:,2),k);
-            
+            lcm2 = log10(countMat2(:,:,2));
+            lcm2(lcm2<0) = 0;
+            idx = kmeans(lcm2,k);
+
+            % check sorted group result
+%            [S,I] = sort(idx,'ascend');
+%            figure; imagesc(log10(countMat2(:,:,2))); colorbar;
+%            figure; imagesc(log10(countMat2(I,I,2))); colorbar;
+
             info = niftiinfo('data/hemiBranson7065atlasCal.nii.gz');
             aV = niftiread(info);
             roimax = max(aV(:));
