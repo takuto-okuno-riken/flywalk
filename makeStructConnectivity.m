@@ -6,7 +6,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from neuprint connectivity list.
     % list data was acquired by c.fetch_roi_connectivity() of neuprint python api.
-%{
+%%{
     % primary ROIs
     primaryIds = [103	107	20	111	59	68	65	78	34	4	49	51	62	106	87	47	100	24	27	43	38	5	57	22	89	101	97	75	50	58	41	113	10	2	32	66	45	30	67	19	76	31	82	93	54	52	8	7	74	42	80	1	102	63	95	56];
     roiNum = 114;
@@ -26,7 +26,7 @@ function makeStructConnectivity
         save(fname,'connectlist','countMat','weightMat','primaryIds','roiNum');
     end
 
-    if ~exist('weightMat2','var')
+    if ~exist('syweightMat','var')
         roiIdxs = {};
         listing = dir(['data/flyemroi/*.nii.gz']);
         for i=1:length(listing)
@@ -35,9 +35,9 @@ function makeStructConnectivity
             sz = size(V);
         end
 
-        [countMat2, sycountMat, weightMat2, outweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'hemiroi');
+        [countMat2, sycountMat, weightMat2, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'hemiroi');
 
-        save(fname,'connectlist','countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
+        save(fname,'connectlist','countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum');
         save([fname(1:end-4) '_cnids.mat'],'Cnids','-v7.3');
     end
 
@@ -132,7 +132,7 @@ function makeStructConnectivity
         end
         save(fname,'countMat','weightMat','primaryIds','roiNum');
     end
-    if ~exist('weightMat2','var')
+    if ~exist('syweightMat','var')
         roiIdxs = {};
         % read branson atlas (FDA registered)
         Vb = niftiread('data/JRC2018_branson_atlasCal_invFDACal.nii.gz');
@@ -145,8 +145,8 @@ function makeStructConnectivity
             end
         end
 
-        [countMat2, sycountMat, weightMat2, outweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'branson');
-        save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
+        [countMat2, sycountMat, weightMat2, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'branson');
+        save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum');
     end
 %{
     ids = primaryIds; CM = countMat(ids,ids); WM = weightMat(ids,ids);
@@ -178,10 +178,10 @@ function makeStructConnectivity
         primaryIds = 1:roimax;
         roiNum = length(primaryIds);
 
-        [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'branson7065');
+        [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'branson7065');
 
         countMat = []; weightMat = [];
-        save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
+        save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum');
     end
 
     ids = primaryIds;
@@ -213,10 +213,10 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+            [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
     
             countMat = []; weightMat = [];
-            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum','-v7.3');
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
         if primaryIds(1) == 1 && primaryIds(k) == roiNum
@@ -225,7 +225,7 @@ function makeStructConnectivity
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
             primaryIds = optimalleaforder(Z,eucD);
-            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum','-v7.3');
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
         ids = primaryIds;
@@ -257,10 +257,10 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+            [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
     
             countMat = []; weightMat = [];
-            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum');
         end
     
         ids = primaryIds;
@@ -292,10 +292,10 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+            [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
     
             countMat = []; weightMat = [];
-            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum','-v7.3');
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
     
         ids = primaryIds;
@@ -331,10 +331,10 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, ['hemiroi' idstr]);
+            [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, ['hemiroi' idstr]);
     
             countMat = []; weightMat = [];
-            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum');
         end
     
         ids = primaryIds;
@@ -403,10 +403,10 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+            [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
     
             countMat = []; weightMat = [];
-            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum','-v7.3');
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
         if primaryIds(1) == 1 && primaryIds(k) == roiNum
@@ -415,7 +415,7 @@ function makeStructConnectivity
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
             primaryIds = optimalleaforder(Z,eucD);
-            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum','-v7.3');
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
         ids = primaryIds;
@@ -433,7 +433,7 @@ function imagescLabel(mat, labelNames, titlestr)
     set(gca,'YTickLabel',labelNames);
 end
 
-function [countMat, sycountMat, weightMat, outweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, rateTh, synTh, type)
+function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, rateTh, synTh, type)
 
     % read neuron info (id, connection number, size)
     Nid = []; Nstatus = [];
@@ -477,6 +477,7 @@ function [countMat, sycountMat, weightMat, outweightMat, Ncount, Cnids] = makeSC
         load(nfile);
     else
         Nin = cell(roimax,1); Nout = cell(roimax,1);
+        Sin = cell(roimax,1); Sout = cell(roimax,1);
         for i=1:roimax
             if isempty(roiIdxs{i}), continue; end
             disp(['Nin_Nout ' num2str(i) ' / ' num2str(roimax)]);
@@ -508,8 +509,21 @@ function [countMat, sycountMat, weightMat, outweightMat, Ncount, Cnids] = makeSC
             Nin{i}{2} = Nid(logis & Nstatus==1); % input traced neuron in ROI(i)
             logis = ismember(innids, Nin{i}{2});
             Nin{i}{3} = innids(~logis); % input orphan bodys
+%{
+            % get pre and post synapses in ROI(i)
+            Sout{i}{1} = postsids; % all output synapses (including orphan, etc)
+            logis = ismember(StoN,Nout{i}{2});
+            logis = ismember(postsids,find(logis==1)); % find may be slow, but Sid will consume memory.
+            Sout{i}{2} = postsids(logis); % output traced synapses in ROI(i)
+            Sout{i}{3} = postsids(~logis); % output orphan bodys' synapses
+%}
+            Sin{i}{1} = presids; % all input synapses (including orphan, etc)
+            logis = ismember(StoN,Nin{i}{2});
+            logis = ismember(presids,find(logis==1)); % find may be slow, but Sid will consume memory.
+            Sin{i}{2} = presids(logis); % output traced synapses in ROI(i)
+            Sin{i}{3} = presids(~logis); % output orphan bodys' synapses
         end
-        save(nfile,'Nin','Nout','-v7.3');
+        save(nfile,'Nin','Nout','Sin','-v7.3');
     end
     clear Nid; clear Nstatus;
 
@@ -518,6 +532,7 @@ function [countMat, sycountMat, weightMat, outweightMat, Ncount, Cnids] = makeSC
     countMat = nan(roimax,roimax,3,'single');
     weightMat = nan(roimax,roimax,3,'single');
     outweightMat = nan(roimax,roimax,3,'single');
+    syweightMat = nan(roimax,roimax,3,'single');
 
     CC = cell(roimax,1);
 %    for i=1:roimax
@@ -589,14 +604,19 @@ function [countMat, sycountMat, weightMat, outweightMat, Ncount, Cnids] = makeSC
             outnids = Nout{i}{p};
             X = zeros(1,roimax,'single');
             Y = zeros(1,roimax,'single');
+            SX = zeros(1,roimax,'single');
             for j=1:roimax
                 if isempty(Nin{j}), continue; end
                 innids = Nin{j}{p};
+                insids = Sin{j}{p};
                 % find input neuron rate from ROI(i)
                 logi = ismember(innids,outnids);
                 X(j) = single(sum(logi)) / length(innids); % in-weight (from i to j)
+                logi = ismember(StoN,innids(logi));
+                logi = ismember(insids,find(logi==1));
+                SX(j) = single(sum(logi)) / length(insids); % in-synaptic-weight (from i to j)
                 % find output neuron rate from ROI(i)
-                logi2 = ismember(outnids,innids); % actually, same as above
+                logi2 = ismember(outnids,innids); % actually, same as x(j)
                 Y(j) = single(sum(logi2)) / length(outnids); % out-weight (from i to j)
                 if sum(logi) ~= sum(logi2)
                     disp(['error logi: ' num2str(i) '-' num2str(j)]); % error check. this should not show.
@@ -604,6 +624,7 @@ function [countMat, sycountMat, weightMat, outweightMat, Ncount, Cnids] = makeSC
             end
             weightMat(i,:,p) = X;
             outweightMat(i,:,p) = Y;
+            syweightMat(i,:,p) = SX;
         end
     end
     weightMat = weightMat .* sycountMat;
