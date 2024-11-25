@@ -534,6 +534,10 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     outweightMat = nan(roimax,roimax,3,'single');
     syweightMat = nan(roimax,roimax,3,'single');
 
+    % set pool num. this calculation takes time. we need big pool num.
+    delete(gcp('nocreate')); % shutdown pools
+    parpool(32);
+
     CC = cell(roimax,1);
 %    for i=1:roimax
     parfor i=1:roimax
@@ -612,9 +616,9 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                 % find input neuron rate from ROI(i)
                 logi = ismember(innids,outnids);
                 X(j) = single(sum(logi)) / length(innids); % in-weight (from i to j)
-                logi = ismember(StoN,innids(logi));
-                logi = ismember(insids,find(logi==1));
-                SX(j) = single(sum(logi)) / length(insids); % in-synaptic-weight (from i to j)
+                logis = ismember(StoN,innids(logi));
+                logis = ismember(insids,find(logis==1));
+                SX(j) = single(sum(logis)) / length(insids); % in-synaptic-weight (from i to j)
                 % find output neuron rate from ROI(i)
                 logi2 = ismember(outnids,innids); % actually, same as x(j)
                 Y(j) = single(sum(logi2)) / length(outnids); % out-weight (from i to j)
