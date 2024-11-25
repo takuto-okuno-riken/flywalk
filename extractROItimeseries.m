@@ -21,15 +21,15 @@ function extractROItimeseries
         'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
 %    nuisance = {'', '6hmtacomp'}; % good for flyemroi
-    nuisance = {'6hmtacomp'}; % good for bransonhemi, branson7065km50
+%    nuisance = {'6hmtacomp'}; % good for bransonhemi, branson7065km50
 %    nuisance = {'tcomp'}; % good for hemicube4
-%    nuisance = {''};
+    nuisance = {''};
 
     % ROI name
 %    roitypes = {'flyemroi','bransonhemi'};
 %    roitypes = {'hemiBranson7065'};
 %    roitypes = {'hemiBranson7065km50','hemiBranson7065km100','hemiBranson7065km200'};
-    roitypes = {'hemiBranson7065km50'};
+%    roitypes = {'hemiKm50','hemiKm100'};
 %    roitypes = {'hemiCube12','hemiCube8','hemiCube4'};
 %    roitypes = {'hemiPiece12','hemiPiece8','hemiPiece4'};
 %    roitypes = {'hemiPiece3','hemiPiece2'};
@@ -38,6 +38,7 @@ function extractROItimeseries
 %    roitypes = {'hemiRoi1','hemiRoi5','hemiRoi7','hemiRoi27','hemiRoi30','hemiRoi32','hemiRoi43','hemiRoi52', ...
 %        'hemiRoi54','hemiRoi57','hemiRoi59','hemiRoi63','hemiRoi65','hemiRoi67','hemiRoi78','hemiRoi82', ...
 %        'hemiRoi89','hemiRoi93','hemiRoi95','hemiRoi100','hemiRoi101','hemiRoi106','hemiRoi113'};
+    roitypes = {'flyemroi','hemiBranson7065km50','hemiKm50'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

@@ -19,9 +19,9 @@ function analyzeFuncConnectivity
         'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
 %    nuisance = {'6hmtacomp'}; % good for flyemroi
-    nuisance = {'6hmtacomp'}; % good for bransonhemi, branson7065km50
+%    nuisance = {'6hmtacomp'}; % good for bransonhemi, branson7065km50
 %    nuisance = {'tcomp'}; % good for hemicube4
-%    nuisance = {''};
+    nuisance = {''};
 
     % using subjects (flys). sbj 7 shows NaN row in FC matrix
     sbjids = [1 2 3 4 5 6 8 9];
@@ -31,7 +31,7 @@ function analyzeFuncConnectivity
 %    roitypes = {'flyemroi','bransonhemi'}; % flyem ROI (Turner compatible)
 %    roitypes = {'hemiBranson7065'};
 %    roitypes = {'hemiBranson7065km50','hemiBranson7065km100','hemiBranson7065km200'};
-    roitypes = {'hemiBranson7065km50'};
+%    roitypes = {'hemiKm50','hemiKm100'};
 %    roitypes = {'hemiCube12','hemiCube8','hemiCube4'};
 %    roitypes = {'hemiPiece12','hemiPiece8','hemiPiece4'};
 %    roitypes = {'hemiPiece3','hemiPiece2'};
@@ -40,6 +40,7 @@ function analyzeFuncConnectivity
 %    roitypes = {'hemiRoi1','hemiRoi5','hemiRoi7','hemiRoi27','hemiRoi30','hemiRoi32','hemiRoi43','hemiRoi52', ...
 %        'hemiRoi54','hemiRoi57','hemiRoi59','hemiRoi63','hemiRoi65','hemiRoi67','hemiRoi78','hemiRoi82', ...
 %        'hemiRoi89','hemiRoi93','hemiRoi95','hemiRoi100','hemiRoi101','hemiRoi106','hemiRoi113'};
+    roitypes = {'flyemroi','hemiBranson7065km50','hemiKm50'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -99,7 +100,6 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
     lC2b = log10(C2b); lC2b(lC2b<0) = 0;
     lSb = log10(Sb); lSb(lSb<0) = 0;
     lW2b = log10(W2b); lW2b(lW2b<0) = 0;
-%    lC = C;
 
     sbjR = [];
     roiR = [];
@@ -222,7 +222,11 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 aucmat = ['results/' pftype '-fcauc.mat'];
                 if exist(aucmat,'file')
                     % load beta volumes
-                    load(aucmat);
+                    f = load(aucmat);
+                    A = f.A; As = f.As; % for compatibility
+                    if ~isfield(f,'R') 
+                        save(aucmat,'A','As','R');
+                    end
                 else
                     thN = 100;
                     aths = cell(thN,1);
@@ -304,7 +308,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                             As{j,th} = aths{th}{j}; A(j,th) = nanmean(aths{th}{j});
                         end
                     end
-                    save(aucmat,'A','As');
+                    save(aucmat,'A','As','R');
                 end
                 AUC = cat(3,AUC,A);
 
