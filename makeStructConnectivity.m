@@ -6,7 +6,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from neuprint connectivity list.
     % list data was acquired by c.fetch_roi_connectivity() of neuprint python api.
-%%{
+%{
     % primary ROIs
     primaryIds = [103	107	20	111	59	68	65	78	34	4	49	51	62	106	87	47	100	24	27	43	38	5	57	22	89	101	97	75	50	58	41	113	10	2	32	66	45	30	67	19	76	31	82	93	54	52	8	7	74	42	80	1	102	63	95	56];
     roiNum = 114;
@@ -192,8 +192,8 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 k-means atlas.
     % extract ROI ids from hemibrain mask
-
-    for k=[50 100 200]
+%}
+    for k=[20 30 50 100 200 300]
         idstr = ['hemiBranson7065km' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -233,7 +233,7 @@ function makeStructConnectivity
         figure; imagesc(log(CM2)); colorbar; title([idstr ' cell count 2 matrix']);
         figure; imagesc(log(SM)); colorbar; title([idstr ' synapse count matrix']);
     end
-
+%{
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from synapse list for cube ROI.
     % extract ROI ids from hemicube4 mask
@@ -383,7 +383,7 @@ function makeStructConnectivity
     % make structural connectivity matrix from k-means atlas.
     % extract ROI ids from hemibrain mask
 
-    for k=[50 100]
+    for k=[20 30 50 100 200 300]
         idstr = ['hemiKm' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
