@@ -384,7 +384,7 @@ function makeStructConnectivity
     % extract ROI ids from hemibrain mask
 
     for k=[20 30 50 100 200 300]
-        idstr = ['hemiKm' num2str(k)];
+        idstr = ['hemiCmkm' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear sycountMat; clear weightMat2;

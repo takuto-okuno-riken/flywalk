@@ -274,7 +274,7 @@ function makeVoxelROIatlas
     % makeStructConnectivity.m (whole flyem ROI) first.
     % this needs Statistics and Machine Learning Toolbox.
     for k=[20 30 50 100 200 300]
-        atlas = ['data/' name 'Km' num2str(k) 'atlasCal.nii' ];
+        atlas = ['data/' name 'Cmkm' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
             aV = niftiread(atlasinfo);

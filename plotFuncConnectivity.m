@@ -47,7 +47,7 @@ function checkSmoothingResult50(vslabels)
     hpfTh = [0]; % high-pass filter threshold
     smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
     nuisance = {''};
-    roitypes = {'flyemroi','hemiBranson7065km50','hemiKm50'}; % flyem ROI (Turner compatible)
+    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50'}; % flyem ROI (Turner compatible)
 
     rlabel = {}; ii=1;
     Rm = []; AUC = [];
