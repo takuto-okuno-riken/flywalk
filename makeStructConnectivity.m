@@ -383,7 +383,7 @@ function makeStructConnectivity
     % make structural connectivity matrix from k-means atlas.
     % extract ROI ids from hemibrain mask
 
-    for k=[50]
+    for k=[50 100]
         idstr = ['hemiKm' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 

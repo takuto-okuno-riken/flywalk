@@ -273,7 +273,7 @@ function makeVoxelROIatlas
     % this requires hemiroiwhole_connectlist_cm.mat file. so need to run
     % makeStructConnectivity.m (whole flyem ROI) first.
     % this needs Statistics and Machine Learning Toolbox.
-    for k=[50 100 200 500 1000]
+    for k=[50 100]
         atlas = ['data/' name 'Km' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
@@ -281,6 +281,8 @@ function makeVoxelROIatlas
         else
             load('data/hemiroiwhole_connectlist_cm.mat');
             cm = single(full(countMat));
+            cm = log10(cm);
+            cm(cm<0) = 0;
             % to avoid zero for k-means
             Xnorm = sqrt(sum(cm.^2, 2));
             cm(Xnorm==0,1) = eps(max(Xnorm)) * 2;
