@@ -338,9 +338,9 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                         aucs{24} = single(auc);
                         aths{th} = aucs;
                     end
-                    A = zeros(20,thN,'single');
+                    A = zeros(24,thN,'single');
                     for th = 1:thN
-                        for j=1:20
+                        for j=1:24
                             A(j,th) = aths{th}{j}; % input node is one, so it is not vector.
                         end
                     end
