@@ -286,8 +286,10 @@ function makeVoxelROIatlas
             % to avoid zero for k-means
             Xnorm = sqrt(sum(cm.^2, 2));
             cm(Xnorm==0,1) = eps(max(Xnorm)) * 2;
+            clear Xnorm;
 
             idx = kmeans(cm,k,'Distance','cosine');
+            clear cm;
             
             info = niftiinfo('data/hemiRoiWholeatlasCal.nii.gz');
             aV = niftiread(info);
