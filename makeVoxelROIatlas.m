@@ -224,7 +224,7 @@ function makeVoxelROIatlas
     % this requires hemibranson7065_connectlist.mat file. so need to run
     % makeStructConnectivity.m (Branson 7065) first.
     % this needs Statistics and Machine Learning Toolbox.
-    for k=[20 30 50 100 200 300]
+    for k=[20 30 50 100]
         atlas = ['data/' name 'Branson7065km' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
@@ -301,6 +301,57 @@ function makeVoxelROIatlas
     
             % set info. info.raw is not necessary to set (niftiwrite() does it)
             info.Description = 'k-means clustering based atlas';
+            % output nii file
+            niftiwrite(aV,atlas,info,'Compressed',true);
+        end
+        disp([atlas ' ROI count=' num2str(max(aV(:)))]);
+    end
+
+    % make ROI atlas based on k-means clustering of hemiem SC.
+    % ROI edge smoothing by mode
+    for k=[20 30 50 100 200 300]
+        r = 2; % iteration
+        w = 1; % width
+        atlas = ['data/' name 'Cmkm' num2str(k) 'r' num2str(r) 'w' num2str(w) 'atlasCal.nii' ];
+        if exist([atlas '.gz'],'file')
+            atlasinfo = niftiinfo([atlas '.gz']);
+            aV = niftiread(atlasinfo);
+        else
+            info = niftiinfo(['data/' name 'Cmkm' num2str(k) 'atlasCal.nii.gz']);
+            aV = single(niftiread(info));
+            aV(aV==0) = nan; % to ignore nan
+
+
+            % do iteration
+            for itr=1:r
+                vidx = find(aV>0);
+                % check all ROI exist
+                for i=1:k
+                    idx = find(aV==i);
+                    if length(idx) < (w*2+1)^3
+                        logis = ismember(vidx,idx);
+                        vidx(logis) = [];
+                        disp(['keep ROI ' num2str(i) ') ' num2str(length(idx)) ' voxels'])
+                    end
+                end
+
+                V = aV;
+                for j=1:length(vidx)
+                    [x,y,z] = ind2sub(size(V),vidx(j));
+                    A = aV(x-w:x+w,y-w:y+w,z-w:z+w);
+                    V(x,y,z) = mode(A(:));
+                end
+                aV = V;
+            end
+            aV(isnan(aV)) = 0;
+            aV = int32(aV);
+
+            % check all ROI exist
+            for i=1:k
+                idx = find(aV==i);
+                if isempty(idx), disp([num2str(k) ') ROI ' num2str(i) ' voxel was not found.']); end
+            end
+
             % output nii file
             niftiwrite(aV,atlas,info,'Compressed',true);
         end
