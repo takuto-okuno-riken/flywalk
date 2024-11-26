@@ -160,7 +160,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 atlas.
     % extract ROI ids from hemibrain mask
-
+%}
     fname = 'data/hemibranson7065_connectlist.mat';
     clear countMat2; clear sycountMat; clear weightMat2;
     if exist(fname,'file')
@@ -192,7 +192,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 k-means atlas.
     % extract ROI ids from hemibrain mask
-%}
+
     for k=[20 30 50 100 200 300]
         idstr = ['hemiBranson7065km' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
@@ -391,7 +391,7 @@ function makeStructConnectivity
         if exist(fname,'file')
             load(fname);
         else
-            atlV = niftiread(['data/hemiKm' num2str(k) 'atlasCal.nii.gz']);
+            atlV = niftiread(['data/hemiCmkm' num2str(k) 'atlasCal.nii.gz']);
             roimax = max(atlV(:));
             sz = size(atlV);
     
@@ -444,6 +444,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     Sdir = []; StoN = []; Srate = [];
     load('data/hemibrain_v1_2_synapses.mat');
     clear StoS; clear Sloc;
+    Sid = uint32(1:length(StoN));
 
     % read synapse location in FDA
     SlocFc = [];
@@ -513,13 +514,13 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             % get pre and post synapses in ROI(i)
             Sout{i}{1} = postsids; % all output synapses (including orphan, etc)
             logis = ismember(StoN,Nout{i}{2});
-            logis = ismember(postsids,find(logis==1)); % find may be slow, but Sid will consume memory.
+            logis = ismember(postsids,Sid(logis)); % find may be slow, but Sid will consume memory.
             Sout{i}{2} = postsids(logis); % output traced synapses in ROI(i)
             Sout{i}{3} = postsids(~logis); % output orphan bodys' synapses
 %}
             Sin{i}{1} = presids; % all input synapses (including orphan, etc)
             logis = ismember(StoN,Nin{i}{2});
-            logis = ismember(presids,find(logis==1)); % find may be slow, but Sid will consume memory.
+            logis = ismember(presids,Sid(logis)); % find may be slow, but Sid will consume memory.
             Sin{i}{2} = presids(logis); % output traced synapses in ROI(i)
             Sin{i}{3} = presids(~logis); % output orphan bodys' synapses
         end
@@ -555,7 +556,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
 
             % ROI(i) output all cells to pre-synapses for other ROIs
             logi = ismember(StoN,outnids); % find synapses which belong to ROI(i) output neurons
-            outsids = find(logi==1);
+            outsids = Sid(logi);
             idx = find(Sdir(outsids)==1); % get pre-synapse ids of output neurons
             presids = outsids(idx);
     
@@ -617,7 +618,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                 logi = ismember(innids,outnids);
                 X(j) = single(sum(logi)) / length(innids); % in-weight (from i to j)
                 logis = ismember(StoN,innids(logi));
-                logis = ismember(insids,find(logis==1));
+                logis = ismember(insids,Sid(logis));
                 SX(j) = single(sum(logis)) / length(insids); % in-synaptic-weight (from i to j)
                 % find output neuron rate from ROI(i)
                 logi2 = ismember(outnids,innids); % actually, same as x(j)
@@ -664,12 +665,13 @@ function [countMat, sycountMat] = makeSCcountMatrixLarge(roiIdxs, sz, rateTh, sy
     % read neuron info (id, connection number, size)
     Nid = []; Nstatus = [];
     load('data/hemibrain_v1_2_neurons.mat');
-    clear Nconn; clear Ncrop; clear Nsize; 
+    clear Nconn; clear Ncrop; clear Nsize;
 
     % read synapse info
     Sdir = []; StoN = []; Srate = [];
     load('data/hemibrain_v1_2_synapses.mat');
     clear StoS; clear Sloc;
+    Sid = uint32(1:length(StoN));
 
     % read synapse location in FDA
     SlocFc = [];
@@ -739,7 +741,7 @@ function [countMat, sycountMat] = makeSCcountMatrixLarge(roiIdxs, sz, rateTh, sy
 
         % ROI(i) output all cells to pre-synapses for other ROIs
         logi = ismember(StoN,Nout{i}); % find synapses which belong to ROI(i) output neurons
-        outsids = find(logi==1);
+        outsids = Sid(logi);
         idx = find(Sdir(outsids)==1); % get pre-synapse ids of output neurons
         PS{i} = outsids(idx);
         LOC{i} = SlocFc(PS{i},:); % get 3D location in FDA Cal template.
