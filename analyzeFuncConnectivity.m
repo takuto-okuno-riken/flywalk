@@ -30,8 +30,8 @@ function analyzeFuncConnectivity
 %    roitypes = {'flyemroif'};  % flyem ROI full
 %    roitypes = {'flyemroi','bransonhemi'}; % flyem ROI (Turner compatible)
 %    roitypes = {'hemiBranson7065'};
-    roitypes = {'hemiBranson7065km20','hemiBranson7065km30','hemiBranson7065km50','hemiBranson7065km100','hemiBranson7065km200'};
-%    roitypes = {'hemiCmkm50','hemiCmkm100'};
+%    roitypes = {'hemiBranson7065km20','hemiBranson7065km30','hemiBranson7065km50','hemiBranson7065km100','hemiBranson7065km200'};
+    roitypes = {'hemiCmkm20','hemiCmkm30','hemiCmkm50','hemiCmkm100','hemiCmkm200'};
 %    roitypes = {'hemiCube12','hemiCube8','hemiCube4'};
 %    roitypes = {'hemiPiece12','hemiPiece8','hemiPiece4'};
 %    roitypes = {'hemiPiece3','hemiPiece2'};
