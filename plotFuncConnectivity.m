@@ -53,7 +53,7 @@ function checkSmoothingByRoinum(vslabels)
     hpfTh = [0]; % high-pass filter threshold
     smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
     nuisance = {''};
-    roinums = [20 30 50 100 200];
+    roinums = [20 30 50 100 200 300];
     roitypes = {{'hemiBranson7065km',''},{'hemiCmkm',''},{'hemiCmkm','r1w1'}}; %,{'hemiCmkm','r2w1'}};
     roitypelabels = {'Branson','Cm','CmR1w1'}; %,'CmR2w1'};
 
