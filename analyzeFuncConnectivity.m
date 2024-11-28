@@ -10,18 +10,16 @@ function analyzeFuncConnectivity
     % output time-series (smoothing, highpass filter, nuisance removal)
     hpfTh = [0]; % high-pass filter threshold
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
-    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
-%    smooth = {''};
+%    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
+    smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
         '6hmacomp','6hmgmacomp','6hmgmgsacomp','6hmtcomp','6hmtacomp', ... %22
         '24hmacomp','24hmgmacomp','24hmgmgsacomp','24hmtcomp','24hmtacomp', ... %27
         'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
-%    nuisance = {'6hmtacomp'}; % good for flyemroi
 %    nuisance = {'6hmtacomp'}; % good for bransonhemi, branson7065km50
-%    nuisance = {'tcomp'}; % good for hemicube4
-    nuisance = {''};
+%    nuisance = {''};
 
     % using subjects (flys). sbj 7 shows NaN row in FC matrix
     sbjids = [1 2 3 4 5 6 8 9];
@@ -31,7 +29,8 @@ function analyzeFuncConnectivity
 %    roitypes = {'flyemroi','bransonhemi'}; % flyem ROI (Turner compatible)
 %    roitypes = {'hemiBranson7065'};
 %    roitypes = {'hemiBranson7065km20','hemiBranson7065km30','hemiBranson7065km50','hemiBranson7065km100','hemiBranson7065km200'};
-    roitypes = {'hemiCmkm20','hemiCmkm30','hemiCmkm50','hemiCmkm100','hemiCmkm200'};
+%    roitypes = {'hemiCmkm20','hemiCmkm30','hemiCmkm50','hemiCmkm100','hemiCmkm200'};
+%    roitypes = {'hemiCmkm20r1w1','hemiCmkm30r1w1','hemiCmkm50r1w1','hemiCmkm100r1w1','hemiCmkm200r1w1'};
 %    roitypes = {'hemiCube12','hemiCube8','hemiCube4'};
 %    roitypes = {'hemiPiece12','hemiPiece8','hemiPiece4'};
 %    roitypes = {'hemiPiece3','hemiPiece2'};
@@ -40,7 +39,7 @@ function analyzeFuncConnectivity
 %    roitypes = {'hemiRoi1','hemiRoi5','hemiRoi7','hemiRoi27','hemiRoi30','hemiRoi32','hemiRoi43','hemiRoi52', ...
 %        'hemiRoi54','hemiRoi57','hemiRoi59','hemiRoi63','hemiRoi65','hemiRoi67','hemiRoi78','hemiRoi82', ...
 %        'hemiRoi89','hemiRoi93','hemiRoi95','hemiRoi100','hemiRoi101','hemiRoi106','hemiRoi113'};
-%    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50'};
+    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -68,9 +67,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
         load(['data/' roitype '_connectlist.mat']);
         ids = primaryIds;
         weightMat2(isnan(weightMat2)) = 0;
-        countMat = countMat2; weightMat = weightMat2; % this doesn't have ROI original count, then copy from synapse transformed version.
     end
-    C = countMat(ids,ids); W = weightMat(ids,ids);
     C2 = countMat2(ids,ids,1); S = sycountMat(ids,ids,1); W2 = weightMat2(ids,ids,1); Wo = outweightMat(ids,ids,1); Sw = syweightMat(ids,ids,1);
     W3 = W2 ./ S; W3(S==0) = 0; % pure ROI-input neuron connection weight
     C2b = countMat2(ids,ids,2); Sb = sycountMat(ids,ids,2); W2b = weightMat2(ids,ids,2); Wob = outweightMat(ids,ids,2); Swb = syweightMat(ids,ids,2);
@@ -92,14 +89,14 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
     n = length(ids);
     E = eye(n); E = logical(1-E);
 
-    lC = log10(C); lC(lC<0) = 0;
-    lW = log10(W); lW(lW<0) = 0;
     lC2 = log10(C2); lC2(lC2<0) = 0;
     lS = log10(S); lS(lS<0) = 0;
     lW2 = log10(W2); lW2(lW2<0) = 0;
     lC2b = log10(C2b); lC2b(lC2b<0) = 0;
     lSb = log10(Sb); lSb(lSb<0) = 0;
     lW2b = log10(W2b); lW2b(lW2b<0) = 0;
+
+%    figure; imagesc(lC2); colorbar; title('lC2'); % to check ordered matrix
 
     sbjR = [];
     roiR = [];
@@ -144,43 +141,29 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 Dm = nanmean(D3,3);
                 Dmz = nanmean(D3z,3);
                 Dmz(isinf(Dmz)) = max(Dmz(~isinf(Dmz)));
+%                figure; imagesc(abs(Dmz)); colorbar; title([pftype ' FC(z) matrix']);
 
                 T3 = T2(ids,ids);
                 T3(isinf(T3)) = max(T3(~isinf(T3)));
-%                figure; imagesc(abs(T3)); colorbar; title([pftype ' ROI FC matrix']);
+%                figure; imagesc(abs(T3)); colorbar; title([pftype ' T-value matrix']);
                 lT3 = log(T3); lT3(lT3<0) = 0;
 
                 % each flys [log10(cell count) vs. FC(z)]
                 for i=1:length(CM)
                     Dz = D3z(:,:,i);
                     Dz(isinf(Dz)) = max(Dz(~isinf(Dz)));
-                    sbjR(k,i) = corr(lC(:),abs(Dz(:)));
+                    sbjR(k,i) = corr(lC2(:),abs(Dz(:)));
                 end
 
                 % each ROIs [log10(cell count) vs. FC(z)]
-                for i=1:size(lC,1)
-                    roiR(k,i) = corr([lC(i,:)';lC(:,i)],abs([Dmz(i,:)';Dmz(:,i)]));
+                for i=1:size(lC2,1)
+                    roiR(k,i) = corr([lC2(i,:)';lC2(:,i)],abs([Dmz(i,:)';Dmz(:,i)]));
                 end
 
                 % full ROIs (vs. mean group data)
-%{
-                R(1) = corr(lC(:),abs(Dmz(:)));
-                figure; scatter(lC(:),abs(Dmz(:))); xlabel('log10(cell count)'); ylabel('FC(z)'); title(pftype);
-                disp(['prefix=' pftype ' : log10(cell count) vs. FC(z) = ' num2str(R(1))]);
-
-                R(2) = corr(lW(:),abs(Dmz(:)));
-                figure; scatter(lW(:),abs(Dmz(:))); xlabel('log10(synapse weight'); ylabel('FC(z)'); title(pftype);
-                disp(['prefix=' pftype ' : log10(synapse weight) vs. FC(z) = ' num2str(R(2))]);
-
-                R(3) = corr(lC(:),abs(T3(:)));
-                figure; scatter(lC(:),abs(T3(:))); xlabel('log10(cell count)'); ylabel('FC T-val'); title(pftype);
-                disp(['prefix=' pftype ' : log10(cell count) vs. FC T-val = ' num2str(R(3))]);
-
-                R(4) = corr(lW(:),abs(T3(:)));
-                disp(['prefix=' pftype ' : log10(synapse weight) vs. FC T-val = ' num2str(R(4))]);
-%}
                 R(1) = corr(lC2(:),abs(Dmz(:))); % whole vs. FC(z)
                 disp(['prefix=' pftype ' : log10(cell count2) vs. FC(z) = ' num2str(R(1))]);
+%                figure; scatter(lC2(:),abs(Dmz(:))); xlabel('log10(cell count2)'); ylabel('FC(z)'); title(pftype);
                 R(2) = corr(lW2(:),abs(Dmz(:)));
                 disp(['prefix=' pftype ' : log10(synapse weight2) vs. FC(z) = ' num2str(R(2))]);
                 R(3) = corr(lS(:),abs(Dmz(:)));
@@ -213,6 +196,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 disp(['prefix=' pftype ' : log10(synapse count) vs. FC T-val = ' num2str(R(15))]);
                 R(16) = corr(W3(:),abs(T3(:)));
                 disp(['prefix=' pftype ' : ROI in-neuron weight vs. FC T-val = ' num2str(R(16))]);
+%                figure; scatter(W3(:),abs(T3(:))); xlabel('ROI in-neuron weight'); ylabel('FC T-val'); title(pftype);
                 R(17) = corr(Sw(:),abs(T3(:)));
                 disp(['prefix=' pftype ' : ROI in-synapse weight vs. FC T-val = ' num2str(R(17))]);
                 R(18) = corr(Wo(:),abs(T3(:)));
@@ -241,13 +225,9 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 else
                     thN = 100;
                     aths = cell(thN,1);
-%                    for th = 1:thN
+%                    for th = [1 50 99] %1:thN
                     parfor th = 1:thN
                         % include injection voxel in ground truth
-%                        cth = prctile(C(C>0),th-1);
-%                        ct = C; ct(ct<cth) = 0; ct(ct>0) = 1;
-%                        wth = prctile(W(W>0),th-1);
-%                        wt = W; wt(wt<wth) = 0; wt(wt>0) = 1;
                         c2th = prctile(C2(C2>0),th-1);
                         ct2 = C2; ct2(ct2<c2th) = 0; ct2(ct2>0) = 1;
                         sth = prctile(S(S>0),th-1);
@@ -275,17 +255,8 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                         wotb = Wob; wotb(wotb<wobth) = 0; wotb(wotb>0) = 1;
 
                         aucs = cell(24,1);
-%{
-                        [~, ~, auc] = calcShowGroupROCcurve(ct(:)', abs(Dmz(:)'), ['FC(z) vs. cell count th=' num2str(th-1)], false);
-                        aucs{1} = single(auc);
-                        [~, ~, auc] = calcShowGroupROCcurve(wt(:)', abs(Dmz(:)'), ['FC(z) vs. synapse weight th=' num2str(th-1)], false);
-                        aucs{2} = single(auc);
-                        [~, ~, auc] = calcShowGroupROCcurve(ct(:)', abs(T3(:)'), ['FC T-val vs. cell count th=' num2str(th-1)], false);
-                        aucs{3} = single(auc);
-                        [~, ~, auc] = calcShowGroupROCcurve(wt(:)', abs(T3(:)'), ['FC T-val vs. synapse weight th=' num2str(th-1)], false);
-                        aucs{4} = single(auc);
-%}
                         [~, ~, auc] = calcShowGroupROCcurve(ct2(:)', abs(Dmz(:)'), ['FC(z) vs. cell count2 th=' num2str(th-1)], false);
+%                        figure; imagesc(ct2); colorbar; figure; imagesc(abs(Dmz)); colorbar; % to check matrix
                         aucs{1} = single(auc);
                         [~, ~, auc] = calcShowGroupROCcurve(wt2(:)', abs(Dmz(:)'), ['FC(z) vs. synapse weight2 th=' num2str(th-1)], false);
                         aucs{2} = single(auc);
@@ -353,8 +324,8 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
             end
         end
     end
-    % FC-SC correlation (4-type mixed box plot)
-    figure; boxplot(Rm(7:12,:),'Labels',rlabel); title([roitype ' FC-SC correlation (4-type mixed plot)']);
+    % FC-SC correlation (6-type mixed box plot)
+    figure; boxplot(Rm(7:12,:),'Labels',rlabel); title([roitype ' FC-SC correlation (6-type mixed plot)']);
     hold on; plot(Rm(7:12,:)'); hold off; legend;
 
     % FC-SC detection (FC(z) vs. cell count)
@@ -371,6 +342,6 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
     figure; boxplot(A6,'Labels',rlabel); title([roitype ' FC-SC detection (FC(z) vs. synapse weight2)']);
 %}
     AA = squeeze(nanmean(AUC,2));
-    figure; boxplot(AA(7:12,:),'Labels',rlabel); title([roitype ' FC-SC detection (4-type mixed plot)']);
+    figure; boxplot(AA(7:12,:),'Labels',rlabel); title([roitype ' FC-SC detection (6-type mixed plot)']);
     hold on; plot(AA(7:12,:)'); hold off; legend;
 end

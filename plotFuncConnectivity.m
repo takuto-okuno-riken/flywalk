@@ -31,6 +31,12 @@ function plotFuncConnectivity
     % check smoothing result around 50 ROIs
     checkSmoothingResult50(vslabels);
 
+    % check correlation result in each ROI num
+    checkSmoothingByRoinum(vslabels)
+
+    % check nuisance result round 50 ROIs
+    checkNuisanceResult50(vslabels);
+
     % hemibrain ROI check other piece (Orphan) body type check.
 %{
     load('data/flyemroi.mat');
@@ -41,61 +47,214 @@ function plotFuncConnectivity
 %}
 end
 
+function checkSmoothingByRoinum(vslabels)
+    % around 50 clusters
+    preproc = 'ar'; % for move correct, slice time correct
+    hpfTh = [0]; % high-pass filter threshold
+    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
+    nuisance = {''};
+    roinums = [20 30 50 100 200];
+    roitypes = {{'hemiBranson7065km',''},{'hemiCmkm',''},{'hemiCmkm','r1w1'}}; %,{'hemiCmkm','r2w1'}};
+    roitypelabels = {'Branson','Cm','CmR1w1'}; %,'CmR2w1'};
+
+    
+    ylabels = {}; R3 = []; A3 = [];
+    for r = 1:length(roitypes)
+        Am = []; Rm = []; ii=1; xlabels = {};
+        for rr=1:length(roinums)
+            for h=1:length(hpfTh)
+                hpfstr = '';
+                if hpfTh(h) > 0, hpfstr = ['hf' num2str(round(1/hpfTh(h)))]; end
+                for k=1:length(smooth)
+                    for n=1:length(nuisance)
+                        pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}{1} num2str(roinums(rr)) roitypes{r}{2}];
+                        xlabels{ii} = [smooth{k} 'roi' num2str(roinums(rr))]; ii=ii+1;
+                        aucmat = ['results/' pftype '-fcauc.mat'];
+                        if exist(aucmat,'file')
+                            load(aucmat);
+                        else
+                            A = nan(size(Am,1),100);
+                            R = nan(size(Rm,1),1);
+                        end
+                        Am = [Am,nanmean(A,2)];
+                        Rm = [Rm,R(:)];
+                    end
+                end
+            end
+        end
+
+        R3 = [R3;Rm]; A3 = [A3;Am];
+        C = cell(24,1); C(1:24) = {[roitypelabels{r} ' ']};
+        ylabels = [ylabels(:); strcat(C(:),vslabels(:))];
+    end
+
+    % FC-SC correlation (all)
+    figure; imagescLabel2(R3,xlabels,ylabels); colorbar; title(['FC-SC correlation (All) ']);
+ %   figure; plot(R3'); legend(ylabels); title(['FC-SC correlation (All)']); setlineColors(24);
+    
+    % FC-SC correlation Full vs. Traced
+    I = getR3idx([16 22],[0 24 48]);
+ %   figure; imagescLabel2(R3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC correlation Full vs. Traced');
+    figure; plot(R3(I,:)'); legend(ylabels(I)); title('FC-SC correlation Full vs. Traced'); setlineColors(2);
+
+    % FC-SC detection (all)
+    figure; imagescLabel2(A3,xlabels,ylabels); colorbar; title(['FC-SC detection (All) ']);
+%    figure; plot(A3'); legend(ylabels); title(['FC-SC detection (All)']); setlineColors(24);
+
+    % FC-SC detection Full vs. Traced
+    I = getR3idx([1 7], [0 24 48]);
+%    figure; imagescLabel2(A3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC detection Full vs. Traced');
+    figure; plot(A3(I,:)'); legend(ylabels(I)); title('FC-SC detection Full vs. Traced'); setlineColors(2);
+
+    % both FC-SC correlation & detection (all)
+    B = abs(R3) + abs(A3-0.5)*2;
+    figure; imagescLabel2(B,xlabels,ylabels); colorbar; title('FC-SC correlation & detection');
+%    figure; plot(B'); legend(ylabels); title('FC-SC correlation & detection'); setlineColors(24);
+
+    % FC-SC correlation & detection Full vs. Traced (which is best?)
+    I = getR3idx([1 7],[0 24 48]);
+    figure; plot(B(I,:)'); legend(ylabels(I)); title('FC-SC correlation & detection'); setlineColors(2);
+end
+
 function checkSmoothingResult50(vslabels)
     % around 50 clusters
     preproc = 'ar'; % for move correct, slice time correct
     hpfTh = [0]; % high-pass filter threshold
     smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
     nuisance = {''};
-    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50'}; % flyem ROI (Turner compatible)
+    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1'};
+    roitypelabels = {'FlyEM','Branson','Cm','CmR1w1'};
 
-    rlabel = {}; ii=1;
-    Rm = []; AUC = [];
+    ylabels = {}; R3 = []; A3 = []; AA3 = [];
     for r = 1:length(roitypes)
+        Am = []; Rm = []; AA = [];
         for h=1:length(hpfTh)
             hpfstr = '';
             if hpfTh(h) > 0, hpfstr = ['hf' num2str(round(1/hpfTh(h)))]; end
             for k=1:length(smooth)
                 for n=1:length(nuisance)
                     pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}];
-                    rlabel{ii} = pftype; ii=ii+1;
                     aucmat = ['results/' pftype '-fcauc.mat'];
-                    load(aucmat);
-                    AUC = cat(3,AUC,A);
+                    if exist(aucmat,'file')
+                        load(aucmat);
+                    else
+                        A = nan(size(Am,1),100);
+                        R = nan(size(Rm,1),1);
+                    end
+                    AA = cat(3,AA,A);
+                    Am = [Am,nanmean(A,2)];
                     Rm = [Rm,R(:)];
                 end
             end
         end
+
+        R3 = [R3;Rm]; A3 = [A3;Am]; AA3 = cat(1,AA3,AA);
+        C = cell(24,1); C(1:24) = {[roitypelabels{r} ' ']};
+        ylabels = [ylabels(:); strcat(C(:),vslabels(:))];
     end
 
-    % FC-SC correlation (4-type mixed box plot)
-    figure; imagescLabel2(Rm,rlabel,vslabels); colorbar; title('FC-SC correlation');
-    figure; plot(Rm'); legend(vslabels); title('FC-SC correlation'); setlineColors(6);
 
-%    AA = squeeze(AUC(20,:,:));
-%    figure; boxplot(AA,'Labels',rlabel); title([' FC-SC detection (FC T-val vs. ROI in-neuron weight b)']);
+    % FC-SC correlation (all)
+    figure; imagescLabel2(R3,smooth,ylabels); colorbar; title(['FC-SC correlation around 50 ROIs']);
+%    figure; plot(R3'); legend(ylabels); title(['FC-SC correlation around 50 ROIs']); setlineColors(24);
 
-    AA = squeeze(nanmean(AUC,2));
-  %  figure; boxplot(AA(5:8,:),'Labels',rlabel); title([' FC-SC detection (4-type mixed plot)']);
-  %  hold on; plot(AA(5:8,:)'); hold off; legend;
-    figure; imagescLabel2(AA,rlabel,vslabels); colorbar; title('FC-SC detection');
-    figure; plot(AA'); legend(vslabels); title('FC-SC detection'); setlineColors(6);
+    % FC-SC correlation FC(z) Traced neuron vs synapse (neuron count shows better result)
+    I = getR3idx([7 9 10 11],[0 24 48 72]);
+    figure; plot(R3(I,:)'); legend(ylabels(I)); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(4);
+    
+    % FC-SC detection (all)
+    figure; imagescLabel2(A3,smooth,ylabels); colorbar; title(['FC-SC detection around 50 ROIs']);
+%    figure; plot(A3'); legend(ylabels); title(['FC-SC detection around 50 ROIs']); setlineColors(24);
+
+    % FC-SC detection FC(z) neuron vs synapse (neuron count shows better result)
+    I = getR3idx([7 9 10 11],[0 24 48 72]);
+    figure; plot(A3(I,:)'); legend(ylabels(I)); title('FC-SC detection Traced neuron vs synapse'); setlineColors(4);
+
+    % FC-SC detection Full vs. Traced (Full shows better)
+    I = getR3idx([1 7],[0 24 48 72]);
+    figure; plot(A3(I,:)'); legend(ylabels(I)); title('FC-SC detection Full vs. Traced'); setlineColors(2);
+
+%    AA = squeeze(AA3(20,:,:));
+%    figure; boxplot(AA,'Labels',smooth); title(['FC-SC detection ' ylabels{20}]);
 
     for i=[7 13]
-        X = squeeze(AUC(i,:,:));
-        figure; plot(X); legend(rlabel); title(['FC-SC detection results by threshold in (' num2str(i) ') ' vslabels{i}]); setlineColors(9);
+        X = []; slabels = {};
+        for j=1:length(roitypelabels)
+            Y = squeeze(AA3(i+(j-1)*24,:,:));
+            X = [X, Y];
+            C = cell(9,1); C(1:9) = {[roitypelabels{j} ' ']};
+            slabels = [slabels(:); strcat(C(:),smooth(:))];
+        end
+        figure; plot(X); legend(slabels); title(['FC-SC detection results by threshold in (' num2str(i) ') ' vslabels{i}]); setlineColors(9);
     end
-%{
-    for ii=1:length(rlabel) % pattern
-        X = squeeze(AUC(:,:,ii));
-        figure; plot(X'); legend(vslabels); title(['FC-SC detection results by threshold ' rlabel{ii}]); 
-        xlabel('percentile'); ylabel('AUC'); setlineColors(6);
-    end
-%}
+
     % both FC-SC correlation & detection
-    B = abs(Rm) + abs(AA-0.5)*2;
-    figure; imagescLabel2(B,rlabel,vslabels); colorbar; title('FC-SC correlation & detection');
-    figure; plot(B'); legend(vslabels); title('FC-SC correlation & detection'); setlineColors(6);
+    B = abs(R3) + abs(A3-0.5)*2;
+    figure; imagescLabel2(B,smooth,ylabels); colorbar; title('FC-SC correlation & detection around 50 ROIs');
+%    figure; plot(B'); legend(ylabels); title('FC-SC correlation & detection around 50 ROIs'); setlineColors(24);
+
+    % FC-SC correlation & detection Full vs. Traced (which is best?)
+    I = getR3idx([1 7 10 12],[0 24 48 72]);
+    figure; plot(B(I,:)'); legend(ylabels(I)); title('FC-SC correlation & detection around 50 ROIs'); setlineColors(4);
+end
+
+function checkNuisanceResult50(vslabels)
+    % around 50 clusters
+    preproc = 'ar'; % for move correct, slice time correct
+    hpfTh = [0]; % high-pass filter threshold
+    smooth = {''};
+    nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
+        'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
+        '6hmacomp','6hmgmacomp','6hmgmgsacomp','6hmtcomp','6hmtacomp', ... %22
+        '24hmacomp','24hmgmacomp','24hmgmgsacomp','24hmtcomp','24hmtacomp', ... %27
+        'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
+        '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
+    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1'};
+    roitypelabels = {'FlyEM','Branson','Cm','CmR1w1'};
+
+    ylabels = {}; R3 = []; A3 = [];
+    for r = 1:length(roitypes)
+        Am = []; Rm = []; 
+        for h=1:length(hpfTh)
+            hpfstr = '';
+            if hpfTh(h) > 0, hpfstr = ['hf' num2str(round(1/hpfTh(h)))]; end
+            for k=1:length(smooth)
+                for n=1:length(nuisance)
+                    pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}];
+                    aucmat = ['results/' pftype '-fcauc.mat'];
+                    if exist(aucmat,'file')
+                        load(aucmat);
+                    else
+                        A = nan(size(Am,1),100);
+                        R = nan(size(Rm,1),1);
+                    end
+                    Am = [Am,nanmean(A,2)];
+                    Rm = [Rm,R(:)];
+                end
+            end
+        end
+
+        R3 = [R3;Rm]; A3 = [A3;Am];
+        C = cell(24,1); C(1:24) = {[roitypelabels{r} ' ']};
+        ylabels = [ylabels(:); strcat(C(:),vslabels(:))];
+    end
+
+    % FC-SC correlation (all)
+    figure; imagescLabel2(R3,nuisance,ylabels); colorbar; title(['FC-SC correlation around 50 ROIs']);
+    figure; plot(R3'); legend(ylabels); title(['FC-SC correlation around 50 ROIs']); setlineColors(24);
+
+    % FC-SC detection (all)
+    figure; imagescLabel2(A3,nuisance,ylabels); colorbar; title(['FC-SC detection around 50 ROIs']);
+    figure; plot(A3'); legend(ylabels); title(['FC-SC detection around 50 ROIs']); setlineColors(24);
+    
+    % both FC-SC correlation & detection
+    B = abs(R3) + abs(A3-0.5)*2;
+    figure; imagescLabel2(B,nuisance,ylabels); colorbar; title('FC-SC correlation & detection around 50 ROIs');
+%    figure; plot(B'); legend(ylabels); title('FC-SC correlation & detection around 50 ROIs'); setlineColors(24);
+end
+
+function I = getR3idx(A,B)
+    I = repmat(A',[1 length(B)]) + repmat(B,[length(A) 1]); I=I(:);
 end
 
 function imagescLabel2(mat, xlabel, ylabel)

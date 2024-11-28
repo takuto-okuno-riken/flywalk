@@ -20,16 +20,15 @@ function extractROItimeseries
         '24hmacomp','24hmgmacomp','24hmgmgsacomp','24hmtcomp','24hmtacomp', ... %27
         'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
-%    nuisance = {'', '6hmtacomp'}; % good for flyemroi
-%    nuisance = {'6hmtacomp'}; % good for bransonhemi, branson7065km50
-%    nuisance = {'tcomp'}; % good for hemicube4
-    nuisance = {''};
+    nuisance = {'6hmtacomp'}; % good for bransonhemi, branson7065km50
+%    nuisance = {''};
 
     % ROI name
 %    roitypes = {'flyemroi','bransonhemi'};
 %    roitypes = {'hemiBranson7065'};
 %    roitypes = {'hemiBranson7065km20','hemiBranson7065km30','hemiBranson7065km50','hemiBranson7065km100','hemiBranson7065km200'};
-    roitypes = {'hemiCmkm20','hemiCmkm30','hemiCmkm50','hemiCmkm100','hemiCmkm200'};
+%    roitypes = {'hemiCmkm20','hemiCmkm30','hemiCmkm50','hemiCmkm100','hemiCmkm200'};
+    roitypes = {'hemiCmkm20r1w1','hemiCmkm30r1w1','hemiCmkm50r1w1','hemiCmkm100r1w1','hemiCmkm200r1w1'};
 %    roitypes = {'hemiCube12','hemiCube8','hemiCube4'};
 %    roitypes = {'hemiPiece12','hemiPiece8','hemiPiece4'};
 %    roitypes = {'hemiPiece3','hemiPiece2'};
