@@ -16,7 +16,7 @@ function makeVoxelROIatlas
     Vfm(Vfm>0) = 1;
     Vfm(Vfm<1) = 0;
     Vm = Vm .* single(Vfm); % and condition.
-
+%{
     % make cube ROI type atlas
     for atlasSize = 12:-1:2
         cubename = [name 'Cube' num2str(atlasSize)];
@@ -108,6 +108,7 @@ function makeVoxelROIatlas
 
         disp([atlas ' ROI count=' num2str(max(aV(:)))]);
     end
+%}
 
     % make branson supervoxel based atlas
     atlas = ['atlas/' name 'Branson7065atlasCal.nii' ];
@@ -143,6 +144,7 @@ function makeVoxelROIatlas
     disp([atlas ' ROI count=' num2str(max(V(:)))]);
 
     % make neuropil specific voxel type atlas
+%{
 %    roiids = {[101],[57],[57,51],[51,62,20,111,100]}; % FB, EB, EB-bL(L),bL-b'L-aL-a'L-BU(L)
     roiids = {1	5	7	27	30	32	43	52	54	57	59	63	65	67	78	82	89	93	95	100	101	106	113};
     for i=1:length(roiids)
@@ -181,8 +183,10 @@ function makeVoxelROIatlas
         end
         disp([atlas ' ROI count=' num2str(max(aV(:)))]);
     end
+%}
 
     % make whole flyem ROI voxel atlas (except fibers)
+%{
     primaryId = [1	2	4	5	7	8	10	15	16	18	19 20	22	24	27	28	30	31 32	33	34	38	41	42 43	45	47	49	50	51	52	54	56	57	58	59	62	63	65	66	67	68	75	76 78	80	82	87	89	91	93	95	97	98	100	101	102	103	106	107	111	112	113];
     atlas = ['atlas/' name 'RoiWholeatlasCal.nii' ];
     if exist([atlas '.gz'],'file')
@@ -218,12 +222,13 @@ function makeVoxelROIatlas
         niftiwrite(aV,atlas,info,'Compressed',true);
     end
     disp([atlas ' ROI count=' num2str(max(aV(:)))]);
-
+%}
 
     % make ROI atlas based on k-means clustering of hemi branson7065 SC.
     % this requires hemibranson7065_connectlist.mat file. so need to run
     % makeStructConnectivity.m (Branson 7065) first.
     % this needs Statistics and Machine Learning Toolbox.
+%%{
     for k=[20 30 50 100 200 300 500 1000]
         atlas = ['atlas/' name 'Branson7065km' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
@@ -254,11 +259,18 @@ function makeVoxelROIatlas
             figure; imagesc(log10(M)); colorbar;
 %}
             info = niftiinfo('atlas/hemiBranson7065atlasCal.nii.gz');
-            aV = niftiread(info);
-            roimax = max(aV(:));
+            V = niftiread(info);
+            roimax = max(V(:));
+            aV = V;
             for i=1:roimax
-                ridx = find(aV==i);
+                ridx = find(V==i);
                 aV(ridx) = idx(i);
+            end
+
+            % check all ROI exist
+            for i=1:k
+                aidx = find(aV==i);
+                if isempty(aidx), disp([num2str(k) ') ROI ' num2str(i) ' voxel was not found.']); end
             end
     
             % set info. info.raw is not necessary to set (niftiwrite() does it)
@@ -268,11 +280,13 @@ function makeVoxelROIatlas
         end
         disp([atlas ' ROI count=' num2str(max(aV(:)))]);
     end
+%}
 
     % make ROI atlas based on k-means clustering of hemiem SC.
     % this requires hemiroiwhole_connectlist_cm.mat file. so need to run
     % makeStructConnectivity.m (whole flyem ROI) first.
     % this needs Statistics and Machine Learning Toolbox.
+%{
     for k=[20 30 50 100 200 300 500 1000]
         atlas = ['atlas/' name 'Cmkm' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
@@ -296,6 +310,7 @@ function makeVoxelROIatlas
             aidx = zeros(length(idx),1,'single');
             parfor i=1:length(aidx)
                 aidx(i) = find(aV==i);
+                if isempty(aidx), disp([num2str(k) ') ROI ' num2str(i) ' voxel was not found.']); end
             end
             aV(aidx) = idx;
     
@@ -320,7 +335,6 @@ function makeVoxelROIatlas
             info = niftiinfo(['atlas/' name 'Cmkm' num2str(k) 'atlasCal.nii.gz']);
             aV = single(niftiread(info));
             aV(aV==0) = nan; % to ignore nan
-
 
             % do iteration
             for itr=1:r
@@ -357,4 +371,38 @@ function makeVoxelROIatlas
         end
         disp([atlas ' ROI count=' num2str(max(aV(:)))]);
     end
+%}
+
+    % make ROI atlas based on k-means clustering of flyEM voxel distances.
+    % thus, this ROI did not follow any anatomical result.
+    % this needs Statistics and Machine Learning Toolbox.
+    for k=[20 30 50 100 200 300 500 1000 10000]
+        atlas = ['atlas/' name 'DistKm' num2str(k) 'atlasCal.nii' ];
+        if exist([atlas '.gz'],'file')
+            atlasinfo = niftiinfo([atlas '.gz']);
+            aV = niftiread(atlasinfo);
+        else
+            info = niftiinfo('atlas/hemiRoiWholeatlasCal.nii.gz');
+            aV = niftiread(info);
+            aidx = find(aV>0);
+            alen = length(aidx);
+            sz = size(aV);
+    
+            X = zeros(alen,3,'single');
+            for i=1:alen
+                [X(i,1),X(i,2),X(i,3)]=ind2sub(sz,aidx(i));
+            end
+            idx = kmeans(X,k); % reduce to 10000 clusters
+            clear X;
+    
+            aV(aidx) = idx;
+    
+            % set info. info.raw is not necessary to set (niftiwrite() does it)
+            info.Description = 'k-means clustering based atlas';
+            % output nii file
+            niftiwrite(aV,atlas,info,'Compressed',true);
+        end
+        disp([atlas ' ROI count=' num2str(max(aV(:)))]);
+    end
+    
 end

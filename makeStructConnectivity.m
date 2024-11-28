@@ -219,7 +219,7 @@ function makeStructConnectivity
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
-        if primaryIds(1) == 1 && primaryIds(k) == roiNum
+        if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
             % reorder by tree clustering
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
@@ -410,7 +410,7 @@ function makeStructConnectivity
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
-        if primaryIds(1) == 1 && primaryIds(k) == roiNum
+        if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
             % reorder by tree clustering
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
@@ -455,7 +455,7 @@ function makeStructConnectivity
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
-        if primaryIds(1) == 1 && primaryIds(k) == roiNum
+        if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
             % reorder by tree clustering
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
