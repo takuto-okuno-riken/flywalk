@@ -145,7 +145,7 @@ function makeStructConnectivity
             end
         end
 
-        [countMat2, sycountMat, weightMat2, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'branson');
+        [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'branson');
         save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum');
     end
 %{
@@ -192,8 +192,8 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 k-means atlas.
     % extract ROI ids from hemibrain mask
-
-    for k=[20 30 50 100 200 300]
+%}
+    for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiBranson7065km' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -258,10 +258,10 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
     
             countMat = []; weightMat = [];
-            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum');
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
         end
     
         ids = primaryIds;
@@ -293,10 +293,10 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
     
             countMat = []; weightMat = [];
-            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum','-v7.3');
         end
     
         ids = primaryIds;
@@ -332,10 +332,10 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, ['hemiroi' idstr]);
+            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, ['hemiroi' idstr]);
     
             countMat = []; weightMat = [];
-            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum');
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
         end
     
         ids = primaryIds;
@@ -384,7 +384,7 @@ function makeStructConnectivity
     % make structural connectivity matrix from k-means atlas.
     % extract ROI ids from hemibrain mask
 
-    for k=[20 30 50 100 200]
+    for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiCmkm' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -429,15 +429,15 @@ function makeStructConnectivity
     % make structural connectivity matrix from k-means (smoothing) atlas.
     % extract ROI ids from hemibrain mask
 
-    for k=[20 30 50 100 200 300]
-        idstr = ['hemiCmkm' num2str(k) 'r2w1'];
+    for k=[20 30 50 100 200 300 500 1000]
+        idstr = ['hemiCmkm' num2str(k) 'r1w1'];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear sycountMat; clear weightMat2;
         if exist(fname,'file')
             load(fname);
         else
-            atlV = niftiread(['data/hemiCmkm' num2str(k) 'r2w1atlasCal.nii.gz']);
+            atlV = niftiread(['data/hemiCmkm' num2str(k) 'r1w1atlasCal.nii.gz']);
             roimax = max(atlV(:));
             sz = size(atlV);
     
@@ -518,6 +518,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     Sdir(idx) = 0; 
     clear Srate;
 
+    isoutsyweight = (nargout >= 5);
     roimax = length(roiIdxs);
     nfile = ['results/cache-' type '_Nin_Nout.mat'];
     if exist(nfile,'file')
@@ -564,13 +565,20 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             Sout{i}{2} = postsids(logis); % output traced synapses in ROI(i)
             Sout{i}{3} = postsids(~logis); % output orphan bodys' synapses
 %}
-            Sin{i}{1} = presids; % all input synapses (including orphan, etc)
-            logis = ismember(StoN,Nin{i}{2});
-            logis = ismember(presids,Sid(logis)); % find may be slow, but Sid will consume memory.
-            Sin{i}{2} = presids(logis); % output traced synapses in ROI(i)
-            Sin{i}{3} = presids(~logis); % output orphan bodys' synapses
+            % syweightMat is heavy. calculate is if only it is required.
+            if isoutsyweight
+                Sin{i}{1} = presids; % all input synapses (including orphan, etc)
+                logis = ismember(StoN,Nin{i}{2});
+                logis = ismember(presids,Sid(logis)); % find may be slow, but Sid will consume memory.
+                Sin{i}{2} = presids(logis); % output traced synapses in ROI(i)
+                Sin{i}{3} = presids(~logis); % output orphan bodys' synapses
+            end
         end
-        save(nfile,'Nin','Nout','Sin','-v7.3');
+        if isoutsyweight
+            save(nfile,'Nin','Nout','Sin','-v7.3');
+        else
+            save(nfile,'Nin','Nout','-v7.3');
+        end
     end
     clear Nid; clear Nstatus;
 
@@ -579,7 +587,9 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     countMat = nan(roimax,roimax,3,'single');
     weightMat = nan(roimax,roimax,3,'single');
     outweightMat = nan(roimax,roimax,3,'single');
-    syweightMat = nan(roimax,roimax,3,'single');
+    if isoutsyweight
+        syweightMat = nan(roimax,roimax,3,'single');
+    end
 
     % set pool num. this calculation takes time. we need big pool num.
     delete(gcp('nocreate')); % shutdown pools
@@ -663,9 +673,12 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                 % find input neuron rate from ROI(i)
                 logi = ismember(innids,outnids);
                 X(j) = single(sum(logi)) / length(innids); % in-weight (from i to j)
-                logis = ismember(StoN,innids(logi));
-                logis = ismember(insids,Sid(logis));
-                SX(j) = single(sum(logis)) / length(insids); % in-synaptic-weight (from i to j)
+                % syweightMat is heavy. calculate is if only it is required.
+                if isoutsyweight
+                    logis = ismember(StoN,innids(logi));
+                    logis = ismember(insids,Sid(logis));
+                    SX(j) = single(sum(logis)) / length(insids); % in-synaptic-weight (from i to j)
+                end
                 % find output neuron rate from ROI(i)
                 logi2 = ismember(outnids,innids); % actually, same as x(j)
                 Y(j) = single(sum(logi2)) / length(outnids); % out-weight (from i to j)
@@ -675,31 +688,37 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             end
             weightMat(i,:,p) = X;
             outweightMat(i,:,p) = Y;
-            syweightMat(i,:,p) = SX;
+            if isoutsyweight
+                syweightMat(i,:,p) = SX;
+            end
         end
     end
     weightMat = weightMat .* sycountMat;
 
     % pure input and output cells (full, neurons, others count)
-    Ncount = zeros(roimax,2,3,'single');
-    for p=1:3
-        for i=1:roimax
-            if ~isempty(Nin{i})
-                Ncount(i,1,p) = length(Nin{i}{p});
-            end
-            if ~isempty(Nout{i})
-                Ncount(i,2,p) = length(Nout{i}{p});
+    if nargout >= 6
+        Ncount = zeros(roimax,2,3,'single');
+        for p=1:3
+            for i=1:roimax
+                if ~isempty(Nin{i})
+                    Ncount(i,1,p) = length(Nin{i}{p});
+                end
+                if ~isempty(Nout{i})
+                    Ncount(i,2,p) = length(Nout{i}{p});
+                end
             end
         end
     end
 
     % connected neuron ids (cell), only output neurons and others, but not full.
-    Cnids = cell(roimax,roimax,3);
-    for p=2:3
-        for i=1:roimax
-            for j=1:roimax
-                if ~isempty(CC{i})
-                    Cnids{i,j,p} = CC{i}{j,p};
+    if nargout >= 7
+        Cnids = cell(roimax,roimax,3);
+        for p=2:3
+            for i=1:roimax
+                for j=1:roimax
+                    if ~isempty(CC{i})
+                        Cnids{i,j,p} = CC{i}{j,p};
+                    end
                 end
             end
         end
