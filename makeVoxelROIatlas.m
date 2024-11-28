@@ -224,7 +224,7 @@ function makeVoxelROIatlas
     % this requires hemibranson7065_connectlist.mat file. so need to run
     % makeStructConnectivity.m (Branson 7065) first.
     % this needs Statistics and Machine Learning Toolbox.
-    for k=[20 30 50 100]
+    for k=[20 30 50 100 200 300 500 1000]
         atlas = ['data/' name 'Branson7065km' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
@@ -273,7 +273,7 @@ function makeVoxelROIatlas
     % this requires hemiroiwhole_connectlist_cm.mat file. so need to run
     % makeStructConnectivity.m (whole flyem ROI) first.
     % this needs Statistics and Machine Learning Toolbox.
-    for k=[20 30 50 100 200 300]
+    for k=[20 30 50 100 200 300 500 1000]
         atlas = ['data/' name 'Cmkm' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
@@ -309,8 +309,8 @@ function makeVoxelROIatlas
 
     % make ROI atlas based on k-means clustering of hemiem SC.
     % ROI edge smoothing by mode
-    for k=[20 30 50 100 200 300]
-        r = 2; % iteration
+    for k=[20 30 50 100 200 300 500 1000]
+        r = 1; % iteration
         w = 1; % width
         atlas = ['data/' name 'Cmkm' num2str(k) 'r' num2str(r) 'w' num2str(w) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
