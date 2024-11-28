@@ -469,6 +469,52 @@ function makeStructConnectivity
         figure; imagesc(log(CM2)); colorbar; title([idstr ' cell count 2 matrix']);
         figure; imagesc(log(SM)); colorbar; title([idstr ' synapse count matrix']);
     end
+
+
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix from distance based k-means atlas.
+    % extract ROI ids from hemibrain mask
+
+    for k=[20 30 50 100 200 300 500 1000]
+        idstr = ['hemiDistKm' num2str(k)];
+        fname = ['data/' lower(idstr) '_connectlist.mat'];
+
+        clear countMat2; clear sycountMat; clear weightMat2;
+        if exist(fname,'file')
+            load(fname);
+        else
+            atlV = niftiread(['atlas/hemiDistKm' num2str(k) 'atlasCal.nii.gz']);
+            roimax = max(atlV(:));
+            sz = size(atlV);
+    
+            roiIdxs = {};
+            for i=1:roimax
+                roiIdxs{i} = find(atlV==i);
+            end
+    
+            primaryIds = 1:roimax;
+            roiNum = length(primaryIds);
+    
+            [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+    
+            countMat = []; weightMat = [];
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
+        end
+
+        if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
+            % reorder by tree clustering
+            cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
+            eucD = pdist(cm2,'euclidean');
+            Z = linkage(eucD,'ward');
+            primaryIds = optimalleaforder(Z,eucD);
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
+        end
+
+        ids = primaryIds;
+        CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM2)); colorbar; title([idstr ' cell count 2 matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapse count matrix']);
+    end
 end
 
 function imagescLabel(mat, labelNames, titlestr)
