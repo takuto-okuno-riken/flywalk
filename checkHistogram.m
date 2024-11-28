@@ -3,7 +3,7 @@
 
 function checkHistogram
     % load FDA cal mask
-    mV = niftiread('data/thresholded_FDACal_mask.nii.gz');
+    mV = niftiread('template/thresholded_FDACal_mask.nii.gz');
     midx = find(mV>0);
 
     % ---------------------------------------------------------------------
@@ -11,7 +11,7 @@ function checkHistogram
     roinum = 114;
     voxsize = [];
     for i=1:roinum
-        info = niftiinfo(['data/flyemroi/roi' num2str(i) '.nii.gz']);
+        info = niftiinfo(['atlas/flyemroi/roi' num2str(i) '.nii.gz']);
         aV = niftiread(info);
         voxsize(i) = length(find(aV>0));
     end

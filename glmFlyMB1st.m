@@ -27,11 +27,11 @@ function glmFlyMB1st
     load('data/behavior.mat');
 
     % load background nii
-    backinfo = niftiinfo('data/thresholded_FDACal.nii.gz');
+    backinfo = niftiinfo('template/thresholded_FDACal.nii.gz');
     backV = niftiread(backinfo);
 
     % load mask nii
-    maskinfo = niftiinfo('thresholded_FDACal_mask.nii.gz');
+    maskinfo = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
     maskV = niftiread(maskinfo);
 
     % set pool num. this calculation takes time. we need big pool num.

@@ -20,14 +20,14 @@ function extractROItimeseries
         '24hmacomp','24hmgmacomp','24hmgmgsacomp','24hmtcomp','24hmtacomp', ... %27
         'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
-    nuisance = {'6hmtacomp'}; % good for bransonhemi, branson7065km50
-%    nuisance = {''};
+%    nuisance = {'6hmtacomp'}; % good for bransonhemi, branson7065km50
+    nuisance = {''};
 
     % ROI name
 %    roitypes = {'flyemroi','bransonhemi'};
 %    roitypes = {'hemiBranson7065'};
-%    roitypes = {'hemiBranson7065km20','hemiBranson7065km30','hemiBranson7065km50','hemiBranson7065km100','hemiBranson7065km200', ...
-%        'hemiBranson7065km300','hemiBranson7065km500','hemiBranson7065km1000'};
+    roitypes = {'hemiBranson7065km20','hemiBranson7065km30','hemiBranson7065km50','hemiBranson7065km100','hemiBranson7065km200', ...
+        'hemiBranson7065km300','hemiBranson7065km500','hemiBranson7065km1000'};
 %    roitypes = {'hemiCmkm20','hemiCmkm30','hemiCmkm50','hemiCmkm100','hemiCmkm200', ...
 %        'hemiCmkm300','hemiCmkm500','hemiCmkm1000'};
 %    roitypes = {'hemiCmkm20r1w1','hemiCmkm30r1w1','hemiCmkm50r1w1','hemiCmkm100r1w1','hemiCmkm200r1w1', ...
@@ -51,24 +51,24 @@ function roiIdxs = getRoiIdxs(roitype)
     roiIdxs = {};
     switch(roitype)
     case 'flyemroi'
-        listing = dir(['data/' roitype '/*.nii.gz']);
+        listing = dir(['atlas/' roitype '/*.nii.gz']);
         for i=1:length(listing)
-            V = niftiread(['data/' roitype '/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+            V = niftiread(['atlas/' roitype '/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
             roiIdxs{i} = find(V>0);
         end
     case 'bransonhemi'
         % read hemibrain mask
-        Vm = niftiread('data/jrc2018f_flyemhemibrainCal_invFDACal.nii.gz');
+        Vm = niftiread('template/jrc2018f_flyemhemibrainCal_invFDACal.nii.gz');
         Vm(Vm>0) = 1;
         Vm(Vm<1) = 0;
-        V = niftiread('data/JRC2018_branson_atlasCal_invFDACal.nii.gz'); % ROI mask should have same transform with 4D nifti data
+        V = niftiread('atlas/JRC2018_branson_atlasCal_invFDACal.nii.gz'); % ROI mask should have same transform with 4D nifti data
         V = V .* Vm;
         roimax = max(V(:));
         for i=1:roimax
             roiIdxs{i} = find(V==i);
         end
     otherwise
-        V = niftiread(['data/' roitype 'atlasCal.nii.gz']); % ROI mask should have same transform with 4D nifti data
+        V = niftiread(['atlas/' roitype 'atlasCal.nii.gz']); % ROI mask should have same transform with 4D nifti data
         roitype = lower(roitype);
         roimax = max(V(:));
         for i=1:roimax
@@ -82,10 +82,10 @@ function extractTsROItype(roitypes, preproc, hpfTh, smooth, nuisance)
 
     % for Nuisance Signal Regression
     csfV = []; % fly doesn't have csf
-    wmF = 'data/jrc2018f_IBN_fiber_bundle_mirror_maskCal_invFDACal.nii.gz';
+    wmF = 'template/jrc2018f_IBN_fiber_bundle_mirror_maskCal_invFDACal.nii.gz';
     wminfo = niftiinfo(wmF);
     wmV = niftiread(wminfo); % mask should have same transform with 4D nifti data
-    gsF = 'data/thresholded_FDACal_mask.nii.gz';
+    gsF = 'template/thresholded_FDACal_mask.nii.gz';
     gsinfo = niftiinfo(gsF);
     gsV = niftiread(gsinfo); % mask should have same transform with 4D nifti data
     gsV(gsV>=1) = 1;

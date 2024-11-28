@@ -5,13 +5,13 @@ function makeVoxelROIatlas
     name = 'hemi';
 
     % read hemibrain mask
-    info = niftiinfo('data/jrc2018f_flyemhemibrainCal_invFDACal.nii.gz');
+    info = niftiinfo('template/jrc2018f_flyemhemibrainCal_invFDACal.nii.gz');
     Vm = niftiread(info);
     Vm(Vm>0) = 1;
     Vm(Vm<1) = 0;
 
     % read FDA mask
-    info = niftiinfo('data/thresholded_FDACal_mask.nii.gz');
+    info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
     Vfm = niftiread(info);
     Vfm(Vfm>0) = 1;
     Vfm(Vfm<1) = 0;
@@ -20,7 +20,7 @@ function makeVoxelROIatlas
     % make cube ROI type atlas
     for atlasSize = 12:-1:2
         cubename = [name 'Cube' num2str(atlasSize)];
-        atlas = ['data/' cubename 'atlasCal.nii' ];
+        atlas = ['atlas/' cubename 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
             aV = niftiread(atlasinfo);
@@ -66,7 +66,7 @@ function makeVoxelROIatlas
     % make piece ROI type atlas (take one voxel per 2,3,4... cube voxel)
     for atlasSize = [12 8 4 3 2]
         piecename = [name 'Piece' num2str(atlasSize)];
-        atlas = ['data/' piecename 'atlasCal.nii' ];
+        atlas = ['atlas/' piecename 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
             aV = niftiread(atlasinfo);
@@ -110,15 +110,15 @@ function makeVoxelROIatlas
     end
 
     % make branson supervoxel based atlas
-    atlas = ['data/' name 'Branson7065atlasCal.nii' ];
+    atlas = ['atlas/' name 'Branson7065atlasCal.nii' ];
     if exist([atlas '.gz'],'file')
         atlasinfo = niftiinfo([atlas '.gz']);
         V = niftiread(atlasinfo);
     else
-        mV = niftiread('data/jrc2018f_flyemhemibrainCal_invFDACal.nii.gz');
+        mV = niftiread('template/jrc2018f_flyemhemibrainCal_invFDACal.nii.gz');
         mV(mV>0) = 1; mV(mV<1) = 0;
 
-        info = niftiinfo('data/jrc2018f_branson7065Cal_invFDACal.nii.gz');
+        info = niftiinfo('template/jrc2018f_branson7065Cal_invFDACal.nii.gz');
         aV = niftiread(info); sz = size(aV);
         amV = aV .* mV;
         ids = unique(amV(:)); ids(ids==0) = [];
@@ -149,15 +149,15 @@ function makeVoxelROIatlas
         idstr = num2str(roiids{i}(1));
         for j=2:length(roiids{i}), idstr=[idstr '-' num2str(roiids{i}(j))]; end
         roiname = [name 'Roi' idstr];
-        atlas = ['data/' roiname 'atlasCal.nii' ];
+        atlas = ['atlas/' roiname 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
             aV = niftiread(atlasinfo);
         else
-            info = niftiinfo(['data/flyemroi/roi' num2str(roiids{i}(1)) '.nii.gz']);
+            info = niftiinfo(['atlas/flyemroi/roi' num2str(roiids{i}(1)) '.nii.gz']);
             aV = niftiread(info); % ROI mask should have same transform with 4D nifti data
             for j=2:length(roiids{i})
-                bV = niftiread(['data/flyemroi/roi' num2str(roiids{i}(j)) '.nii.gz']);
+                bV = niftiread(['atlas/flyemroi/roi' num2str(roiids{i}(j)) '.nii.gz']);
                 bidx = find(bV>0);
                 aV(bidx) = bV(bidx);
             end
@@ -184,20 +184,20 @@ function makeVoxelROIatlas
 
     % make whole flyem ROI voxel atlas (except fibers)
     primaryId = [1	2	4	5	7	8	10	15	16	18	19 20	22	24	27	28	30	31 32	33	34	38	41	42 43	45	47	49	50	51	52	54	56	57	58	59	62	63	65	66	67	68	75	76 78	80	82	87	89	91	93	95	97	98	100	101	102	103	106	107	111	112	113];
-    atlas = ['data/' name 'RoiWholeatlasCal.nii' ];
+    atlas = ['atlas/' name 'RoiWholeatlasCal.nii' ];
     if exist([atlas '.gz'],'file')
         atlasinfo = niftiinfo([atlas '.gz']);
         aV = niftiread(atlasinfo);
     else
-        info = niftiinfo(['data/flyemroi/roi' num2str(primaryId(1)) '.nii.gz']);
+        info = niftiinfo(['atlas/flyemroi/roi' num2str(primaryId(1)) '.nii.gz']);
         aV = niftiread(info); % ROI mask should have same transform with 4D nifti data
         for i=1:length(primaryId)
-            bV = niftiread(['data/flyemroi/roi' num2str(primaryId(i)) '.nii.gz']);
+            bV = niftiread(['atlas/flyemroi/roi' num2str(primaryId(i)) '.nii.gz']);
             bidx = find(bV>0);
             aV(bidx) = primaryId(i);
         end
         % remove fibers
-        fV = niftiread('data/jrc2018f_IBN_fiber_bundle_mirror_maskCal_invFDACal.nii.gz');
+        fV = niftiread('template/jrc2018f_IBN_fiber_bundle_mirror_maskCal_invFDACal.nii.gz');
         aV(fV>127) = 0; 
         idx = find(aV>0);
         aV(idx) = 1:length(idx); % if comment out this line, ROI atlas can be saved
@@ -225,7 +225,7 @@ function makeVoxelROIatlas
     % makeStructConnectivity.m (Branson 7065) first.
     % this needs Statistics and Machine Learning Toolbox.
     for k=[20 30 50 100 200 300 500 1000]
-        atlas = ['data/' name 'Branson7065km' num2str(k) 'atlasCal.nii' ];
+        atlas = ['atlas/' name 'Branson7065km' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
             aV = niftiread(atlasinfo);
@@ -253,7 +253,7 @@ function makeVoxelROIatlas
             end
             figure; imagesc(log10(M)); colorbar;
 %}
-            info = niftiinfo('data/hemiBranson7065atlasCal.nii.gz');
+            info = niftiinfo('atlas/hemiBranson7065atlasCal.nii.gz');
             aV = niftiread(info);
             roimax = max(aV(:));
             for i=1:roimax
@@ -274,7 +274,7 @@ function makeVoxelROIatlas
     % makeStructConnectivity.m (whole flyem ROI) first.
     % this needs Statistics and Machine Learning Toolbox.
     for k=[20 30 50 100 200 300 500 1000]
-        atlas = ['data/' name 'Cmkm' num2str(k) 'atlasCal.nii' ];
+        atlas = ['atlas/' name 'Cmkm' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
             aV = niftiread(atlasinfo);
@@ -291,7 +291,7 @@ function makeVoxelROIatlas
             idx = kmeans(cm,k,'Distance','cosine');
             clear cm;
             
-            info = niftiinfo('data/hemiRoiWholeatlasCal.nii.gz');
+            info = niftiinfo('atlas/hemiRoiWholeatlasCal.nii.gz');
             aV = niftiread(info);
             aidx = zeros(length(idx),1,'single');
             parfor i=1:length(aidx)
@@ -312,12 +312,12 @@ function makeVoxelROIatlas
     for k=[20 30 50 100 200 300 500 1000]
         r = 1; % iteration
         w = 1; % width
-        atlas = ['data/' name 'Cmkm' num2str(k) 'r' num2str(r) 'w' num2str(w) 'atlasCal.nii' ];
+        atlas = ['atlas/' name 'Cmkm' num2str(k) 'r' num2str(r) 'w' num2str(w) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
             aV = niftiread(atlasinfo);
         else
-            info = niftiinfo(['data/' name 'Cmkm' num2str(k) 'atlasCal.nii.gz']);
+            info = niftiinfo(['atlas/' name 'Cmkm' num2str(k) 'atlasCal.nii.gz']);
             aV = single(niftiread(info));
             aV(aV==0) = nan; % to ignore nan
 

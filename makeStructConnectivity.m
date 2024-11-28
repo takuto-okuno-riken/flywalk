@@ -28,9 +28,9 @@ function makeStructConnectivity
 
     if ~exist('syweightMat','var')
         roiIdxs = {};
-        listing = dir(['data/flyemroi/*.nii.gz']);
+        listing = dir(['atlas/flyemroi/*.nii.gz']);
         for i=1:length(listing)
-            V = niftiread(['data/flyemroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+            V = niftiread(['atlas/flyemroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
             roiIdxs{i} = find(V>0);
             sz = size(V);
         end
@@ -44,9 +44,9 @@ function makeStructConnectivity
     % check large sparse version
 %{
         roiIdxs = {};
-        listing = dir(['data/flyemroi/*.nii.gz']);
+        listing = dir(['atlas/flyemroi/*.nii.gz']);
         for i=1:length(listing)
-            V = niftiread(['data/flyemroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+            V = niftiread(['atlas/flyemroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
             roiIdxs{i} = find(V>0);
             sz = size(V);
         end
@@ -99,12 +99,12 @@ function makeStructConnectivity
         load(fname);
     else
         % read hemibrain mask
-        Vm = niftiread('data/jrc2018f_flyemhemibrainCal_invFDACal.nii.gz');
+        Vm = niftiread('template/jrc2018f_flyemhemibrainCal_invFDACal.nii.gz');
         Vm(Vm>0) = 1;
         Vm(Vm<1) = 0;
     
         % read branson atlas (FDA registered)
-        Vb = niftiread('data/JRC2018_branson_atlasCal_invFDACal.nii.gz');
+        Vb = niftiread('atlas/JRC2018_branson_atlasCal_invFDACal.nii.gz');
         % check full region is included
         primaryIds = [];
         Vbm = Vb .* Vm;
@@ -135,7 +135,7 @@ function makeStructConnectivity
     if ~exist('syweightMat','var')
         roiIdxs = {};
         % read branson atlas (FDA registered)
-        Vb = niftiread('data/JRC2018_branson_atlasCal_invFDACal.nii.gz');
+        Vb = niftiread('atlas/JRC2018_branson_atlasCal_invFDACal.nii.gz');
         sz = size(Vb);
         for i=1:999
             if ismember(i,primaryIds)
@@ -166,7 +166,7 @@ function makeStructConnectivity
     if exist(fname,'file')
         load(fname);
     else
-        atlV = niftiread('data/hemiBranson7065atlasCal.nii.gz');
+        atlV = niftiread('atlas/hemiBranson7065atlasCal.nii.gz');
         roimax = max(atlV(:));
         sz = size(atlV);
 
@@ -192,7 +192,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 k-means atlas.
     % extract ROI ids from hemibrain mask
-%}
+
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiBranson7065km' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
@@ -201,7 +201,7 @@ function makeStructConnectivity
         if exist(fname,'file')
             load(fname);
         else
-            atlV = niftiread(['data/hemiBranson7065km' num2str(k) 'atlasCal.nii.gz']);
+            atlV = niftiread(['atlas/hemiBranson7065km' num2str(k) 'atlasCal.nii.gz']);
             roimax = max(atlV(:));
             sz = size(atlV);
     
@@ -246,7 +246,7 @@ function makeStructConnectivity
         if exist(fname,'file')
             load(fname);
         else
-            atlV = niftiread(['data/' idstr 'atlasCal.nii.gz']);
+            atlV = niftiread(['atlas/' idstr 'atlasCal.nii.gz']);
             roimax = max(atlV(:));
             sz = size(atlV);
     
@@ -281,7 +281,7 @@ function makeStructConnectivity
         if exist(fname,'file')
             load(fname);
         else
-            atlV = niftiread(['data/' idstr 'atlasCal.nii.gz']);
+            atlV = niftiread(['atlas/' idstr 'atlasCal.nii.gz']);
             roimax = max(atlV(:));
             sz = size(atlV);
     
@@ -320,7 +320,7 @@ function makeStructConnectivity
         if exist(fname,'file')
             load(fname);
         else
-            atlV = niftiread(['data/hemiRoi' idstr 'atlasCal.nii.gz']);
+            atlV = niftiread(['atlas/hemiRoi' idstr 'atlasCal.nii.gz']);
             roimax = max(atlV(:));
             sz = size(atlV);
     
@@ -353,7 +353,7 @@ function makeStructConnectivity
         load([fname(1:end-4) '_cm.mat']);
         load([fname(1:end-4) '_sm.mat']);
     else
-        atlV = niftiread(['data/hemiRoiWholeatlasCal.nii.gz']);
+        atlV = niftiread(['atlas/hemiRoiWholeatlasCal.nii.gz']);
         roimax = max(atlV(:));
         sz = size(atlV);
 
@@ -384,7 +384,7 @@ function makeStructConnectivity
     % make structural connectivity matrix from k-means atlas.
     % extract ROI ids from hemibrain mask
 
-    for k=[20 30 50 100 200 300 500 1000]
+    for k=[300]
         idstr = ['hemiCmkm' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -392,7 +392,7 @@ function makeStructConnectivity
         if exist(fname,'file')
             load(fname);
         else
-            atlV = niftiread(['data/hemiCmkm' num2str(k) 'atlasCal.nii.gz']);
+            atlV = niftiread(['atlas/hemiCmkm' num2str(k) 'atlasCal.nii.gz']);
             roimax = max(atlV(:));
             sz = size(atlV);
     
@@ -437,7 +437,7 @@ function makeStructConnectivity
         if exist(fname,'file')
             load(fname);
         else
-            atlV = niftiread(['data/hemiCmkm' num2str(k) 'r1w1atlasCal.nii.gz']);
+            atlV = niftiread(['atlas/hemiCmkm' num2str(k) 'r1w1atlasCal.nii.gz']);
             roimax = max(atlV(:));
             sz = size(atlV);
     

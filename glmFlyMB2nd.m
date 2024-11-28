@@ -20,12 +20,12 @@ function glmFlyMB2nd
     path = 'results/glm/';
 
     % load background nii
-    backNii = 'data/thresholded_FDACal.nii.gz';
+    backNii = 'template/thresholded_FDACal.nii.gz';
     backinfo = niftiinfo(backNii);
     backV = niftiread(backinfo);
 
     % load mask nii
-    maskinfo = niftiinfo('thresholded_FDACal_mask.nii.gz');
+    maskinfo = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
     maskV = niftiread(maskinfo);
 
     % read calcium image nii files
