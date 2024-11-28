@@ -392,7 +392,8 @@ function makeVoxelROIatlas
             for i=1:alen
                 [X(i,1),X(i,2),X(i,3)]=ind2sub(sz,aidx(i));
             end
-            idx = kmeans(X,k); % reduce to 10000 clusters
+            X = X .* [2.452 2.28 3.715]; % by voxel size.
+            idx = kmeans(X,k); % reduce to k clusters
             clear X;
     
             aV(aidx) = idx;
