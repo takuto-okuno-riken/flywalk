@@ -286,7 +286,7 @@ function makeVoxelROIatlas
     % this requires hemiroiwhole_connectlist_cm.mat file. so need to run
     % makeStructConnectivity.m (whole flyem ROI) first.
     % this needs Statistics and Machine Learning Toolbox.
-%{
+%%{
     for k=[20 30 50 100 200 300 500 1000]
         atlas = ['atlas/' name 'Cmkm' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
@@ -308,8 +308,8 @@ function makeVoxelROIatlas
             info = niftiinfo('atlas/hemiRoiWholeatlasCal.nii.gz');
             aV = niftiread(info);
             aidx = zeros(length(idx),1,'single');
-            parfor i=1:length(aidx)
-                aidx(i) = find(aV==i);
+            for i=1:length(aidx)
+                aidx(i) = find(aV==i); % should be single value
                 if isempty(aidx), disp([num2str(k) ') ROI ' num2str(i) ' voxel was not found.']); end
             end
             aV(aidx) = idx;
@@ -327,6 +327,7 @@ function makeVoxelROIatlas
     for k=[20 30 50 100 200 300 500 1000]
         r = 1; % iteration
         w = 1; % width
+        roiVoxTh = (w*2+1)^3; % ROI voxel threshold
         atlas = ['atlas/' name 'Cmkm' num2str(k) 'r' num2str(r) 'w' num2str(w) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
@@ -340,9 +341,11 @@ function makeVoxelROIatlas
             for itr=1:r
                 vidx = find(aV>0);
                 % check all ROI exist
+                roiVoxNum = zeros(k,1,'uint16');
                 for i=1:k
                     idx = find(aV==i);
-                    if length(idx) < (w*2+1)^3
+                    roiVoxNum(i) = length(idx);
+                    if length(idx) < roiVoxTh
                         logis = ismember(vidx,idx);
                         vidx(logis) = [];
                         disp(['keep ROI ' num2str(i) ') ' num2str(length(idx)) ' voxels'])
@@ -352,8 +355,14 @@ function makeVoxelROIatlas
                 V = aV;
                 for j=1:length(vidx)
                     [x,y,z] = ind2sub(size(V),vidx(j));
+                    a = aV(x,y,z);
                     A = aV(x-w:x+w,y-w:y+w,z-w:z+w);
-                    V(x,y,z) = mode(A(:));
+                    m = mode(A(:));
+                    if a ~= m && roiVoxNum(a) >= roiVoxTh
+                        V(x,y,z) = m;
+                        roiVoxNum(a) = roiVoxNum(a) - 1;
+                        roiVoxNum(m) = roiVoxNum(m) + 1;
+                    end
                 end
                 aV = V;
             end
