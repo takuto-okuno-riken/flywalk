@@ -414,5 +414,30 @@ function makeVoxelROIatlas
         end
         disp([atlas ' ROI count=' num2str(max(aV(:)))]);
     end
+
+    % make ROI atlas based on fully random based on flyEM 10000 clusters.
+    % thus, this ROI did not follow any anatomical result.
+    for k=[20 30 50 100 200 300 500 1000]
+        atlas = ['atlas/' name 'Rand' num2str(k) 'atlasCal.nii' ];
+        if exist([atlas '.gz'],'file')
+            atlasinfo = niftiinfo([atlas '.gz']);
+            aV = niftiread(atlasinfo);
+        else
+            info = niftiinfo('atlas/hemiDistKm10000atlasCal.nii.gz');
+            aV = niftiread(info);
+
+            perm = randperm(10000);
+            perm = mod(perm,k) + 1;
+
+            for i=1:10000
+                aV(aV==i) = perm(i);
+            end
     
+            % set info. info.raw is not necessary to set (niftiwrite() does it)
+            info.Description = 'fully random based atlas';
+            % output nii file
+            niftiwrite(aV,atlas,info,'Compressed',true);
+        end
+        disp([atlas ' ROI count=' num2str(max(aV(:)))]);
+    end
 end
