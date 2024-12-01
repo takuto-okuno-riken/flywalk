@@ -97,14 +97,20 @@ function makeStructConnectivity
 
     % reorder by neuron count matrix clustering
     % for Turner et al. (2021) compatible (around 50 ROIs)
-    ids = turnerIds;
+    if primaryIds(1) == 103
+        % reorder by tree clustering
+        ids = turnerIds;
+        CM2 = countMat2(ids,ids,2);
+        eucD = pdist(CM2,'euclidean');
+        Z = linkage(eucD,'ward');
+        idx = optimalleaforder(Z,eucD);
+        primaryIds = turnerIds(idx);
+        save(fname,'connectlist','countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
+    end
+    ids = primaryIds;
     CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
-    eucD = pdist(CM2,'euclidean');
-    Z = linkage(eucD,'ward');
-    ids = optimalleaforder(Z,eucD);
-    figure; imagesc(log10(CM2(ids,ids))); colorbar; title('hemibrain cell count matrix');
-    figure; imagesc(log10(SM(ids,ids))); colorbar; title('hemibrain synapse count matrix');
-    
+    figure; imagesc(log10(CM2)); colorbar; title('hemibrain cell count matrix');
+    figure; imagesc(log10(SM)); colorbar; title('hemibrain synapse count matrix');
 %    CM2b = countMat2(ids,ids,2); SMb = sycountMat(ids,ids,2); WM2b = weightMat2(ids,ids,2); WMob = outweightMat(ids,ids,2);
 %    WM3b = WM2b ./ SMb; WM3b(SMb==0) = 0; % pure ROI-input neuron connection weight
 %}

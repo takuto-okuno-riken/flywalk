@@ -11,7 +11,7 @@ function analyzeFuncConnectivity
     hpfTh = [0]; % high-pass filter threshold
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
     smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
-%    smooth = {''};
+    smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
         '6hmacomp','6hmgmacomp','6hmgmgsacomp','6hmtcomp','6hmtacomp', ... %22
@@ -46,7 +46,7 @@ function analyzeFuncConnectivity
 %    roitypes = {'hemiRoi1','hemiRoi5','hemiRoi7','hemiRoi27','hemiRoi30','hemiRoi32','hemiRoi43','hemiRoi52', ...
 %        'hemiRoi54','hemiRoi57','hemiRoi59','hemiRoi63','hemiRoi65','hemiRoi67','hemiRoi78','hemiRoi82', ...
 %        'hemiRoi89','hemiRoi93','hemiRoi95','hemiRoi100','hemiRoi101','hemiRoi106','hemiRoi113'};
-    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50r1w1','hemiRand50'};
+    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -61,8 +61,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
     switch(roitype)
     case 'flyemroi'
         load('data/neuprint_connectlist.mat');
-        % for Turner et al. (2021) compatible.
-        ids = [103	107	20	111	59	68	65	78  49	51	62	106	87	47 100 24	27	43	38	5	57	22	89	101	97	75	50	58	41	113	10	2	32	66	45	30	67	19	76	31	82	93	54	52	8	7	80	1	102	63	95	56];
+        ids = primaryIds;
     case 'flyemroif'
         load('data/neuprint_connectlist.mat');
         ids = 1:roiNum;
@@ -170,7 +169,6 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 % full ROIs (vs. mean group data)
                 R(1) = corr(lC2(:),abs(Dmz(:))); % whole vs. FC(z)
                 disp(['prefix=' pftype ' : log10(cell count2) vs. FC(z) = ' num2str(R(1))]);
-%                figure; scatter(lC2(:),abs(Dmz(:))); xlabel('log10(cell count2)'); ylabel('FC(z)'); title(pftype);
                 R(2) = corr(lW2(:),abs(Dmz(:)));
                 disp(['prefix=' pftype ' : log10(synapse weight2) vs. FC(z) = ' num2str(R(2))]);
                 R(3) = corr(lS(:),abs(Dmz(:)));
@@ -184,6 +182,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
 
                 R(7) = corr(lC2b(:),abs(Dmz(:))); % Traced vs. FC(z)
                 disp(['prefix=' pftype ' : log10(cell count2b) vs. FC(z) = ' num2str(R(7))]);
+%                figure; scatter(lC2b(:),abs(Dmz(:))); xlabel('log10(cell count2b)'); ylabel('FC(z)'); title(pftype);
                 R(8) = corr(lW2b(:),abs(Dmz(:)));
                 disp(['prefix=' pftype ' : log10(synapse weight2b) vs. FC(z) = ' num2str(R(8))]);
                 R(9) = corr(lSb(:),abs(Dmz(:)));
