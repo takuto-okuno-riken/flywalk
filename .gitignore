@@ -7,6 +7,8 @@
 *.dat
 *.xlsx
 *.nrrd
+*.png
+*.jpg
 hemi*.m
 nrrd_*.m
 nhdr_*.m
