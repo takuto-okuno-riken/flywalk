@@ -6,7 +6,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from neuprint connectivity list.
     % list data was acquired by c.fetch_roi_connectivity() of neuprint python api.
-%{
+%%{
     % primary ROIs
     primaryIds = [103	107	20	111	59	68	65	78	34	4	49	51	62	106	87	47	100	24	27	43	38	5	57	22	89	101	97	75	50	58	41	113	10	2	32	66	45	30	67	19	76	31	82	93	54	52	8	7	74	42	80	1	102	63	95	56];
     roiNum = 114;
@@ -85,14 +85,26 @@ function makeStructConnectivity
     WMo = outweightMat(ids,ids,2);
     figure; imagescLabel(log(WMi'), labelNames, 'hemibrain all input-rate matrix');
     figure; imagescLabel(log(WMo), labelNames, 'hemibrain all output-rate matrix');
+
+    % reorder by neuron count matrix clustering
+    % for Turner et al. (2021) compatible (around 50 ROIs)
+    ids = [103	107	20	111	59	68	65	78  49	51	62	106	87	47 100 24	27	43	38	5	57	22	89	101	97	75	50	58	41	113	10	2	32	66	45	30	67	19	76	31	82	93	54	52	8	7	80	1	102	63	95	56];
+    CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
+    eucD = pdist(CM2,'euclidean');
+    Z = linkage(eucD,'ward');
+    ids = optimalleaforder(Z,eucD);
+    figure; imagesc(log10(CM2(ids,ids))); colorbar; title('hemibrain cell count matrix');
+    figure; imagesc(log10(SM(ids,ids))); colorbar; title('hemibrain synapse count matrix');
+    
 %    CM2b = countMat2(ids,ids,2); SMb = sycountMat(ids,ids,2); WM2b = weightMat2(ids,ids,2); WMob = outweightMat(ids,ids,2);
 %    WM3b = WM2b ./ SMb; WM3b(SMb==0) = 0; % pure ROI-input neuron connection weight
+%}
 
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson matrix csv.
     % extract ROI ids from hemibrain mask
     % branson matrix csv was acquired from Turner et al. (2021).
-
+%{
     clear countMat2; clear sycountMat; clear weightMat2;
     fname = 'data/branson_connectlist.mat';
     if exist(fname,'file')
@@ -556,8 +568,8 @@ function makeStructConnectivity
 
         ids = primaryIds;
         CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
-        figure; imagesc(log(CM2)); colorbar; title([idstr ' cell count 2 matrix']);
-        figure; imagesc(log(SM)); colorbar; title([idstr ' synapse count matrix']);
+        figure; imagesc(log(CM2),[8 10]); colorbar; title([idstr ' cell count 2 matrix']);
+        figure; imagesc(log(SM),[8 12]); colorbar; title([idstr ' synapse count matrix']);
     end
 end
 
