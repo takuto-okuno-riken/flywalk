@@ -231,6 +231,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 else
                     thN = 100;
                     aths = cell(thN,1);
+                    XY = cell(thN,1);
 %                    for th = [1 50 99] %1:thN
                     parfor th = 1:thN
                         % include injection voxel in ground truth
@@ -275,7 +276,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                         [~, ~, auc] = calcShowGroupROCcurve(wot(:)', abs(Dmz(:)'), ['FC(z) vs. ROI out-neuron weight th=' num2str(th-1)], false);
                         aucs{6} = single(auc);
 
-                        [~, ~, auc] = calcShowGroupROCcurve(ct2b(:)', abs(Dmz(:)'), ['FC(z) vs. cell count2b th=' num2str(th-1)], false);
+                        [X, Y, auc] = calcShowGroupROCcurve(ct2b(:)', abs(Dmz(:)'), ['FC(z) vs. cell count2b th=' num2str(th-1)], false);
                         aucs{7} = single(auc); % input node is one, so it is not vector.
                         [~, ~, auc] = calcShowGroupROCcurve(wt2b(:)', abs(Dmz(:)'), ['FC(z) vs. synapse weight2b th=' num2str(th-1)], false);
                         aucs{8} = single(auc);
@@ -314,7 +315,16 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                         [~, ~, auc] = calcShowGroupROCcurve(wotb(:)', abs(T3(:)'), ['FC T-val vs. ROI out-neuron weight b th=' num2str(th-1)], false);
                         aucs{24} = single(auc);
                         aths{th} = aucs;
+                        XY{th} = [X; Y]; % keep X,Y for ROC curve plot
                     end
+%{
+                    figure; plot([0 1], [0 1],':','Color',[0.5 0.5 0.5]); ylim([0 1]); xlim([0 1]); daspect([1 1 1]);
+                    for th = 1:thN
+                        c = 0.95 - th*0.8/100;
+                        hold on; plot(XY{th}(1,:),XY{th}(2,:),'Color',[c c c 0.7]); hold off;
+                    end
+                    title([pftype 'log10(cell count2b) vs. FC(z) ROC curve']); xlabel('False Positive Rate'); ylabel('True Positive Rate');
+%}
                     A = zeros(24,thN,'single');
                     for th = 1:thN
                         for j=1:24
