@@ -42,7 +42,7 @@ function makeStructConnectivity
             end
             sz = size(V);
         end
-%        niftiwrite(aV,'atlas/hemiFlyem52.nii','Compressed',true);
+%        niftiwrite(aV,'atlas/hemiFlyem52atlasCal.nii','Compressed',true);
 
         [countMat2, sycountMat, weightMat2, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'hemiroi');
 
