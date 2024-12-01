@@ -10,6 +10,7 @@ function makeStructConnectivity
     % primary ROIs
     primaryIds = [103	107	20	111	59	68	65	78	34	4	49	51	62	106	87	47	100	24	27	43	38	5	57	22	89	101	97	75	50	58	41	113	10	2	32	66	45	30	67	19	76	31	82	93	54	52	8	7	74	42	80	1	102	63	95	56];
     roiNum = 114;
+    turnerIds = [103	107	20	111	59	68	65	78  49	51	62	106	87	47 100 24	27	43	38	5	57	22	89	101	97	75	50	58	41	113	10	2	32	66	45	30	67	19	76	31	82	93	54	52	8	7	80	1	102	63	95	56];
 
     % load matfile
     fname = 'data/neuprint_connectlist.mat';
@@ -27,13 +28,21 @@ function makeStructConnectivity
     end
 
     if ~exist('syweightMat','var')
+        info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
+        aV = niftiread(info); aV(:) = 0;
+        cnt = 1;
         roiIdxs = {};
         listing = dir(['atlas/flyemroi/*.nii.gz']);
         for i=1:length(listing)
             V = niftiread(['atlas/flyemroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
-            roiIdxs{i} = find(V>0);
+            idx = find(V>0);
+            roiIdxs{i} = idx;
+            if any(ismember(turnerIds,i))
+                aV(idx) = cnt; cnt = cnt + 1;
+            end
             sz = size(V);
         end
+%        niftiwrite(aV,'atlas/hemiFlyem52.nii','Compressed',true);
 
         [countMat2, sycountMat, weightMat2, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'hemiroi');
 
@@ -88,7 +97,7 @@ function makeStructConnectivity
 
     % reorder by neuron count matrix clustering
     % for Turner et al. (2021) compatible (around 50 ROIs)
-    ids = [103	107	20	111	59	68	65	78  49	51	62	106	87	47 100 24	27	43	38	5	57	22	89	101	97	75	50	58	41	113	10	2	32	66	45	30	67	19	76	31	82	93	54	52	8	7	80	1	102	63	95	56];
+    ids = turnerIds;
     CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
     eucD = pdist(CM2,'euclidean');
     Z = linkage(eucD,'ward');
