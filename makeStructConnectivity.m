@@ -6,7 +6,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from neuprint connectivity list.
     % list data was acquired by c.fetch_roi_connectivity() of neuprint python api.
-%%{
+%{
     % primary ROIs
     primaryIds = [103	107	20	111	59	68	65	78	34	4	49	51	62	106	87	47	100	24	27	43	38	5	57	22	89	101	97	75	50	58	41	113	10	2	32	66	45	30	67	19	76	31	82	93	54	52	8	7	74	42	80	1	102	63	95	56];
     roiNum = 114;
@@ -18,7 +18,7 @@ function makeStructConnectivity
 
     %
     if ~exist('countMat','var')
-        countMat = zeros(roiNum,roiNum,'single'); % cell count matrix
+        countMat = zeros(roiNum,roiNum,'single'); % neurons matrix
         weightMat = zeros(roiNum,roiNum,'single'); % synapse weight matrix
         for i=1:size(connectlist,1)
             countMat(connectlist(i,1),connectlist(i,2)) = connectlist(i,3);
@@ -78,7 +78,7 @@ function makeStructConnectivity
 %    id3 = unique([id1, id2]);
 %{
     ids = primaryIds; CM = countMat(ids,ids); WM = weightMat(ids,ids); 
-    figure; imagesc(log(CM)); colorbar; title('hemibrain cell count matrix');
+    figure; imagesc(log(CM)); colorbar; title('hemibrain neurons matrix');
     figure; imagesc(log(WM)); colorbar; title('hemibrain all synapse weight matrix');
 %}
     % primary, R/L, name order
@@ -87,8 +87,8 @@ function makeStructConnectivity
     labelNames = roiname(ids,1);
 
     CM2 = countMat2(ids,ids,2); WM2 = weightMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
-    figure; imagescLabel(log10(CM2), labelNames, 'hemibrain cell count matrix');
-    figure; imagescLabel(log10(SM), labelNames, 'hemibrain all synapse count matrix');
+    figure; imagescLabel(log10(CM2), labelNames, 'hemibrain neurons matrix');
+    figure; imagescLabel(log10(SM), labelNames, 'hemibrain all synapses matrix');
     figure; imagescLabel(log10(WM2), labelNames, 'hemibrain all synapse weight matrix');
     WMi = WM2 ./ SM; WMi(SM==0) = 0; % pure ROI-input neuron connection weight
     WMo = outweightMat(ids,ids,2);
@@ -109,12 +109,11 @@ function makeStructConnectivity
     end
     ids = primaryIds;
     CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
-    figure; imagesc(log10(CM2)); colorbar; title('hemibrain cell count matrix');
-    figure; imagesc(log10(SM)); colorbar; title('hemibrain synapse count matrix');
+    figure; imagesc(log10(CM2)); colorbar; title('hemibrain neurons matrix');
+    figure; imagesc(log10(SM)); colorbar; title('hemibrain synapses matrix');
 %    CM2b = countMat2(ids,ids,2); SMb = sycountMat(ids,ids,2); WM2b = weightMat2(ids,ids,2); WMob = outweightMat(ids,ids,2);
 %    WM3b = WM2b ./ SMb; WM3b(SMb==0) = 0; % pure ROI-input neuron connection weight
 %}
-
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson matrix csv.
     % extract ROI ids from hemibrain mask
@@ -150,11 +149,11 @@ function makeStructConnectivity
         weightMat = readmatrix('data/JRC2018_branson_weighted_tbar_matrix.csv');
         weightMat = weightMat(2:end,2:end); % remove headers
 
-        % primary id should have cell count
+        % primary id should have neurons
         c = sum(countMat,2);
         for i=1:length(primaryIds)
             if c(primaryIds(i)) == 0
-                disp(['primaryId=' num2str(primaryIds(i)) ' does not have cell count']);
+                disp(['primaryId=' num2str(primaryIds(i)) ' does not have neurons']);
             end
         end
         save(fname,'countMat','weightMat','primaryIds','roiNum');
@@ -177,12 +176,12 @@ function makeStructConnectivity
     end
 %{
     ids = primaryIds; CM = countMat(ids,ids); WM = weightMat(ids,ids);
-    figure; imagesc(log(CM)); colorbar; title('branson cell count matrix');
+    figure; imagesc(log(CM)); colorbar; title('branson neurons matrix');
     figure; imagesc(log(WM)); colorbar; title('branson synapse weight matrix');
 %}
     ids = primaryIds; CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
-    figure; imagesc(log(CM2)); colorbar; title('branson cell count 2 matrix');
-    figure; imagesc(log(SM)); colorbar; title('branson synapse count matrix');
+    figure; imagesc(log(CM2)); colorbar; title('branson neurons 2 matrix');
+    figure; imagesc(log(SM)); colorbar; title('branson synapses matrix');
 
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 atlas.
@@ -213,13 +212,13 @@ function makeStructConnectivity
 
     ids = primaryIds;
     CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
-    figure; imagesc(log(CM2)); colorbar; title(['branson7065 cell count 2 matrix']);
-    figure; imagesc(log(SM)); colorbar; title(['branson7065 synapse count matrix']);
-
+    figure; imagesc(log(CM2)); colorbar; title(['branson7065 neurons 2 matrix']);
+    figure; imagesc(log(SM)); colorbar; title(['branson7065 synapses matrix']);
+%}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 k-means atlas.
     % extract ROI ids from hemibrain mask
-%}
+%{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiBranson7065km' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
@@ -257,14 +256,14 @@ function makeStructConnectivity
 
         ids = primaryIds;
         CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
-        figure; imagesc(log(CM2)); colorbar; title([idstr ' cell count 2 matrix']);
-        figure; imagesc(log(SM)); colorbar; title([idstr ' synapse count matrix']);
+        figure; imagesc(log(CM2)); colorbar; title([idstr ' neurons 2 matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
     end
 %}
-%{
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from synapse list for cube ROI.
     % extract ROI ids from hemicube4 mask
+%{
     for k=[12 8 4]
         idstr = ['hemiCube' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
@@ -293,8 +292,8 @@ function makeStructConnectivity
     
         ids = primaryIds;
         CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
-        figure; imagesc(log(CM2)); colorbar; title([idstr ' cell count 2 matrix']);
-        figure; imagesc(log(SM)); colorbar; title([idstr ' synapse count matrix']);
+        figure; imagesc(log(CM2)); colorbar; title([idstr ' neurons 2 matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
     end
 
     % ---------------------------------------------------------------------
@@ -328,8 +327,8 @@ function makeStructConnectivity
     
         ids = primaryIds;
         CM2 = countMat2(ids,ids); SM = sycountMat(ids,ids);
-        figure; imagesc(log(CM2)); colorbar; title([idstr ' cell count 2 matrix']);
-        figure; imagesc(log(SM)); colorbar; title([idstr ' synapse count matrix']);
+        figure; imagesc(log(CM2)); colorbar; title([idstr ' neurons 2 matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
     end
 
     % ---------------------------------------------------------------------
@@ -367,8 +366,8 @@ function makeStructConnectivity
     
         ids = primaryIds;
         CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
-        figure; imagesc(log(CM2)); colorbar; title(['hemiroi ' idstr ' cell count 2 matrix']);
-        figure; imagesc(log(SM)); colorbar; title(['hemiroi ' idstr ' synapse count matrix']);
+        figure; imagesc(log(CM2)); colorbar; title(['hemiroi ' idstr ' neurons 2 matrix']);
+        figure; imagesc(log(SM)); colorbar; title(['hemiroi ' idstr ' synapses matrix']);
     end
 %}
     % ---------------------------------------------------------------------
@@ -410,7 +409,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from k-means atlas.
     % extract ROI ids from hemibrain mask
-
+%{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiCmkm' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
@@ -448,8 +447,8 @@ function makeStructConnectivity
 
         ids = primaryIds;
         CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
-        figure; imagesc(log(CM2)); colorbar; title([idstr ' cell count 2 matrix']);
-        figure; imagesc(log(SM)); colorbar; title([idstr ' synapse count matrix']);
+        figure; imagesc(log(CM2)); colorbar; title([idstr ' neurons 2 matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
     end
 
     % ---------------------------------------------------------------------
@@ -493,15 +492,15 @@ function makeStructConnectivity
 
         ids = primaryIds;
         CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
-        figure; imagesc(log(CM2)); colorbar; title([idstr ' cell count 2 matrix']);
-        figure; imagesc(log(SM)); colorbar; title([idstr ' synapse count matrix']);
+        figure; imagesc(log(CM2)); colorbar; title([idstr ' neurons 2 matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
     end
-
+%}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from distance based k-means atlas.
     % extract ROI ids from hemibrain mask
-
-    for k=[20 30 50 100 200 300 500 1000]
+%%{
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiDistKm' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -521,7 +520,12 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+            if k <= 1000
+                [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+            else
+                [countMat2, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                weightMat2 = []; outweightMat = []; syweightMat = [];
+            end
     
             countMat = []; weightMat = [];
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
@@ -538,8 +542,8 @@ function makeStructConnectivity
 
         ids = primaryIds;
         CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
-        figure; imagesc(log(CM2)); colorbar; title([idstr ' cell count 2 matrix']);
-        figure; imagesc(log(SM)); colorbar; title([idstr ' synapse count matrix']);
+        figure; imagesc(log(CM2)); colorbar; title([idstr ' neurons 2 matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
     end
 
     % ---------------------------------------------------------------------
@@ -583,8 +587,58 @@ function makeStructConnectivity
 
         ids = primaryIds;
         CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
-        figure; imagesc(log(CM2),[8 10]); colorbar; title([idstr ' cell count 2 matrix']);
-        figure; imagesc(log(SM),[8 12]); colorbar; title([idstr ' synapse count matrix']);
+        figure; imagesc(log(CM2),[8 10]); colorbar; title([idstr ' neurons 2 matrix']);
+        figure; imagesc(log(SM),[8 12]); colorbar; title([idstr ' synapses matrix']);
+    end
+%}
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix from fully random voxel atlas.
+    % extract ROI ids from hemibrain mask
+
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
+        idstr = ['hemiVrand' num2str(k)];
+        fname = ['data/' lower(idstr) '_connectlist.mat'];
+
+        clear countMat2; clear sycountMat; clear weightMat2;
+        if exist(fname,'file')
+            load(fname);
+        else
+            atlV = niftiread(['atlas/hemiVrand' num2str(k) 'atlasCal.nii.gz']);
+            roimax = max(atlV(:));
+            sz = size(atlV);
+    
+            roiIdxs = {};
+            for i=1:roimax
+                roiIdxs{i} = find(atlV==i);
+            end
+    
+            primaryIds = 1:roimax;
+            roiNum = length(primaryIds);
+    
+            if k <= 1000
+                [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+            else
+                [countMat2, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                weightMat2 = []; outweightMat = []; syweightMat = [];
+            end
+
+            countMat = []; weightMat = [];
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
+        end
+
+        if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
+            % reorder by tree clustering
+            cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
+            eucD = pdist(cm2,'euclidean');
+            Z = linkage(eucD,'ward');
+            primaryIds = optimalleaforder(Z,eucD);
+            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
+        end
+
+        ids = primaryIds;
+        CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM2),[8 10]); colorbar; title([idstr ' neurons 2 matrix']);
+        figure; imagesc(log(SM),[8 12]); colorbar; title([idstr ' synapses matrix']);
     end
 end
 
@@ -635,7 +689,9 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     Sdir(idx) = 0; 
     clear Srate;
 
-    isoutsyweight = (nargout >= 5);
+    isweight = (nargout >= 3);
+    isoutweight = (nargout >= 4);
+    issyweight = (nargout >= 5);
     roimax = length(roiIdxs);
     nfile = ['results/cache-' type '_Nin_Nout.mat'];
     if exist(nfile,'file')
@@ -666,14 +722,16 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             logis = ismember(outnids, Nout{i}{2});
             Nout{i}{3} = outnids(~logis); % output orphan bodys
     
-            idx = find(Sdir(sids)==1); % get pre-synapse ids in this ROI
-            presids = sids(idx);
-            innids = unique(StoN(presids)); % get (pre-synapse) traced & orphan body-ids
-            Nin{i}{1} = innids; % all input cells (including orphan, etc)
-            logis = ismember(Nid,innids);
-            Nin{i}{2} = Nid(logis & Nstatus==1); % input traced neuron in ROI(i)
-            logis = ismember(innids, Nin{i}{2});
-            Nin{i}{3} = innids(~logis); % input orphan bodys
+            if isweight
+                idx = find(Sdir(sids)==1); % get pre-synapse ids in this ROI
+                presids = sids(idx);
+                innids = unique(StoN(presids)); % get (pre-synapse) traced & orphan body-ids
+                Nin{i}{1} = innids; % all input cells (including orphan, etc)
+                logis = ismember(Nid,innids);
+                Nin{i}{2} = Nid(logis & Nstatus==1); % input traced neuron in ROI(i)
+                logis = ismember(innids, Nin{i}{2});
+                Nin{i}{3} = innids(~logis); % input orphan bodys
+            end
 %{
             % get pre and post synapses in ROI(i)
             Sout{i}{1} = postsids; % all output synapses (including orphan, etc)
@@ -683,7 +741,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             Sout{i}{3} = postsids(~logis); % output orphan bodys' synapses
 %}
             % syweightMat is heavy. calculate is if only it is required.
-            if isoutsyweight
+            if issyweight
                 Sin{i}{1} = presids; % all input synapses (including orphan, etc)
                 logis = ismember(StoN,Nin{i}{2});
                 logis = ismember(presids,Sid(logis)); % find may be slow, but Sid will consume memory.
@@ -691,7 +749,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                 Sin{i}{3} = presids(~logis); % output orphan bodys' synapses
             end
         end
-        if isoutsyweight
+        if issyweight
             save(nfile,'Nin','Nout','Sin','-v7.3');
         else
             save(nfile,'Nin','Nout','-v7.3');
@@ -700,11 +758,15 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     clear Nid; clear Nstatus;
 
     roimax = length(roiIdxs);
-    sycountMat = nan(roimax,roimax,3,'single');
     countMat = nan(roimax,roimax,3,'single');
-    weightMat = nan(roimax,roimax,3,'single');
-    outweightMat = nan(roimax,roimax,3,'single');
-    if isoutsyweight
+    sycountMat = nan(roimax,roimax,3,'single');
+    if isweight
+        weightMat = nan(roimax,roimax,3,'single');
+    end
+    if isoutweight
+        outweightMat = nan(roimax,roimax,3,'single');
+    end
+    if issyweight
         syweightMat = nan(roimax,roimax,3,'single');
     end
 
@@ -774,6 +836,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     clear SlocFc; clear Sdir;
 
     % calculate weight matrix (full, neurons, others)
+    if nargout < 3, return; end
     for p=1:3
 %        for i=1:roimax
         parfor i=1:roimax
@@ -791,21 +854,22 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                 logi = ismember(innids,outnids);
                 X(j) = single(sum(logi)) / length(innids); % in-weight (from i to j)
                 % syweightMat is heavy. calculate is if only it is required.
-                if isoutsyweight
+                if issyweight
                     logis = ismember(StoN,innids(logi));
                     logis = ismember(insids,Sid(logis));
                     SX(j) = single(sum(logis)) / length(insids); % in-synaptic-weight (from i to j)
                 end
                 % find output neuron rate from ROI(i)
-                logi2 = ismember(outnids,innids); % actually, same as x(j)
-                Y(j) = single(sum(logi2)) / length(outnids); % out-weight (from i to j)
-                if sum(logi) ~= sum(logi2)
-                    disp(['error logi: ' num2str(i) '-' num2str(j)]); % error check. this should not show.
+                if isoutweight
+                    logi2 = ismember(outnids,innids); % actually, same as x(j)
+                    Y(j) = single(sum(logi2)) / length(outnids); % out-weight (from i to j)
                 end
             end
             weightMat(i,:,p) = X;
-            outweightMat(i,:,p) = Y;
-            if isoutsyweight
+            if isoutweight
+                outweightMat(i,:,p) = Y;
+            end
+            if issyweight
                 syweightMat(i,:,p) = SX;
             end
         end
@@ -813,29 +877,27 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     weightMat = weightMat .* sycountMat;
 
     % pure input and output cells (full, neurons, others count)
-    if nargout >= 6
-        Ncount = zeros(roimax,2,3,'single');
-        for p=1:3
-            for i=1:roimax
-                if ~isempty(Nin{i})
-                    Ncount(i,1,p) = length(Nin{i}{p});
-                end
-                if ~isempty(Nout{i})
-                    Ncount(i,2,p) = length(Nout{i}{p});
-                end
+    if nargout < 6, return; end
+    Ncount = zeros(roimax,2,3,'single');
+    for p=1:3
+        for i=1:roimax
+            if ~isempty(Nin{i})
+                Ncount(i,1,p) = length(Nin{i}{p});
+            end
+            if ~isempty(Nout{i})
+                Ncount(i,2,p) = length(Nout{i}{p});
             end
         end
     end
 
     % connected neuron ids (cell), only output neurons and others, but not full.
-    if nargout >= 7
-        Cnids = cell(roimax,roimax,3);
-        for p=2:3
-            for i=1:roimax
-                for j=1:roimax
-                    if ~isempty(CC{i})
-                        Cnids{i,j,p} = CC{i}{j,p};
-                    end
+    if nargout < 7, return; end
+    Cnids = cell(roimax,roimax,3);
+    for p=2:3
+        for i=1:roimax
+            for j=1:roimax
+                if ~isempty(CC{i})
+                    Cnids{i,j,p} = CC{i}{j,p};
                 end
             end
         end
