@@ -11,7 +11,7 @@ function analyzeFuncConnectivity
     hpfTh = [0]; % high-pass filter threshold
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
     smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
-    smooth = {''};
+%    smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
         '6hmacomp','6hmgmacomp','6hmgmgsacomp','6hmtcomp','6hmtacomp', ... %22
@@ -79,18 +79,18 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
     C2b = countMat2(ids,ids,2); Sb = sycountMat(ids,ids,2); W2b = weightMat2(ids,ids,2); Wob = outweightMat(ids,ids,2); Swb = syweightMat(ids,ids,2);
     W3b = W2b ./ Sb; W3b(Sb==0) = 0; % pure ROI-input neuron connection weight
 
-    % show corr between cell count v. synapse weight
-    r = corr(W2(:),C2(:));    % corr between cell count v. synapse weight
-    disp(['corr between synapse weight2 vs. cell count2. r=' num2str(r)]);
-    figure; scatter(W2(:),C2(:)); xlabel('synapse weight2'); ylabel('cell count2');
+    % show corr between neurons v. synapse weight
+    r = corr(W2(:),C2(:));    % corr between neurons v. synapse weight
+    disp(['corr between synapse weight2 vs. neurons2. r=' num2str(r)]);
+    figure; scatter(W2(:),C2(:)); xlabel('synapse weight2'); ylabel('neurons2');
 %{
-    r = corr(C(:),C2(:));    % corr between cell count v. synapse weight (for internal check)
-    disp(['corr between cell count vs. cell count2. r=' num2str(r)]);
-    figure; scatter(C2(:),C(:)); xlabel('cell count 2'); ylabel('cell count')
+    r = corr(C(:),C2(:));    % corr between neurons v. synapse weight (for internal check)
+    disp(['corr between neurons vs. neurons2. r=' num2str(r)]);
+    figure; scatter(C2(:),C(:)); xlabel('neurons 2'); ylabel('neurons')
 %}
-    r = corr(S(:),C2(:));    % corr between cell count v. synapse weight
-    disp(['corr between synapse count vs. cell count2. r=' num2str(r)]);
-    figure; scatter(S(:),C2(:)); xlabel('synapse count'); ylabel('cell count2');
+    r = corr(S(:),C2(:));    % corr between neurons v. synapse weight
+    disp(['corr between synapses vs. neurons2. r=' num2str(r)]);
+    figure; scatter(S(:),C2(:)); xlabel('synapses'); ylabel('neurons2');
 
     n = length(ids);
     E = eye(n); E = logical(1-E);
@@ -154,25 +154,25 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
 %                figure; imagesc(abs(T3)); colorbar; title([pftype ' T-value matrix']);
                 lT3 = log(T3); lT3(lT3<0) = 0;
 
-                % each flys [log10(cell count) vs. m-FCz]
+                % each flys [log10(neurons) vs. m-FCz]
                 for i=1:length(CM)
                     Dz = D3z(:,:,i);
                     Dz(isinf(Dz)) = max(Dz(~isinf(Dz)));
                     sbjR(k,i) = corr(lC2(:),abs(Dz(:)));
                 end
 
-                % each ROIs [log10(cell count) vs. m-FCz]
+                % each ROIs [log10(neurons) vs. m-FCz]
                 for i=1:size(lC2,1)
                     roiR(k,i) = corr([lC2(i,:)';lC2(:,i)],abs([Dmz(i,:)';Dmz(:,i)]));
                 end
 
                 % full ROIs (vs. mean group data)
                 R(1) = corr(lC2(:),abs(Dmz(:))); % whole vs. m-FCz
-                disp(['prefix=' pftype ' : log10(cell count2) vs. m-FCz = ' num2str(R(1))]);
+                disp(['prefix=' pftype ' : log10(neurons2) vs. m-FCz = ' num2str(R(1))]);
                 R(2) = corr(lW2(:),abs(Dmz(:)));
                 disp(['prefix=' pftype ' : log10(synapse weight2) vs. m-FCz = ' num2str(R(2))]);
                 R(3) = corr(lS(:),abs(Dmz(:)));
-                disp(['prefix=' pftype ' : log10(synapse count) vs. m-FCz = ' num2str(R(3))]);
+                disp(['prefix=' pftype ' : log10(synapses) vs. m-FCz = ' num2str(R(3))]);
                 R(4) = corr(W3(:),abs(Dmz(:)));
                 disp(['prefix=' pftype ' : ROI in-neuron weight vs. m-FCz = ' num2str(R(4))]);
                 R(5) = corr(Sw(:),abs(Dmz(:)));
@@ -181,12 +181,12 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 disp(['prefix=' pftype ' : ROI out-neuron weight vs. m-FCz = ' num2str(R(6))]);
 
                 R(7) = corr(lC2b(:),abs(Dmz(:))); % Traced vs. m-FCz
-                disp(['prefix=' pftype ' : log10(cell count2b) vs. m-FCz = ' num2str(R(7))]);
-%                figure; scatter(lC2b(:),abs(Dmz(:))); xlabel('log10(cell count2b)'); ylabel('m-FCz'); title(pftype);
+                disp(['prefix=' pftype ' : log10(neurons2b) vs. m-FCz = ' num2str(R(7))]);
+%                figure; scatter(lC2b(:),abs(Dmz(:))); xlabel('log10(neurons2b)'); ylabel('m-FCz'); title(pftype);
                 R(8) = corr(lW2b(:),abs(Dmz(:)));
                 disp(['prefix=' pftype ' : log10(synapse weight2b) vs. m-FCz = ' num2str(R(8))]);
                 R(9) = corr(lSb(:),abs(Dmz(:)));
-                disp(['prefix=' pftype ' : log10(synapse count b) vs. m-FCz = ' num2str(R(9))]);
+                disp(['prefix=' pftype ' : log10(synapses b) vs. m-FCz = ' num2str(R(9))]);
                 R(10) = corr(W3b(:),abs(Dmz(:)));
                 disp(['prefix=' pftype ' : ROI in-neuron weight b vs. m-FCz = ' num2str(R(10))]);
                 R(11) = corr(Swb(:),abs(Dmz(:)));
@@ -195,11 +195,11 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 disp(['prefix=' pftype ' : ROI out-neuron weight b vs. m-FCz = ' num2str(R(12))]);
 
                 R(13) = corr(lC2(:),abs(T3(:)));
-                disp(['prefix=' pftype ' : log10(cell count2) vs. FC-Tval = ' num2str(R(13))]);
+                disp(['prefix=' pftype ' : log10(neurons2) vs. FC-Tval = ' num2str(R(13))]);
                 R(14) = corr(lW2(:),abs(T3(:)));
                 disp(['prefix=' pftype ' : log10(synapse weight2) vs. FC-Tval = ' num2str(R(14))]);
                 R(15) = corr(lS(:),abs(T3(:)));
-                disp(['prefix=' pftype ' : log10(synapse count) vs. FC-Tval = ' num2str(R(15))]);
+                disp(['prefix=' pftype ' : log10(synapses) vs. FC-Tval = ' num2str(R(15))]);
                 R(16) = corr(W3(:),abs(T3(:)));
                 disp(['prefix=' pftype ' : ROI in-neuron weight vs. FC-Tval = ' num2str(R(16))]);
 %                figure; scatter(W3(:),abs(T3(:))); xlabel('ROI in-neuron weight'); ylabel('FC-Tval'); title(pftype);
@@ -209,11 +209,11 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 disp(['prefix=' pftype ' : ROI out-neuron weight vs. FC-Tval = ' num2str(R(18))]);
 
                 R(19) = corr(lC2b(:),abs(T3(:)));
-                disp(['prefix=' pftype ' : log10(cell count2b) vs. FC-Tval = ' num2str(R(19))]);
+                disp(['prefix=' pftype ' : log10(neurons2b) vs. FC-Tval = ' num2str(R(19))]);
                 R(20) = corr(lW2b(:),abs(T3(:)));
                 disp(['prefix=' pftype ' : log10(synapse weight2b) vs. FC-Tval = ' num2str(R(20))]);
                 R(21) = corr(lSb(:),abs(T3(:)));
-                disp(['prefix=' pftype ' : log10(synapse count b) vs. FC-Tval = ' num2str(R(21))]);
+                disp(['prefix=' pftype ' : log10(synapses b) vs. FC-Tval = ' num2str(R(21))]);
                 R(22) = corr(W3b(:),abs(T3(:)));
                 disp(['prefix=' pftype ' : ROI in-neuron weight b vs. FC-Tval = ' num2str(R(22))]);
                 R(23) = corr(Swb(:),abs(T3(:)));
@@ -262,12 +262,12 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                         wotb = Wob; wotb(wotb<wobth) = 0; wotb(wotb>0) = 1;
 
                         aucs = cell(24,1);
-                        [~, ~, auc] = calcShowGroupROCcurve(ct2(:)', abs(Dmz(:)'), ['m-FCz vs. cell count2 th=' num2str(th-1)], false);
+                        [~, ~, auc] = calcShowGroupROCcurve(ct2(:)', abs(Dmz(:)'), ['m-FCz vs. neurons2 th=' num2str(th-1)], false);
 %                        figure; imagesc(ct2); colorbar; figure; imagesc(abs(Dmz)); colorbar; % to check matrix
                         aucs{1} = single(auc);
                         [~, ~, auc] = calcShowGroupROCcurve(wt2(:)', abs(Dmz(:)'), ['m-FCz vs. synapse weight2 th=' num2str(th-1)], false);
                         aucs{2} = single(auc);
-                        [~, ~, auc] = calcShowGroupROCcurve(st(:)', abs(Dmz(:)'), ['m-FCz vs. synapse count th=' num2str(th-1)], false);
+                        [~, ~, auc] = calcShowGroupROCcurve(st(:)', abs(Dmz(:)'), ['m-FCz vs. synapses th=' num2str(th-1)], false);
                         aucs{3} = single(auc);
                         [~, ~, auc] = calcShowGroupROCcurve(wt3(:)', abs(Dmz(:)'), ['m-FCz vs. ROI in-neuron weight th=' num2str(th-1)], false);
                         aucs{4} = single(auc);
@@ -276,11 +276,11 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                         [~, ~, auc] = calcShowGroupROCcurve(wot(:)', abs(Dmz(:)'), ['m-FCz vs. ROI out-neuron weight th=' num2str(th-1)], false);
                         aucs{6} = single(auc);
 
-                        [X, Y, auc] = calcShowGroupROCcurve(ct2b(:)', abs(Dmz(:)'), ['m-FCz vs. cell count2b th=' num2str(th-1)], false);
+                        [X, Y, auc] = calcShowGroupROCcurve(ct2b(:)', abs(Dmz(:)'), ['m-FCz vs. neurons2b th=' num2str(th-1)], false);
                         aucs{7} = single(auc); % input node is one, so it is not vector.
                         [~, ~, auc] = calcShowGroupROCcurve(wt2b(:)', abs(Dmz(:)'), ['m-FCz vs. synapse weight2b th=' num2str(th-1)], false);
                         aucs{8} = single(auc);
-                        [~, ~, auc] = calcShowGroupROCcurve(stb(:)', abs(Dmz(:)'), ['m-FCz vs. synapse count b th=' num2str(th-1)], false);
+                        [~, ~, auc] = calcShowGroupROCcurve(stb(:)', abs(Dmz(:)'), ['m-FCz vs. synapses b th=' num2str(th-1)], false);
                         aucs{9} = single(auc);
                         [~, ~, auc] = calcShowGroupROCcurve(wt3b(:)', abs(Dmz(:)'), ['m-FCz vs. ROI in-neuron weight b th=' num2str(th-1)], false);
                         aucs{10} = single(auc);
@@ -289,11 +289,11 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                         [~, ~, auc] = calcShowGroupROCcurve(wotb(:)', abs(Dmz(:)'), ['m-FCz vs. ROI out-neuron weight b th=' num2str(th-1)], false);
                         aucs{12} = single(auc);
 
-                        [~, ~, auc] = calcShowGroupROCcurve(ct2(:)', abs(T3(:)'), ['FC-Tval vs. cell count2 th=' num2str(th-1)], false);
+                        [~, ~, auc] = calcShowGroupROCcurve(ct2(:)', abs(T3(:)'), ['FC-Tval vs. neurons2 th=' num2str(th-1)], false);
                         aucs{13} = single(auc);
                         [~, ~, auc] = calcShowGroupROCcurve(wt2(:)', abs(T3(:)'), ['FC-Tval vs. synapse weight2 th=' num2str(th-1)], false);
                         aucs{14} = single(auc);
-                        [~, ~, auc] = calcShowGroupROCcurve(st(:)', abs(T3(:)'), ['FC-Tval vs. synapse count th=' num2str(th-1)], false);
+                        [~, ~, auc] = calcShowGroupROCcurve(st(:)', abs(T3(:)'), ['FC-Tval vs. synapses th=' num2str(th-1)], false);
                         aucs{15} = single(auc);
                         [~, ~, auc] = calcShowGroupROCcurve(wt3(:)', abs(T3(:)'), ['FC-Tval vs. ROI in-neuron weight th=' num2str(th-1)], false);
                         aucs{16} = single(auc);
@@ -302,11 +302,11 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                         [~, ~, auc] = calcShowGroupROCcurve(wot(:)', abs(T3(:)'), ['FC-Tval vs. ROI out-neuron weight th=' num2str(th-1)], false);
                         aucs{18} = single(auc);
 
-                        [~, ~, auc] = calcShowGroupROCcurve(ct2b(:)', abs(T3(:)'), ['FC-Tval vs. cell count2b th=' num2str(th-1)], false);
+                        [~, ~, auc] = calcShowGroupROCcurve(ct2b(:)', abs(T3(:)'), ['FC-Tval vs. neurons2b th=' num2str(th-1)], false);
                         aucs{19} = single(auc);
                         [~, ~, auc] = calcShowGroupROCcurve(wt2b(:)', abs(T3(:)'), ['FC-Tval vs. synapse weight2b th=' num2str(th-1)], false);
                         aucs{20} = single(auc);
-                        [~, ~, auc] = calcShowGroupROCcurve(stb(:)', abs(T3(:)'), ['FC-Tval vs. synapse count b th=' num2str(th-1)], false);
+                        [~, ~, auc] = calcShowGroupROCcurve(stb(:)', abs(T3(:)'), ['FC-Tval vs. synapses b th=' num2str(th-1)], false);
                         aucs{21} = single(auc);
                         [~, ~, auc] = calcShowGroupROCcurve(wt3b(:)', abs(T3(:)'), ['FC-Tval vs. ROI in-neuron weight b th=' num2str(th-1)], false);
                         aucs{22} = single(auc);
@@ -323,7 +323,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                         c = 0.95 - th*0.8/100;
                         hold on; plot(XY{th}(1,:),XY{th}(2,:),'Color',[c c c 0.7]); hold off;
                     end
-                    title([pftype 'log10(cell count2b) vs. m-FCz ROC curve']); xlabel('False Positive Rate'); ylabel('True Positive Rate');
+                    title([pftype 'log10(neurons2b) vs. m-FCz ROC curve']); xlabel('False Positive Rate'); ylabel('True Positive Rate');
 %}
                     A = zeros(24,thN,'single');
                     for th = 1:thN
@@ -344,13 +344,13 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
     figure; boxplot(Rm(7:12,:),'Labels',rlabel); title([roitype ' FC-SC correlation (6-type mixed plot)']);
     hold on; plot(Rm(7:12,:)'); hold off; legend;
 
-    % FC-SC detection (m-FCz vs. cell count)
-    % cell count: only ROI was transformed. cell count2: synapse points were transformed and re-counted in all ROI. 
+    % FC-SC detection (m-FCz vs. neurons)
+    % neurons: only ROI was transformed. neurons2: synapse points were transformed and re-counted in all ROI. 
 %{
     A1 = squeeze(AUC(1,:,:)); % for internal check
-    figure; boxplot(A1,'Labels',rlabel); title([roitype ' FC-SC detection (m-FCz vs. cell count)']);
+    figure; boxplot(A1,'Labels',rlabel); title([roitype ' FC-SC detection (m-FCz vs. neurons)']);
     A5 = squeeze(AUC(5,:,:));
-    figure; boxplot(A5,'Labels',rlabel); title([roitype ' FC-SC detection (m-FCz vs. cell count2)']);
+    figure; boxplot(A5,'Labels',rlabel); title([roitype ' FC-SC detection (m-FCz vs. neurons2)']);
 
     A2 = squeeze(AUC(2,:,:)); % for internal check
     figure; boxplot(A2,'Labels',rlabel); title([roitype ' FC-SC detection (m-FCz vs. synapse weight)']);
