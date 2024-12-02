@@ -26,8 +26,8 @@ function extractROItimeseries
     % ROI name
 %    roitypes = {'flyemroi','bransonhemi'};
 %    roitypes = {'hemiBranson7065'};
-    roitypes = {'hemiBranson7065km20','hemiBranson7065km30','hemiBranson7065km50','hemiBranson7065km100','hemiBranson7065km200', ...
-        'hemiBranson7065km300','hemiBranson7065km500','hemiBranson7065km1000'};
+%    roitypes = {'hemiBranson7065km20','hemiBranson7065km30','hemiBranson7065km50','hemiBranson7065km100','hemiBranson7065km200', ...
+%        'hemiBranson7065km300','hemiBranson7065km500','hemiBranson7065km1000'};
 %    roitypes = {'hemiCmkm20','hemiCmkm30','hemiCmkm50','hemiCmkm100','hemiCmkm200', ...
 %        'hemiCmkm300','hemiCmkm500','hemiCmkm1000'};
 %    roitypes = {'hemiCmkm20r1w1','hemiCmkm30r1w1','hemiCmkm50r1w1','hemiCmkm100r1w1','hemiCmkm200r1w1', ...
@@ -36,6 +36,8 @@ function extractROItimeseries
 %        'hemiDistKm300','hemiDistKm500','hemiDistKm1000'};
 %    roitypes = {'hemiRand20','hemiRand30','hemiRand50','hemiRand100','hemiRand200', ...
 %        'hemiRand300','hemiRand500','hemiRand1000'};
+    roitypes = {'hemiVrand20','hemiVrand30','hemiVrand50','hemiVrand100','hemiVrand200', ...
+        'hemiVrand300','hemiVrand500','hemiVrand1000'};
 %    roitypes = {'hemiCube12','hemiCube8','hemiCube4'};
 %    roitypes = {'hemiPiece12','hemiPiece8','hemiPiece4'};
 %    roitypes = {'hemiPiece3','hemiPiece2'};
@@ -44,7 +46,7 @@ function extractROItimeseries
 %    roitypes = {'hemiRoi1','hemiRoi5','hemiRoi7','hemiRoi27','hemiRoi30','hemiRoi32','hemiRoi43','hemiRoi52', ...
 %        'hemiRoi54','hemiRoi57','hemiRoi59','hemiRoi63','hemiRoi65','hemiRoi67','hemiRoi78','hemiRoi82', ...
 %        'hemiRoi89','hemiRoi93','hemiRoi95','hemiRoi100','hemiRoi101','hemiRoi106','hemiRoi113'};
-%    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50r1w1','hemiRand50'};
+%    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50r1w1','hemiRand50','hemiVrand50'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
