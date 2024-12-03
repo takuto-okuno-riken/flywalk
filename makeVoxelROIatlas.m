@@ -228,7 +228,7 @@ function makeVoxelROIatlas
     % this requires hemibranson7065_connectlist.mat file. so need to run
     % makeStructConnectivity.m (Branson 7065) first.
     % this needs Statistics and Machine Learning Toolbox.
-%%{
+%{
     for k=[20 30 50 100 200 300 500 1000]
         atlas = ['atlas/' name 'Branson7065km' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
@@ -287,7 +287,7 @@ function makeVoxelROIatlas
     % makeStructConnectivity.m (whole flyem ROI) first.
     % this needs Statistics and Machine Learning Toolbox.
 %%{
-    for k=[20 30 50 100 200 300 500 1000]
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         atlas = ['atlas/' name 'Cmkm' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
@@ -324,7 +324,7 @@ function makeVoxelROIatlas
 
     % make ROI atlas based on k-means clustering of hemiem SC.
     % ROI edge smoothing by mode
-    for k=[20 30 50 100 200 300 500 1000]
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         r = 1; % iteration
         w = 1; % width
         roiVoxTh = (w*2+1)^3; % ROI voxel threshold
@@ -385,7 +385,7 @@ function makeVoxelROIatlas
     % make ROI atlas based on k-means clustering of flyEM voxel distances.
     % thus, this ROI did not follow any anatomical result.
     % this needs Statistics and Machine Learning Toolbox.
-    for k=[20 30 50 100 200 300 500 1000 10000]
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         atlas = ['atlas/' name 'DistKm' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
