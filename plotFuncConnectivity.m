@@ -68,7 +68,7 @@ function checkSmoothingByRoinum(vslabels)
                     for n=1:length(nuisance)
                         pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}{1} num2str(roinums(rr)) roitypes{r}{2}];
                         xlabels{ii} = [smooth{k} 'roi' num2str(roinums(rr))]; ii=ii+1;
-                        aucmat = ['results/' pftype '-fcauc.mat'];
+                        aucmat = ['results/auc/' pftype '-fcauc.mat'];
                         if exist(aucmat,'file')
                             load(aucmat);
                         else
@@ -136,7 +136,7 @@ function checkSmoothingResult50(vslabels)
             for k=1:length(smooth)
                 for n=1:length(nuisance)
                     pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}];
-                    aucmat = ['results/' pftype '-fcauc.mat'];
+                    aucmat = ['results/auc/' pftype '-fcauc.mat'];
                     if exist(aucmat,'file')
                         load(aucmat);
                     else
@@ -222,7 +222,7 @@ function checkNuisanceResult50(vslabels)
             for k=1:length(smooth)
                 for n=1:length(nuisance)
                     pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}];
-                    aucmat = ['results/' pftype '-fcauc.mat'];
+                    aucmat = ['results/auc/' pftype '-fcauc.mat'];
                     if exist(aucmat,'file')
                         load(aucmat);
                     else
