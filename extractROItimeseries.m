@@ -11,7 +11,7 @@ function extractROItimeseries
     % output time-series (smoothing, highpass filter, nuisance removal)
     hpfTh = [0]; % high-pass filter threshold
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
-    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
+%    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
 %    smooth = {'m10'};
     smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
@@ -47,7 +47,7 @@ function extractROItimeseries
 %        'hemiRoi54','hemiRoi57','hemiRoi59','hemiRoi63','hemiRoi65','hemiRoi67','hemiRoi78','hemiRoi82', ...
 %        'hemiRoi89','hemiRoi93','hemiRoi95','hemiRoi100','hemiRoi101','hemiRoi106','hemiRoi113'};
 %    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50r1w1','hemiRand50','hemiVrand50'};
-    roitypes = {'hemiDistKm5000'};
+    roitypes = {'hemiCmkm20000','hemiCmkm20000r1w1','hemiDistKm20000','hemiVrand20000'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -132,7 +132,7 @@ function extractTsROItype(roitypes, preproc, hpfTh, smooth, nuisance)
                     for n=1:length(nuisance)
                         CX = {}; CXm = {};
                         % load file
-                        outfname = ['results/' smooth{k} hpfstr nuisance{n} preproc roitypes{ii} '-ts.mat'];
+                        outfname = ['results/ts/' smooth{k} hpfstr nuisance{n} preproc roitypes{ii} '-ts.mat'];
                         if exist(outfname,'file')
                             load(outfname);
                         end
