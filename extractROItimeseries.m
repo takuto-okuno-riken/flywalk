@@ -98,6 +98,8 @@ function extractTsROItype(roitypes, preproc, hpfTh, smooth, nuisance)
     gsV(gsV>=1) = 1;
     gsV(gsV<1) = 0;
 
+    if ~exist('results/ts','dir'), mkdir('results/ts'); end
+
     % read nii files
     listing = dir(['registered/' preproc '*green_FD_Warped.nii.gz']);
     for i=1:length(listing)

@@ -117,6 +117,9 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
 
 %    figure; imagesc(lC2); colorbar; title('lC2'); % to check ordered matrix
 
+    if ~exist('results/auc','dir'), mkdir('results/auc'); end
+    if ~exist('results/fc','dir'), mkdir('results/fc'); end
+
     sbjR = [];
     roiR = [];
     Rm = []; rlabel = {}; ii=1;
