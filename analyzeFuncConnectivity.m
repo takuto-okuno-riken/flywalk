@@ -130,7 +130,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 rlabel{ii} = [smooth{k} hpfstr nuisance{n}]; ii=ii+1;
 
                 % load ROI time-series (from extractROItimeseries.m)
-                load(['results/' pftype '-ts.mat']);
+                load(['results/ts/' pftype '-ts.mat']);
     
                 CM = {};
                 for i=1:length(sbjids)
@@ -139,7 +139,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 end
                     
                 % transport first
-                outfile = ['results/' pftype '-func.mat'];
+                outfile = ['results/fc/' pftype '-func.mat'];
                 if exist(outfile,'file')
                     load(outfile);
                 else
@@ -245,7 +245,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 Rm = [Rm, R'];
 
                 % calculate AUC
-                aucmat = ['results/' pftype '-fcauc.mat'];
+                aucmat = ['results/auc/' pftype '-fcauc.mat'];
                 if exist(aucmat,'file')
                     % load beta volumes
                     load(aucmat);
