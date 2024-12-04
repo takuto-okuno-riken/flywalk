@@ -210,8 +210,8 @@ function checkNuisanceResult50(vslabels)
         '24hmacomp','24hmgmacomp','24hmgmgsacomp','24hmtcomp','24hmtacomp', ... %27
         'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
-    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50'};
-    roitypelabels = {'FlyEM','Branson','Cm','CmR1w1','Dist','Rand'};
+    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
+    roitypelabels = {'FlyEM','Branson','Cm','CmR1w1','Dist','Rand','Vrand',};
 
     ylabels = {}; R3 = []; A3 = [];
     for r = 1:length(roitypes)
@@ -246,7 +246,7 @@ function checkNuisanceResult50(vslabels)
 %    figure; plot(R3(I,:)'); legend(ylabels); title(['FC-SC correlation around 50 ROIs']); setlineColors(24);
 
     % FC-SC correlation m-FCz Traced neuron vs synapse (neuron count shows better result)
-    I = getR3idx([7 9],[0 24 48 72 96 120]);
+    I = getR3idx([7 9],[0 24 48 72 96 120 144]);
     figure; plot([1:37]',R3(I,:)'); legend(ylabels(I)); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2);
 
     % FC-SC detection (all)
@@ -255,7 +255,7 @@ function checkNuisanceResult50(vslabels)
 %    figure; plot(A3(I,:)'); legend(ylabels); title(['FC-SC detection around 50 ROIs']); setlineColors(24);
 
     % FC-SC detection m-FCz neuron vs synapse (neuron count shows better result)
-    I = getR3idx([7 9],[0 24 48 72 96 120]);
+    I = getR3idx([7 9],[0 24 48 72 96 120 144]);
     figure; plot([1:37]',A3(I,:)'); legend(ylabels(I)); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2);
 
     % both FC-SC correlation & detection
@@ -265,7 +265,7 @@ function checkNuisanceResult50(vslabels)
 %    figure; plot(B'); legend(ylabels); title('FC-SC correlation & detection around 50 ROIs'); setlineColors(24);
 
     % FC-SC correlation & detection Full vs. Traced (which is best?)
-    I = getR3idx([7 9],[0 24 48 72 96 120]);
+    I = getR3idx([7 9],[0 24 48 72 96 120 144]);
     figure; plot([1:37]',B(I,:)'); legend(ylabels(I)); title('FC-SC correlation & detection around 50 ROIs'); setlineColors(2);
 end
 
