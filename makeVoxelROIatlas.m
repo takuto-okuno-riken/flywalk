@@ -440,4 +440,27 @@ function makeVoxelROIatlas
         end
         disp([atlas ' ROI count=' num2str(max(aV(:)))]);
     end
+
+    % make ROI atlas based on fully random voxel based on flyEM voxels.
+    % thus, this ROI did not follow any anatomical result.
+    for k=[20 30 50 55 100 200 300 500 1000 5000 10000 15000 20000]
+        atlas = ['atlas/' name 'Vrand' num2str(k) 'atlasCal.nii' ];
+        if exist([atlas '.gz'],'file')
+            atlasinfo = niftiinfo([atlas '.gz']);
+            aV = niftiread(atlasinfo);
+        else
+            info = niftiinfo('atlas/hemiRoiWholeatlasCal.nii.gz');
+            aV = niftiread(info);
+            aidx = find(aV>0);
+            perm = randperm(length(aidx));
+        
+            aV(aidx) = mod(perm,k) + 1;
+    
+            % set info. info.raw is not necessary to set (niftiwrite() does it)
+            info.Description = 'fully random voxel atlas';
+            % output nii file
+            niftiwrite(aV,atlas,info,'Compressed',true);
+        end
+        disp([atlas ' ROI count=' num2str(max(aV(:)))]);
+    end
 end
