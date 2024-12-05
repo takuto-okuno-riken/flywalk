@@ -443,7 +443,7 @@ function makeVoxelROIatlas
 
     % make ROI atlas based on fully random voxel based on flyEM voxels.
     % thus, this ROI did not follow any anatomical result.
-    for k=[20 30 50 55 100 200 300 500 1000 5000 10000 15000 20000]
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         atlas = ['atlas/' name 'Vrand' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
