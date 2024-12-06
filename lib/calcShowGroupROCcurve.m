@@ -12,32 +12,21 @@ function [X, Y, AUC] = calcShowGroupROCcurve(gmb, tm, groupStr, isShow, col)
     if nargin < 5, col = []; end
     injNum = size(tm, 1);
     n = size(tm, 2);
-    X = zeros(injNum,n,'uint32'); % 0 to 4294967295
-    Y = zeros(injNum,n,'uint32'); % 0 to 4294967295
+    X = zeros(injNum,n);
+    Y = zeros(injNum,n);
     AUC = nan(injNum,1);
     [~,I] = sort(tm,2,'descend');
     if isShow, figure; end
     for i=1:injNum
-        r = gmb(i,I(i,:));
+        r = uint32(gmb(i,I(i,:))); % 0 to 4294967295
         tc = sum(gmb(i,:));
         if tc==0
             disp(['no active ground truth i=' num2str(i)]);
             continue;
         end
         fc = n - tc;
-        x = uint32(0); y = uint32(0); % 0 to 4294967295
-        for j=1:n
-            if r(j) > 0
-                y = y + 1;
-            else
-                x = x + 1;
-            end
-            X(i,j) = x;
-            Y(i,j) = y;
-        end
-
-        X = double(X) / double(fc);
-        Y = double(Y) / double(tc);
+        Y(i,:) = double(cumsum(r,2)) / double(tc);
+        X(i,:) = double(cumsum(1-r,2)) / double(fc);
         AUC(i) = trapz(X(i,:),Y(i,:));
         if isShow
             hold on;
