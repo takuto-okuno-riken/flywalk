@@ -354,7 +354,7 @@ function checkNeuronVsSynapseByRoinum(vslabels)
     hpfTh = [0]; % high-pass filter threshold
     smooth = {''}; %, 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
     nuisance = {''};
-    roinums = [1000 5000];
+    roinums = [1000 5000 10000 15000 20000];
     roitypes = {{'hemiCmkm',''},{'hemiCmkm','r1w1'},{'hemiDistKm',''},{'hemiVrand',''}};
     roitypelabels = {'Cm','CmR1w1','Dist','Vand'};
     
