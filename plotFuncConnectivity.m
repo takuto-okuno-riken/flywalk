@@ -32,14 +32,17 @@ function plotFuncConnectivity
 %    checkSmoothingResult50(vslabels);
 
     % check correlation result in each ROI num
-    checkSmoothingByRoinum(vslabels);
+%    checkSmoothingByRoinum(vslabels);
 
     % check nuisance result round 50 ROIs
 %    checkNuisanceResult50(vslabels);
 
     % check correlation result in each ROI num
-    checkNuisanceByRoinum(vslabels);
+%    checkNuisanceByRoinum(vslabels);
 
+    % check correlation result in each ROI num
+    checkNeuronVsSynapseByRoinum(vslabels);
+    
     % hemibrain ROI check other piece (Orphan) body type check.
 %{
     load('data/flyemroi.mat');
@@ -51,7 +54,6 @@ function plotFuncConnectivity
 end
 
 function checkSmoothingByRoinum(vslabels)
-    % around 50 clusters
     preproc = 'ar'; % for move correct, slice time correct
     hpfTh = [0]; % high-pass filter threshold
     smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
@@ -272,9 +274,7 @@ function checkNuisanceResult50(vslabels)
     figure; plot([1:37]',B(I,:)'); legend(ylabels(I)); title('FC-SC correlation & detection around 50 ROIs'); setlineColors(2);
 end
 
-
 function checkNuisanceByRoinum(vslabels)
-    % around 50 clusters
     preproc = 'ar'; % for move correct, slice time correct
     hpfTh = [0]; % high-pass filter threshold
     smooth = {''};
@@ -285,9 +285,9 @@ function checkNuisanceByRoinum(vslabels)
         'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', '_', '_', '_'}; %40, three dummies
     roinums = [20 30 50 100 200 300 500 1000];
-    roitypes = {{'hemiBranson7065km',''},{'hemiCmkm',''},{'hemiCmkm','r1w1'},{'hemiDistKm',''},{'hemiRand',''},{'hemiVrand',''}}; %,{'hemiCmkm','r2w1'}};
-    roitypelabels = {'Branson','Cm','CmR1w1','Dist','Rand','Vand'}; %,'CmR2w1'};
-                        
+    roitypes = {{'hemiBranson7065km',''},{'hemiCmkm',''},{'hemiCmkm','r1w1'},{'hemiDistKm',''},{'hemiRand',''},{'hemiVrand',''}};
+    roitypelabels = {'Branson','Cm','CmR1w1','Dist','Rand','Vand'};
+
     ylabels = {}; R3 = []; A3 = [];
     for r = 1:length(roitypes)
         Am = []; Rm = []; ii=1; xlabels = {};
@@ -346,6 +346,76 @@ function checkNuisanceByRoinum(vslabels)
 
     % FC-SC correlation & detection Traced neuron vs synapse (which is best?)
     I = getR3idx([7 9],[0 24 48 72 96 120]);
+    figure; plot(B(I,:)'); legend(ylabels(I)); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
+end
+
+function checkNeuronVsSynapseByRoinum(vslabels)
+    preproc = 'ar'; % for move correct, slice time correct
+    hpfTh = [0]; % high-pass filter threshold
+    smooth = {''}; %, 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
+    nuisance = {''};
+    roinums = [1000 5000];
+    roitypes = {{'hemiCmkm',''},{'hemiCmkm','r1w1'},{'hemiDistKm',''},{'hemiVrand',''}};
+    roitypelabels = {'Cm','CmR1w1','Dist','Vand'};
+    
+    ylabels = {}; R3 = []; A3 = [];
+    for r = 1:length(roitypes)
+        Am = []; Rm = []; ii=1; xlabels = {};
+        for rr=1:length(roinums)
+            for h=1:length(hpfTh)
+                hpfstr = '';
+                if hpfTh(h) > 0, hpfstr = ['hf' num2str(round(1/hpfTh(h)))]; end
+                for k=1:length(smooth)
+                    for n=1:length(nuisance)
+                        pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}{1} num2str(roinums(rr)) roitypes{r}{2}];
+                        xlabels{ii} = [smooth{k} 'roi' num2str(roinums(rr))]; ii=ii+1;
+                        aucmat = ['results/auc/' pftype '-fcauc.mat'];
+                        if exist(aucmat,'file')
+                            load(aucmat);
+                        else
+                            A = nan(size(Am,1),100);
+                            R = nan(size(Rm,1),1);
+                        end
+                        Am = [Am,nanmean(A,2)];
+                        Rm = [Rm,R(:)];
+                    end
+                end
+            end
+        end
+
+        R3 = [R3;Rm]; A3 = [A3;Am];
+        C = cell(24,1); C(1:24) = {[roitypelabels{r} ' ']};
+        ylabels = [ylabels(:); strcat(C(:),vslabels(:))];
+    end
+
+    % FC-SC correlation (all)
+    I = getR3idx([7 9 19 21],[0 24 48 72]);  % show only Traced neuron, synapse
+    figure; imagescLabel2(R3(I,:),xlabels,ylabels(I),[0.2 0.9]); colorbar; title(['FC-SC correlation (All) ']); colormap(hot);
+ %   figure; plot(R3'); legend(ylabels); title(['FC-SC correlation (All)']); setlineColors(24);
+    
+    % FC-SC correlation Traced neuron vs synapse
+    I = getR3idx([7 9],[0 24 48 72]);
+ %   figure; imagescLabel2(R3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC correlation Full vs. Traced');
+    figure; plot(R3(I,:)'); legend(ylabels(I)); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % FC-SC detection (all)
+    I = getR3idx([7 9 19 21],[0 24 48 72]);  % show only Traced neuron, synapse
+    figure; imagescLabel2(A3(I,:),xlabels,ylabels(I),[0.5 1]); colorbar; title(['FC-SC detection (All) ']); colormap(hot);
+%    figure; plot(A3'); legend(ylabels); title(['FC-SC detection (All)']); setlineColors(24);
+
+    % FC-SC detection Traced neuron vs synapse
+    I = getR3idx([7 9], [0 24 48 72]);
+%    figure; imagescLabel2(A3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC detection Full vs. Traced');
+    figure; plot(A3(I,:)'); legend(ylabels(I)); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % both FC-SC correlation & detection (all)
+    B = abs(R3) + abs(A3-0.5)*2;
+    I = getR3idx([7 9 19 21],[0 24 48 72]);  % show only Traced neuron, synapse
+    figure; imagescLabel2(B(I,:),xlabels,ylabels(I),[0 1.5]); colorbar; title('FC-SC correlation & detection'); colormap(hot);
+%    figure; plot(B'); legend(ylabels); title('FC-SC correlation & detection'); setlineColors(24);
+
+    % FC-SC correlation & detection Traced neuron vs synapse (which is best?)
+    I = getR3idx([7 9],[0 24 48 72]);
     figure; plot(B(I,:)'); legend(ylabels(I)); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
 end
 
