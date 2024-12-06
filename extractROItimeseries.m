@@ -295,7 +295,7 @@ function extractTsROItype(roitypes, preproc, hpfTh, smooth, nuisance)
                         end
 
                         % save time-series
-                        save(outfname,'CX','CXm');
+                        save(outfname,'CX','CXm','-v7.3');
                     end
                 end
             end
