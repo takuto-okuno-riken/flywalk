@@ -250,7 +250,8 @@ function makeStructConnectivity
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            primaryIds = cluster(Z,'MaxClust',k); % use default leaf order
+            [H,T,outperm] = dendrogram(Z,k);
+            primaryIds = outperm; % use default leaf order
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
@@ -446,7 +447,8 @@ function makeStructConnectivity
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            primaryIds = cluster(Z,'MaxClust',k); % use default leaf order
+            [H,T,outperm] = dendrogram(Z,k);
+            primaryIds = outperm; % use default leaf order
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
@@ -496,7 +498,8 @@ function makeStructConnectivity
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            primaryIds = cluster(Z,'MaxClust',k); % use default leaf order
+            [H,T,outperm] = dendrogram(Z,k);
+            primaryIds = outperm; % use default leaf order
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
@@ -510,7 +513,8 @@ function makeStructConnectivity
     % make structural connectivity matrix from distance based k-means atlas.
     % extract ROI ids from hemibrain mask
 %%{
-    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
+%    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
+    for k=[15000 20000]
         idstr = ['hemiDistKm' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -541,12 +545,13 @@ function makeStructConnectivity
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
-        if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
+        if true %primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
             % reorder by tree clustering
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            primaryIds = cluster(Z,'MaxClust',k); % use default leaf order
+            [H,T,outperm] = dendrogram(Z,k);
+            primaryIds = outperm; % use default leaf order
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
@@ -591,7 +596,8 @@ function makeStructConnectivity
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            primaryIds = cluster(Z,'MaxClust',k); % use default leaf order
+            [H,T,outperm] = dendrogram(Z,k);
+            primaryIds = outperm; % use default leaf order
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
@@ -641,7 +647,8 @@ function makeStructConnectivity
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            primaryIds = cluster(Z,'MaxClust',k); % use default leaf order
+            [H,T,outperm] = dendrogram(Z,k);
+            primaryIds = outperm; % use default leaf order
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
