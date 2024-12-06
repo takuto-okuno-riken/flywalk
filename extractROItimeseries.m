@@ -48,7 +48,7 @@ function extractROItimeseries
 %        'hemiRoi89','hemiRoi93','hemiRoi95','hemiRoi100','hemiRoi101','hemiRoi106','hemiRoi113'};
 %    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
 %    roitypes = {'hemiBranson7065km200','hemiCmkm200','hemiCmkm200r1w1','hemiDistKm200','hemiRand200','hemiVrand200'};
-    roitypes = {'hemiCmkm10000','hemiCmkm10000r1w1','hemiDistKm10000','hemiVrand10000'};
+    roitypes = {'hemiCmkm20000','hemiCmkm20000r1w1','hemiDistKm20000','hemiVrand20000'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
