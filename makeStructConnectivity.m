@@ -103,7 +103,7 @@ function makeStructConnectivity
         CM2 = countMat2(ids,ids,2);
         eucD = pdist(CM2,'euclidean');
         Z = linkage(eucD,'ward');
-        idx = optimalleaforder(Z,eucD);
+        idx = cluster(Z,'MaxClust',k); % use default leaf order
         primaryIds = turnerIds(idx);
         save(fname,'connectlist','countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
     end
@@ -250,7 +250,7 @@ function makeStructConnectivity
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            primaryIds = optimalleaforder(Z,eucD);
+            primaryIds = cluster(Z,'MaxClust',k); % use default leaf order
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
@@ -410,7 +410,7 @@ function makeStructConnectivity
     % make structural connectivity matrix from k-means atlas.
     % extract ROI ids from hemibrain mask
 %{
-    for k=[20 30 50 100 200 300 500 1000]
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiCmkm' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -430,8 +430,13 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
-    
+            if k <= 1000
+                [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+            else
+                [countMat2, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                weightMat2 = []; outweightMat = []; syweightMat = [];
+            end
+
             countMat = []; weightMat = [];
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
@@ -441,7 +446,7 @@ function makeStructConnectivity
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            primaryIds = optimalleaforder(Z,eucD);
+            primaryIds = cluster(Z,'MaxClust',k); % use default leaf order
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
@@ -455,7 +460,7 @@ function makeStructConnectivity
     % make structural connectivity matrix from k-means (smoothing) atlas.
     % extract ROI ids from hemibrain mask
 
-    for k=[20 30 50 100 200 300 500 1000]
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiCmkm' num2str(k) 'r1w1'];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -475,8 +480,13 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
-    
+            if k <= 1000
+                [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+            else
+                [countMat2, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                weightMat2 = []; outweightMat = []; syweightMat = [];
+            end
+
             countMat = []; weightMat = [];
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
@@ -486,7 +496,7 @@ function makeStructConnectivity
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            primaryIds = optimalleaforder(Z,eucD);
+            primaryIds = cluster(Z,'MaxClust',k); % use default leaf order
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
@@ -536,7 +546,7 @@ function makeStructConnectivity
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            primaryIds = optimalleaforder(Z,eucD);
+            primaryIds = cluster(Z,'MaxClust',k); % use default leaf order
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
@@ -581,7 +591,7 @@ function makeStructConnectivity
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            primaryIds = optimalleaforder(Z,eucD);
+            primaryIds = cluster(Z,'MaxClust',k); % use default leaf order
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 
@@ -631,7 +641,7 @@ function makeStructConnectivity
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            primaryIds = optimalleaforder(Z,eucD);
+            primaryIds = cluster(Z,'MaxClust',k); % use default leaf order
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
 

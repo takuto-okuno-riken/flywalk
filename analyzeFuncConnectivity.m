@@ -10,8 +10,8 @@ function analyzeFuncConnectivity
     % output time-series (smoothing, highpass filter, nuisance removal)
     hpfTh = [0]; % high-pass filter threshold
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
-    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
-%    smooth = {''};
+%    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
+    smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
         '6hmacomp','6hmgmacomp','6hmgmgsacomp','6hmtcomp','6hmtacomp', ... %22
@@ -29,7 +29,7 @@ function analyzeFuncConnectivity
 %    roitypes = {'flyemroi','bransonhemi'}; % flyem ROI (Turner compatible)
 %    roitypes = {'hemiBranson7065'};
 %    roitypes = {'hemiBranson7065km20','hemiBranson7065km30','hemiBranson7065km50','hemiBranson7065km100','hemiBranson7065km200', ...
-%        'hemiBranson7065km300','hemiBranson7065km500','hemiBranson7065km1000'};
+%        'hemiBranson7065km300','hemiBranson7065km500','hemiBranson7065km300'};
 %    roitypes = {'hemiCmkm20','hemiCmkm30','hemiCmkm50','hemiCmkm100','hemiCmkm200', ...
 %        'hemiCmkm300','hemiCmkm500','hemiCmkm1000'};
 %    roitypes = {'hemiCmkm20r1w1','hemiCmkm30r1w1','hemiCmkm50r1w1','hemiCmkm100r1w1','hemiCmkm200r1w1', ...
@@ -38,8 +38,8 @@ function analyzeFuncConnectivity
 %        'hemiDistKm300','hemiDistKm500','hemiDistKm1000'};
 %    roitypes = {'hemiRand20','hemiRand30','hemiRand50','hemiRand100','hemiRand200', ...
 %        'hemiRand300','hemiRand500','hemiRand1000'};
-    roitypes = {'hemiVrand20','hemiVrand30','hemiVrand50','hemiVrand100','hemiVrand200', ...
-        'hemiVrand300','hemiVrand500','hemiVrand1000'};
+%    roitypes = {'hemiVrand20','hemiVrand30','hemiVrand50','hemiVrand100','hemiVrand200', ...
+%        'hemiVrand300','hemiVrand500','hemiVrand1000'};
 %    roitypes = {'hemiCube12','hemiCube8','hemiCube4'};
 %    roitypes = {'hemiPiece12','hemiPiece8','hemiPiece4'};
 %    roitypes = {'hemiPiece3','hemiPiece2'};
@@ -49,7 +49,8 @@ function analyzeFuncConnectivity
 %        'hemiRoi54','hemiRoi57','hemiRoi59','hemiRoi63','hemiRoi65','hemiRoi67','hemiRoi78','hemiRoi82', ...
 %        'hemiRoi89','hemiRoi93','hemiRoi95','hemiRoi100','hemiRoi101','hemiRoi106','hemiRoi113'};
 %    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
-%    roitypes = {'hemiBranson7065km1000','hemiCmkm1000','hemiCmkm1000r1w1','hemiDistKm1000','hemiRand1000','hemiVrand1000'};
+%    roitypes = {'hemiBranson7065km30','hemiCmkm30','hemiCmkm30r1w1','hemiDistKm30','hemiRand30','hemiVrand30'};
+    roitypes = {'hemiCmkm5000','hemiCmkm5000r1w1','hemiDistKm5000','hemiVrand5000'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
