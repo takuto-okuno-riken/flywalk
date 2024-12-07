@@ -142,6 +142,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                     CX{sbjids(i)} = CX{sbjids(i)}';
                     CM{i} = single(corr(CX{sbjids(i)})); %calcPartialCorrelation_(CX{i}',[],[],[],false,1e-3);
                 end
+                cmlen = length(CM);
                     
                 % transport first
                 outfile = ['results/fc/' pftype '-func.mat'];
@@ -155,11 +156,12 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 end
 
                 D3 = []; D3z = [];
-                for i=1:length(CM)
+                for i=1:cmlen
                     D = CM{i}(ids,ids);
                     D3 = cat(3,D3,D);
                 end
                 D3z = atanh(D3); % z transformed (better FC-SC corr).
+                clear CM;
 
                 % mean group data
                 Dm = nanmean(D3,3);
@@ -173,7 +175,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 lT3 = log(T3); lT3(lT3<0) = 0;
 
                 % each flys [log10(neurons) vs. m-FCz]
-                for i=1:length(CM)
+                for i=1:cmlen
                     Dz = D3z(:,:,i);
                     Dz(isinf(Dz)) = max(Dz(~isinf(Dz)));
                     sbjR(k,i) = corr(lC2(:),abs(Dz(:)));
