@@ -392,7 +392,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from synapse list for fanshape body (FB) and others.
     % extract voxel ids from fanshape-body (FB), eliptic-body (EB), and other atlas.
-%%{
+%{
 %    roiids = {[101],[57],[57,51],[51,62,20,111,100]}; % FB, EB, EB-bL(L), bL-b'L-aL-a'L-BU(L)
     roiids = {1	5	7	27	30	32	43	52	54	57	59	63	65	67	78	82	89	93	95	100	101	106	113};
 
@@ -482,8 +482,9 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from k-means atlas.
     % extract ROI ids from hemibrain mask
-%{
-    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
+%%{
+%    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
+    for k=[20 30 50 100 200 300 500 1000 5000]
         idstr = ['hemiCmkm' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -513,7 +514,6 @@ function makeStructConnectivity
             countMat = []; weightMat = [];
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
-
         if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
             % reorder by tree clustering
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
@@ -523,10 +523,24 @@ function makeStructConnectivity
             primaryIds = outperm; % use default leaf order
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
+        if ~exist('ncountMat','var') % recount sycountMat to make compatibility with FlyWire
+            atlV = niftiread(['atlas/hemiCmkm' num2str(k) 'atlasCal.nii.gz']);
+            roimax = max(atlV(:));
+            sz = size(atlV);
+    
+            roiIdxs = {};
+            for i=1:roimax
+                roiIdxs{i} = find(atlV==i);
+            end
+            ncountMat = countMat2; countMat2 = [];
+            nweightMat = weightMat2 ./ sycountMat; weightMat2 = []; % pure ROI-input neuron connection weight
+            sycountMat = makePostSycountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr)); % recount post-synaptic connection of terget ROI
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
+        end
 
         ids = primaryIds;
-        CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
-        figure; imagesc(log(CM2)); colorbar; title([idstr ' neurons 2 matrix']);
+        CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
         figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
     end
 
@@ -534,7 +548,8 @@ function makeStructConnectivity
     % make structural connectivity matrix from k-means (smoothing) atlas.
     % extract ROI ids from hemibrain mask
 
-    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
+%    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
+    for k=[20 30 50 100 200 300 500 1000 5000]
         idstr = ['hemiCmkm' num2str(k) 'r1w1'];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -564,7 +579,6 @@ function makeStructConnectivity
             countMat = []; weightMat = [];
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
-
         if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
             % reorder by tree clustering
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
@@ -574,10 +588,24 @@ function makeStructConnectivity
             primaryIds = outperm; % use default leaf order
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
+        if ~exist('ncountMat','var') % recount sycountMat to make compatibility with FlyWire
+            atlV = niftiread(['atlas/hemiCmkm' num2str(k) 'r1w1atlasCal.nii.gz']);
+            roimax = max(atlV(:));
+            sz = size(atlV);
+    
+            roiIdxs = {};
+            for i=1:roimax
+                roiIdxs{i} = find(atlV==i);
+            end
+            ncountMat = countMat2; countMat2 = [];
+            nweightMat = weightMat2 ./ sycountMat; weightMat2 = []; % pure ROI-input neuron connection weight
+            sycountMat = makePostSycountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr)); % recount post-synaptic connection of terget ROI
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
+        end
 
         ids = primaryIds;
-        CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
-        figure; imagesc(log(CM2)); colorbar; title([idstr ' neurons 2 matrix']);
+        CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
         figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
     end
 %}
@@ -585,7 +613,8 @@ function makeStructConnectivity
     % make structural connectivity matrix from distance based k-means atlas.
     % extract ROI ids from hemibrain mask
 %%{
-    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
+%    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
+    for k=[20 30 50 100 200 300 500 1000 5000]
         idstr = ['hemiDistKm' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -615,7 +644,6 @@ function makeStructConnectivity
             countMat = []; weightMat = [];
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
-
         if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
             % reorder by tree clustering
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
@@ -625,10 +653,24 @@ function makeStructConnectivity
             primaryIds = outperm; % use default leaf order
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
+        if ~exist('ncountMat','var') % recount sycountMat to make compatibility with FlyWire
+            atlV = niftiread(['atlas/hemiDistKm' num2str(k) 'atlasCal.nii.gz']);
+            roimax = max(atlV(:));
+            sz = size(atlV);
+    
+            roiIdxs = {};
+            for i=1:roimax
+                roiIdxs{i} = find(atlV==i);
+            end
+            ncountMat = countMat2; countMat2 = [];
+            nweightMat = weightMat2 ./ sycountMat; weightMat2 = []; % pure ROI-input neuron connection weight
+            sycountMat = makePostSycountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr)); % recount post-synaptic connection of terget ROI
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
+        end
 
         ids = primaryIds;
-        CM = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
-        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons 2 matrix']);
+        CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
         figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
     end
 
@@ -661,7 +703,6 @@ function makeStructConnectivity
             countMat = []; weightMat = [];
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
-
         if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
             % reorder by tree clustering
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
@@ -671,9 +712,23 @@ function makeStructConnectivity
             primaryIds = outperm; % use default leaf order
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
+        if ~exist('ncountMat','var') % recount sycountMat to make compatibility with FlyWire
+            atlV = niftiread(['atlas/hemiRand' num2str(k) 'atlasCal.nii.gz']);
+            roimax = max(atlV(:));
+            sz = size(atlV);
+    
+            roiIdxs = {};
+            for i=1:roimax
+                roiIdxs{i} = find(atlV==i);
+            end
+            ncountMat = countMat2; countMat2 = [];
+            nweightMat = weightMat2 ./ sycountMat; weightMat2 = []; % pure ROI-input neuron connection weight
+            sycountMat = makePostSycountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr)); % recount post-synaptic connection of terget ROI
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
+        end
 
         ids = primaryIds;
-        CM = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
+        CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
         figure; imagesc(log(CM),[8 10]); colorbar; title([idstr ' neurons 2 matrix']);
         figure; imagesc(log(SM),[8 12]); colorbar; title([idstr ' synapses matrix']);
     end
@@ -682,7 +737,8 @@ function makeStructConnectivity
     % make structural connectivity matrix from fully random voxel atlas.
     % extract ROI ids from hemibrain mask
 
-    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
+%    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
+    for k=[20 30 50 100 200 300 500 1000 5000]
         idstr = ['hemiVrand' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -712,7 +768,6 @@ function makeStructConnectivity
             countMat = []; weightMat = [];
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
-
         if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
             % reorder by tree clustering
             cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
@@ -722,10 +777,24 @@ function makeStructConnectivity
             primaryIds = outperm; % use default leaf order
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
         end
+        if ~exist('ncountMat','var') % recount sycountMat to make compatibility with FlyWire
+            atlV = niftiread(['atlas/hemiVrand' num2str(k) 'atlasCal.nii.gz']);
+            roimax = max(atlV(:));
+            sz = size(atlV);
+    
+            roiIdxs = {};
+            for i=1:roimax
+                roiIdxs{i} = find(atlV==i);
+            end
+            ncountMat = countMat2; countMat2 = [];
+            nweightMat = weightMat2 ./ sycountMat; weightMat2 = []; % pure ROI-input neuron connection weight
+            sycountMat = makePostSycountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr)); % recount post-synaptic connection of terget ROI
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','-v7.3');
+        end
 
         ids = primaryIds;
-        CM = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
-        figure; imagesc(log(CM),[8 10]); colorbar; title([idstr ' neurons 2 matrix']);
+        CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM),[8 10]); colorbar; title([idstr ' neurons matrix']);
         figure; imagesc(log(SM),[8 12]); colorbar; title([idstr ' synapses matrix']);
     end
 end
