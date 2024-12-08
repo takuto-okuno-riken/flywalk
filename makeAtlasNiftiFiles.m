@@ -19,7 +19,7 @@ function makeAtlasNiftiFiles
     aV(aV>0) = max(V(:)) + 10;
     aV(idx) = V(idx);
 
-    % output nii file
+    % output nii file with mask ROI. to see by ITK-SNAP
     niftiwrite(aV,['atlas/' fname 'wm.nii'],info,'Compressed',true);
 
     roitypes = {{'hemiBranson7065km',''}, {'hemiCmkm',''}, {'hemiCmkm','r1w1'}, {'hemiDistKm',''}, {'hemiRand',''}};
