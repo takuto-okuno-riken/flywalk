@@ -11,7 +11,7 @@ function analyzeFuncConnectivity
     hpfTh = [0]; % high-pass filter threshold
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
 %    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
-    smooth = {'s30', 's80'};
+    smooth = {'', 's30', 's80'};
 %    smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
@@ -79,25 +79,25 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
         roitype = lower(roitype);
         load(['data/' roitype '_connectlist.mat']);
         ids = primaryIds;
-        weightMat2(isnan(weightMat2)) = 0;
+        nweightMat(isnan(nweightMat)) = 0;
     end
 
-    isw2 = ~isempty(weightMat2);
-    C2 = countMat2(ids,ids,1); S = sycountMat(ids,ids,1); W2 = []; Wo = []; Sw = []; W3 = [];
+    isw2 = ~isempty(nweightMat);
+    C2 = ncountMat(ids,ids,1); S = sycountMat(ids,ids,1); W2 = []; Wo = []; Sw = []; W3 = [];
     if isw2
-        W2 = weightMat2(ids,ids,1); Wo = outweightMat(ids,ids,1); Sw = syweightMat(ids,ids,1);
-        W3 = W2 ./ S; W3(S==0) = 0; % pure ROI-input neuron connection weight
+        W3 = nweightMat(ids,ids,1); Wo = outweightMat(ids,ids,1); Sw = syweightMat(ids,ids,1);
+        W2 = W3 .* S; % pure ROI-input neuron connection weight
     end
-    C2b = countMat2(ids,ids,2); Sb = sycountMat(ids,ids,2); W2b = []; Wob = []; Swb = []; W3b = [];
+    C2b = ncountMat(ids,ids,2); Sb = sycountMat(ids,ids,2); W2b = []; Wob = []; Swb = []; W3b = [];
     if isw2
-        W2b = weightMat2(ids,ids,2); Wob = outweightMat(ids,ids,2); Swb = syweightMat(ids,ids,2);
-        W3b = W2b ./ Sb; W3b(Sb==0) = 0; % pure ROI-input neuron connection weight
+        W3b = nweightMat(ids,ids,2); Wob = outweightMat(ids,ids,2); Swb = syweightMat(ids,ids,2);
+        W2b = W3b .* Sb; % pure ROI-input neuron connection weight
     end
 
     % show corr between neurons v. synapse weight
     if isw2
         r = corr(W2(:),C2(:));    % corr between neurons v. synapse weight
-        disp(['corr between synapse weight2 vs. neurons2. r=' num2str(r)]);
+        disp(['corr between synapse weight vs. neurons. r=' num2str(r)]);
         figure; scatter(W2(:),C2(:)); xlabel('synapse weight2'); ylabel('neurons2');
     end
 %{
@@ -106,7 +106,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
     figure; scatter(C2(:),C(:)); xlabel('neurons 2'); ylabel('neurons')
 %}
     r = corr(S(:),C2(:));    % corr between neurons v. synapse weight
-    disp(['corr between synapses vs. neurons2. r=' num2str(r)]);
+    disp(['corr between synapses vs. neurons. r=' num2str(r)]);
     figure; scatter(S(:),C2(:)); xlabel('synapses'); ylabel('neurons2');
 
 
