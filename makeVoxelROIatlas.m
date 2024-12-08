@@ -287,7 +287,7 @@ function makeVoxelROIatlas
     % makeStructConnectivity.m (whole flyem ROI) first.
     % this needs Statistics and Machine Learning Toolbox.
 %%{
-    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000 30000]
         atlas = ['atlas/' name 'Cmkm' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
@@ -385,7 +385,7 @@ function makeVoxelROIatlas
     % make ROI atlas based on k-means clustering of flyEM voxel distances.
     % thus, this ROI did not follow any anatomical result.
     % this needs Statistics and Machine Learning Toolbox.
-    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000 30000]
         atlas = ['atlas/' name 'DistKm' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
