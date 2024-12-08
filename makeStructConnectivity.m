@@ -517,8 +517,7 @@ function makeStructConnectivity
     % make structural connectivity matrix from k-means atlas.
     % extract ROI ids from hemibrain mask
 %%{
-%    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
-    for k=[20 30 50 100 200 300 500 1000]
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000 30000]
         idstr = ['hemiCmkm' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -537,25 +536,23 @@ function makeStructConnectivity
     
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
-    
+
             if k <= 1000
-                [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
             else
-                [countMat2, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
-                weightMat2 = []; outweightMat = []; syweightMat = [];
+                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                nweightMat = []; outweightMat = []; syweightMat = [];
             end
 
-            countMat = []; weightMat = [];
-            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+            countMat = []; weightMat = []; scver = 4;
         end
         if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
             % reorder by tree clustering
-            cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
+            cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
             [H,T,outperm] = dendrogram(Z,k);
             primaryIds = outperm; % use default leaf order
-            scver = 2;
         end
         if ~exist('ncountMat','var') 
             ncountMat = countMat2; countMat2 = []; nweightMat = [];
@@ -589,8 +586,7 @@ function makeStructConnectivity
     % make structural connectivity matrix from k-means (smoothing) atlas.
     % extract ROI ids from hemibrain mask
 
-%    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
-    for k=[20 30 50 100 200 300 500 1000]
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiCmkm' num2str(k) 'r1w1'];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -611,23 +607,21 @@ function makeStructConnectivity
             roiNum = length(primaryIds);
     
             if k <= 1000
-                [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
             else
-                [countMat2, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
-                weightMat2 = []; outweightMat = []; syweightMat = [];
+                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                nweightMat = []; outweightMat = []; syweightMat = [];
             end
 
-            countMat = []; weightMat = [];
-            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+            countMat = []; weightMat = []; scver = 4;
         end
         if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
             % reorder by tree clustering
-            cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
+            cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
             [H,T,outperm] = dendrogram(Z,k);
             primaryIds = outperm; % use default leaf order
-            scver = 2;
         end
         if ~exist('ncountMat','var') 
             ncountMat = countMat2; countMat2 = []; nweightMat = [];
@@ -661,8 +655,7 @@ function makeStructConnectivity
     % make structural connectivity matrix from distance based k-means atlas.
     % extract ROI ids from hemibrain mask
 %%{
-%    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
-    for k=[20 30 50 100 200 300 500 1000]
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000 30000]
         idstr = ['hemiDistKm' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -681,25 +674,23 @@ function makeStructConnectivity
     
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
-    
+
             if k <= 1000
-                [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
             else
-                [countMat2, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
-                weightMat2 = []; outweightMat = []; syweightMat = [];
+                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                nweightMat = []; outweightMat = []; syweightMat = [];
             end
-    
-            countMat = []; weightMat = [];
-            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+
+            countMat = []; weightMat = []; scver = 4;
         end
         if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
             % reorder by tree clustering
-            cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
+            cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
             [H,T,outperm] = dendrogram(Z,k);
             primaryIds = outperm; % use default leaf order
-            scver = 2;
         end
         if ~exist('ncountMat','var') 
             ncountMat = countMat2; countMat2 = []; nweightMat = [];
@@ -752,20 +743,18 @@ function makeStructConnectivity
     
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
-    
-            [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
-    
-            countMat = []; weightMat = [];
-            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+
+            countMat = []; weightMat = []; scver = 4;
         end
         if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
             % reorder by tree clustering
-            cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
+            cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
             [H,T,outperm] = dendrogram(Z,k);
             primaryIds = outperm; % use default leaf order
-            scver = 2;
         end
         if ~exist('ncountMat','var') 
             ncountMat = countMat2; countMat2 = []; nweightMat = [];
@@ -799,8 +788,7 @@ function makeStructConnectivity
     % make structural connectivity matrix from fully random voxel atlas.
     % extract ROI ids from hemibrain mask
 
-%    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
-    for k=[20 30 50 100 200 300 500 1000]
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiVrand' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -819,25 +807,23 @@ function makeStructConnectivity
     
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
-    
+
             if k <= 1000
-                [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
             else
-                [countMat2, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
-                weightMat2 = []; outweightMat = []; syweightMat = [];
+                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                nweightMat = []; outweightMat = []; syweightMat = [];
             end
 
-            countMat = []; weightMat = [];
-            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+            countMat = []; weightMat = []; scver = 4;
         end
         if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
             % reorder by tree clustering
-            cm2 = countMat2(:,:,2); cm2(isnan(cm2)) = 0;
+            cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
             [H,T,outperm] = dendrogram(Z,k);
             primaryIds = outperm; % use default leaf order
-            scver = 2;
         end
         if ~exist('ncountMat','var') 
             ncountMat = countMat2; countMat2 = []; nweightMat = [];
@@ -970,10 +956,11 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     clear Nconn; clear Ncrop; clear Nsize; 
 
     % read synapse info
-    Sdir = []; StoN = []; Srate = [];
+    Sdir = []; StoN = []; Srate = []; StoS = [];
     load('data/hemibrain_v1_2_synapses.mat');
-    clear StoS; clear Sloc;
+    clear Sloc;
     Sid = uint32(1:length(StoN));
+    valid = ismember(StoN,Nid(Nstatus==1)); % Find synapses belong to Traced neuron.
 
     % read synapse location in FDA
     SlocFc = [];
@@ -1106,7 +1093,17 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             outsids = Sid(logi);
             idx = find(Sdir(outsids)==1); % get pre-synapse ids of output neurons
             presids = outsids(idx);
-    
+            logi = ismember(StoS(:,1),presids); % get pre-synapse to connected post-synapse
+            cpostsids = StoS(logi,2);
+            if p==1
+                cpostsids = unique(cpostsids);
+            else
+                vsids = Sid(valid);
+                logi = ismember(vsids,cpostsids);
+                cpostsids = vsids(logi);
+            end
+            outsids = []; presids = []; % clear memory
+
             % get connected synapse counts in each ROI (from ROI to connected ROI)
             Vs = zeros(sz(1),sz(2),sz(3),'int32');
             conSlocFc = SlocFc(presids,:); % get 3D location in FDA Cal template.
@@ -1120,6 +1117,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                     disp(['out of bounds ' num2str(i) ') ' num2str(t)]);
                 end
             end
+            conSlocFc = []; % clear memory;
             X = zeros(1,roimax,'int32');
             for j=1:roimax
                 if isempty(roiIdxs{j}), continue; end
@@ -1186,7 +1184,6 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             end
         end
     end
-    weightMat = weightMat .* sycountMat;
 
     % pure input and output cells (full, neurons, others count)
     if nargout < 6, return; end
