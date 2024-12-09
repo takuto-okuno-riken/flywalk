@@ -145,7 +145,7 @@ function extractTsROItype(roitypes, preproc, hpfTh, smooth, nuisance)
                             Vk = V;
                             if ~isempty(smooth{k}) > 0 && (strcmp(smooth{k}(1),'s') || strcmp(smooth{k}(1),'m'))
                                 % gaussian filter
-                                sz = str2double(smooth{k}(2:3));
+                                sz = str2double(smooth{k}(2:end));
                                 FWHM = [(sz/10)/(2.45/2.28) sz/10 (sz/10)/(3.715/2.28)]; % voxel size;
                                 sigma = FWHM / sqrt(8*log(2));
                                 filterSize = 2*ceil(2*sigma)+1;
