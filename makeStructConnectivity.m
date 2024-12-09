@@ -134,6 +134,49 @@ function makeStructConnectivity
 %    WM3b = WM2b ./ SMb; WM3b(SMb==0) = 0; % pure ROI-input neuron connection weight
 %}
     % ---------------------------------------------------------------------
+    % make structural connectivity matrix from neuprint connectivity list (flyem hemibrain) by FlyWire EM data.
+    % extract ROI ids from hemibrain mask
+%{
+    clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
+    fname = 'data/neuprint_fw_connectlist.mat';
+    if exist(fname,'file')
+        load(fname);
+    else
+        info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
+        aV = niftiread(info); aV(:) = 0;
+        cnt = 1;
+        roiIdxs = {};
+        listing = dir(['atlas/flyemroi/*.nii.gz']);
+        for i=1:length(listing)
+            V = niftiread(['atlas/flyemroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+            idx = find(V>0);
+            roiIdxs{i} = idx;
+            if any(ismember(turnerIds,i))
+                aV(idx) = cnt; cnt = cnt + 1;
+            end
+            sz = size(V);
+        end
+
+        [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, 0, 'hemiroi_fw');
+
+        countMat = []; weightMat = []; scver = 4;
+    end
+    if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
+        % set same order of FlyEM hemibrain.
+        flyemname = ['data/neuprint_connectlist.mat'];
+        cl = load(flyemname);
+        primaryIds = cl.primaryIds;
+        clear cl;
+    end
+    if scver <= SCVER
+        scver = scver + 0.1;
+        save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+    end
+    ids = primaryIds; CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+    figure; imagesc(log(CM)); colorbar; title('hemibrain fw neurons matrix');
+    figure; imagesc(log(SM)); colorbar; title('hemibrain fw synapses matrix');
+%}
+    % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson matrix csv.
     % extract ROI ids from hemibrain mask
     % branson matrix csv was acquired from Turner et al. (2021).
@@ -333,6 +376,52 @@ function makeStructConnectivity
             end
             sycountMat = makePostSycountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr)); % recount post-synaptic connection of terget ROI
             scver = 4;
+        end
+        if scver <= SCVER
+            scver = scver + 0.1;
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+        end
+
+        ids = primaryIds;
+        CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
+    end
+%}
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix from branson 7065 k-means atlas by FlyWire EM data
+    % extract ROI ids from hemibrain mask
+%{
+    for k=[20 30 50 100 200 300 500 1000]
+        idstr = ['hemiBranson7065km' num2str(k) '_fw'];
+        fname = ['data/' lower(idstr) '_connectlist.mat'];
+
+        clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
+        if exist(fname,'file')
+            load(fname);
+        else
+            atlV = niftiread(['atlas/hemiCmkm' num2str(k) 'atlasCal.nii.gz']);
+            roimax = max(atlV(:));
+            sz = size(atlV);
+    
+            roiIdxs = {};
+            for i=1:roimax
+                roiIdxs{i} = find(atlV==i);
+            end
+    
+            primaryIds = 1:roimax;
+            roiNum = length(primaryIds);
+
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, 0, lower(idstr));
+
+            countMat = []; weightMat = []; scver = 4;
+        end
+        if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
+            % set same order of FlyEM hemibrain.
+            flyemname = ['data/' lower(idstr(1:end-3)) '_connectlist.mat'];
+            cl = load(flyemname);
+            primaryIds = cl.primaryIds;
+            clear cl;
         end
         if scver <= SCVER
             scver = scver + 0.1;

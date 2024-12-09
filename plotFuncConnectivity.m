@@ -215,7 +215,7 @@ function checkSmoothingFlyWireByRoinum(vslabels)
     hpfTh = [0]; % high-pass filter threshold
     smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
     nuisance = {''};
-    roinums = [20 30 50];% 100 200 300 500 1000];
+    roinums = [20 30 50 100 200];% 300 500 1000];
     roitypes = {{'hemiCmkm',''},{'hemiCmkm','_fw'},{'hemiDistKm',''},{'hemiDistKm','_fw'}};
     roitypelabels = {'Cm','CmFw','Dist','DistFw'};
     
