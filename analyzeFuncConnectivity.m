@@ -10,8 +10,8 @@ function analyzeFuncConnectivity
     % output time-series (smoothing, highpass filter, nuisance removal)
     hpfTh = [0]; % high-pass filter threshold
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
-%    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
-    smooth = {'', 's30', 's80'};
+    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
+%    smooth = {'', 's30', 's80'};
 %    smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
@@ -20,8 +20,8 @@ function analyzeFuncConnectivity
         'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
 %    nuisance = {'6hmtacomp'}; % good for bransonhemi, branson7065km50
-    nuisance = {'','poltcomp'}; % good for DistKm(synapse)
-%    nuisance = {''};
+%    nuisance = {'','poltcomp'}; % good for DistKm(synapse)
+    nuisance = {''};
 
     % using subjects (flys). sbj 7 shows NaN row in FC matrix
     sbjids = [1 2 3 4 5 6 8 9];
@@ -53,7 +53,10 @@ function analyzeFuncConnectivity
 %    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
 %    roitypes = {'hemiBranson7065km30','hemiCmkm30','hemiCmkm30r1w1','hemiDistKm30','hemiRand30','hemiVrand30'};
 %    roitypes = {'hemiCmkm20000','hemiCmkm20000r1w1','hemiDistKm20000','hemiVrand20000'};
-    roitypes = {'hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500','hemiCmkm1000','hemiDistKm1000'};
+%    roitypes = {'hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500','hemiCmkm1000','hemiDistKm1000'};
+%    roitypes = {'hemiCmkm5000','hemiDistKm5000','hemiCmkm10000','hemiDistKm10000'};
+    roitypes = {'hemiCmkm20_fw','hemiCmkm30_fw','hemiCmkm50_fw'};%,'hemiCmkm100_fw', ...
+%        'hemiDistKm20_fw','hemiDistKm30_fw','hemiDistKm50_fw','hemiDistKm100_fw',};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -138,7 +141,11 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 rlabel{ii} = [smooth{k} hpfstr nuisance{n}]; ii=ii+1;
 
                 % load ROI time-series (from extractROItimeseries.m)
-                load(['results/ts/' pftype '-ts.mat']);
+                if strcmp(pftype(end-2:end),'_fw')
+                    load(['results/ts/' pftype(1:end-3) '-ts.mat']); % FlyWire SC calculation.
+                else
+                    load(['results/ts/' pftype '-ts.mat']);
+                end
     
                 CM = {};
                 for i=1:length(sbjids)
@@ -263,7 +270,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                     thN = 100;
                     aths = cell(thN,1);
                     XY = cell(thN,1);
-%                    for th = [1 50 99] %1:thN
+%                    for th = 1:thN
                     parfor th = 1:thN
                         % include injection voxel in ground truth
                         c2th = prctile(C2(C2>0),th-1);
