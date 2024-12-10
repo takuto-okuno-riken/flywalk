@@ -57,6 +57,7 @@ function analyzeFuncConnectivity
 %    roitypes = {'hemiCmkm20000','hemiCmkm20000r1w1','hemiDistKm20000','hemiVrand20000'};
 %    roitypes = {'hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500','hemiCmkm1000','hemiDistKm1000'};
 %    roitypes = {'hemiCmkm5000','hemiDistKm5000','hemiCmkm10000','hemiDistKm10000'};
+    roitypes = {'hemiBranson7065km20_fw','hemiBranson7065km30_fw','hemiBranson7065km50_fw','hemiBranson7065km100_fw','hemiBranson7065km200_fw',};% ...
 %    roitypes = {'hemiCmkm20_fw','hemiCmkm30_fw','hemiCmkm50_fw','hemiCmkm100_fw','hemiCmkm200_fw',};% ...
 %        'hemiDistKm20_fw','hemiDistKm30_fw','hemiDistKm50_fw','hemiDistKm100_fw',};
 %    roitypes = {'hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500'};
