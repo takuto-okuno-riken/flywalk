@@ -11,6 +11,7 @@ function analyzeFuncConnectivity
     hpfTh = [0]; % high-pass filter threshold
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
     smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
+%    smooth = {'s90', 's100', 's110', 's120', 's130', 's140', 's150', 's160'};
 %    smooth = {'', 's30', 's80'};
 %    smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
@@ -50,13 +51,15 @@ function analyzeFuncConnectivity
 %    roitypes = {'hemiRoi1','hemiRoi5','hemiRoi7','hemiRoi27','hemiRoi30','hemiRoi32','hemiRoi43','hemiRoi52', ...
 %        'hemiRoi54','hemiRoi57','hemiRoi59','hemiRoi63','hemiRoi65','hemiRoi67','hemiRoi78','hemiRoi82', ...
 %        'hemiRoi89','hemiRoi93','hemiRoi95','hemiRoi100','hemiRoi101','hemiRoi106','hemiRoi113'};
-%    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
+    roitypes = {'flyemroi','flyemroi_fw','hemiBranson7065km50','hemiBranson7065km50_fw','hemiCmkm50','hemiCmkm50_fw', ...
+        'hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
 %    roitypes = {'hemiBranson7065km30','hemiCmkm30','hemiCmkm30r1w1','hemiDistKm30','hemiRand30','hemiVrand30'};
 %    roitypes = {'hemiCmkm20000','hemiCmkm20000r1w1','hemiDistKm20000','hemiVrand20000'};
 %    roitypes = {'hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500','hemiCmkm1000','hemiDistKm1000'};
 %    roitypes = {'hemiCmkm5000','hemiDistKm5000','hemiCmkm10000','hemiDistKm10000'};
-    roitypes = {'hemiCmkm20_fw','hemiCmkm30_fw','hemiCmkm50_fw','hemiCmkm100_fw','hemiCmkm200_fw',};% ...
+%    roitypes = {'hemiCmkm20_fw','hemiCmkm30_fw','hemiCmkm50_fw','hemiCmkm100_fw','hemiCmkm200_fw',};% ...
 %        'hemiDistKm20_fw','hemiDistKm30_fw','hemiDistKm50_fw','hemiDistKm100_fw',};
+%    roitypes = {'hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -69,22 +72,16 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
 
     % load structural connectivity matrix (from makeStructConnectivity.m)
     switch(roitype)
-    case 'flyemroi'
-        load('data/neuprint_connectlist.mat');
-        ids = primaryIds;
     case 'flyemroif'
         load('data/neuprint_connectlist.mat');
         ids = 1:roiNum;
-    case 'bransonhemi'
-        load('data/branson_connectlist.mat');
-        ids = primaryIds;
     otherwise
         roitype = lower(roitype);
         load(['data/' roitype '_connectlist.mat']);
         ids = primaryIds;
-        nweightMat(isnan(nweightMat)) = 0;
     end
 
+    nweightMat(isnan(nweightMat)) = 0;
     isw2 = ~isempty(nweightMat);
     C2 = ncountMat(ids,ids,1); S = sycountMat(ids,ids,1); W2 = []; Wo = []; Sw = []; W3 = [];
     if isw2
@@ -99,18 +96,13 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
 
     % show corr between neurons v. synapse weight
     if isw2
-        r = corr(W2(:),C2(:));    % corr between neurons v. synapse weight
+        r = corr(W2b(:),C2b(:));    % corr between neurons v. synapse weight
         disp(['corr between synapse weight vs. neurons. r=' num2str(r)]);
-        figure; scatter(W2(:),C2(:)); xlabel('synapse weight2'); ylabel('neurons2');
+        figure; scatter(W2b(:),C2b(:)); xlabel('synapse weight2'); ylabel('neurons2');
     end
-%{
-    r = corr(C(:),C2(:));    % corr between neurons v. synapse weight (for internal check)
-    disp(['corr between neurons vs. neurons2. r=' num2str(r)]);
-    figure; scatter(C2(:),C(:)); xlabel('neurons 2'); ylabel('neurons')
-%}
-    r = corr(S(:),C2(:));    % corr between neurons v. synapse weight
+    r = corr(Sb(:),C2b(:));    % corr between neurons v. synapse weight
     disp(['corr between synapses vs. neurons. r=' num2str(r)]);
-    figure; scatter(S(:),C2(:)); xlabel('synapses'); ylabel('neurons2');
+    figure; scatter(Sb(:),C2b(:)); xlabel('synapses'); ylabel('neurons2');
 
 
     n = length(ids);
