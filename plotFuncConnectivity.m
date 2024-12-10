@@ -35,7 +35,7 @@ function plotFuncConnectivity
 %    checkSmoothingByRoinum(vslabels);
 
     % check nuisance result round 50 ROIs
-    checkNuisanceResult50(vslabels);
+%    checkNuisanceResult50(vslabels);
 
     % check correlation result in each ROI num
 %    checkNuisanceByRoinum(vslabels);
@@ -48,6 +48,9 @@ function plotFuncConnectivity
     
     % check correlation result of FlyEM vs. FlyWire in each ROI num
     checkSmoothingFlyWireByRoinum(vslabels);
+
+    % check SC matrix difference FlyEM vs. FlyWire
+    checkSCdiffFlyWire(vslabels);
 
     % hemibrain ROI check other piece (Orphan) body type check.
 %{
@@ -215,7 +218,7 @@ function checkSmoothingFlyWireByRoinum(vslabels)
     hpfTh = [0]; % high-pass filter threshold
     smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
     nuisance = {''};
-    roinums = [20 30 50 100 200];% 300 500 1000];
+    roinums = [20 30 50 100 200 300];% 500 1000];
     roitypes = {{'hemiCmkm',''},{'hemiCmkm','_fw'},{'hemiBranson7065km',''},{'hemiBranson7065km','_fw'},{'hemiDistKm',''},{'hemiDistKm','_fw'}};
     roitypelabels = {'Cm','CmFw','Branson','BransonFw','Dist','DistFw'};
 
@@ -565,6 +568,88 @@ function checkSmoothingNuisanceByRoinum(vslabels)
     figure; plot(B(I,:)'); legend(ylabels(I)); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
 end
 
+function checkSCdiffFlyWire(vslabels)
+    roinums = [20 30 50 100 200 300 500 1000];
+    roitypes = {'hemiBranson7065km','hemiCmkm','hemiDistKm'};
+
+    NSims = nan(length(roitypes),length(roinums),'single');
+    SSims = NSims; xlabels = {}; labels = {}; axlabels = {}; 
+    mN1 = NSims; mN2 = mN1; mS1 = mN1; mS2 = mN1;
+    mN1in = mN1; mN2in = mN1; mS1in = mN1; mS2in = mN1;
+    mN1oth = mN1; mN2oth = mN1; mS1oth = mN1; mS2oth = mN1;
+    Vs = [];
+
+    % load SC & atlas
+    for i = 1:length(roitypes)
+        labels{i} = roitypes{i}; labels{i+length(roitypes)} = [roitypes{i} 'Fw'];
+
+        for j=1:length(roinums)
+            % check atlas voxel size
+            ii = j+(i-1)*length(roinums);
+            axlabels{ii} = [roitypes{i} num2str(roinums(j))];
+            info = niftiinfo(['atlas\' axlabels{ii} 'atlasCal.nii.gz']);
+            V = niftiread(info);
+            Vs(ii) = length(find(V>0));
+
+            % check connection matrix
+            xlabels{j} = ['roi' num2str(roinums(j))];
+            roitype = [roitypes{i} num2str(roinums(j))];
+            confile = ['data/' lower(roitype) '_connectlist.mat'];
+            confilefw = ['data/' lower(roitype) '_fw_connectlist.mat'];
+            if exist(confile,'file') && exist(confilefw,'file')
+                t = load(confile);
+                ids = t.primaryIds;
+                N1 = t.ncountMat(ids,ids,2); S1 = t.sycountMat(ids,ids,2);
+                E = logical(eye(roinums(j)));
+                mN1(i,j) = mean(N1(:)); mS1(i,j) = mean(S1(:));
+                mN1in(i,j) = mean(N1(E),'all'); mS1in(i,j) = mean(S1(E),'all');
+                mN1oth(i,j) = mean(N1(~E),'all'); mS1oth(i,j) = mean(S1(~E),'all');
+                clear t;
+    
+                t = load(confilefw);
+                ids = t.primaryIds;
+                N2 = t.ncountMat(ids,ids,2); S2 = t.sycountMat(ids,ids,2);
+                mN2(i,j) = mean(N2(:)); mS2(i,j) = mean(S2(:));
+                mN2in(i,j) = mean(N2(E),'all'); mS2in(i,j) = mean(S2(E),'all');
+                mN2oth(i,j) = mean(N2(~E),'all'); mS2oth(i,j) = mean(S2(~E),'all');
+
+                NSims(i,j) = getCosSimilarity(N1, N2);
+                SSims(i,j) = getCosSimilarity(S1, S2);
+%{
+                % scatter plot of connected neuron count
+                m = max([N1(:); N2(:)]);
+                figure; plot([0 m], [0 m],':','Color',[0.5 0.5 0.5]); ylim([0 m]); xlim([0 m]); daspect([1 1 1]);
+                hold on; scatter(N1(:),N2(:)); hold off; xlabel('connected neuron count (FlyEM)'); ylabel('connected neuron count (FlyWire)');
+                title(roitype);
+
+                % scatter plot of connected post-synapse count
+                m = max([S1(:); S2(:)]);
+                figure; plot([0 m], [0 m],':','Color',[0.5 0.5 0.5]); ylim([0 m]); xlim([0 m]); daspect([1 1 1]);
+                hold on; scatter(S1(:),S2(:)); hold off; xlabel('connected synapse count (FlyEM)'); ylabel('connected synapse count (FlyWire)');
+                title(roitype);
+%}
+            end
+        end
+    end
+
+    % plot atlas total ROI voxels
+%    cats=categorical(axlabels);
+%    figure; bar(cats, Vs); title('atlas total ROI voxels');
+
+    % plot cosine similarity result between FlyEM and FlyWire matrices
+    figure; imagescLabel2(NSims,xlabels,roitypes,[0.5 1]); colorbar; colormap(hot); title(['Similarity of neuron count matrices between FlyEM and FlyWire.'])
+    figure; imagescLabel2(SSims,xlabels,roitypes,[0.5 1]); colorbar; colormap(hot); title(['Similarity of synapse count matrices between FlyEM and FlyWire.'])
+
+    % plot mean connected neuron & post-synapse num
+    figure; plot([mN1' mN2']); legend(labels); setlineColors(3); title(['mean connected neuron count between FlyEM and FlyWire.'])
+    figure; plot([mS1' mS2']); legend(labels); setlineColors(3); title(['mean connected synapse count between FlyEM and FlyWire.'])
+
+    figure; plot([mN1in' mN2in']); legend(labels); setlineColors(3); title(['mean inside connected neuron count between FlyEM and FlyWire.'])
+    figure; plot([mS1in' mS2in']); legend(labels); setlineColors(3); title(['mean inside connected synapse count between FlyEM and FlyWire.'])
+
+    figure; plot([mN1oth' mN2oth']); legend(labels); setlineColors(3); title(['mean other connected neuron count between FlyEM and FlyWire.'])
+    figure; plot([mS1oth' mS2oth']); legend(labels); setlineColors(3); title(['mean other connected synapse count between FlyEM and FlyWire.'])
+end
 
 function I = getR3idx(A,B)
     I = repmat(A',[1 length(B)]) + repmat(B,[length(A) 1]); I=I(:);

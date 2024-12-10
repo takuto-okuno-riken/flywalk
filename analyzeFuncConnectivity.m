@@ -10,10 +10,10 @@ function analyzeFuncConnectivity
     % output time-series (smoothing, highpass filter, nuisance removal)
     hpfTh = [0]; % high-pass filter threshold
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
-%    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
+    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
 %    smooth = {'s90', 's100', 's110', 's120', 's130', 's140', 's150', 's160'};
 %    smooth = {'', 's30', 's80'};
-    smooth = {''};
+%    smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
         '6hmacomp','6hmgmacomp','6hmgmgsacomp','6hmtcomp','6hmtacomp', ... %22
@@ -22,7 +22,7 @@ function analyzeFuncConnectivity
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
 %    nuisance = {'6hmtacomp'}; % good for bransonhemi, branson7065km50
 %    nuisance = {'','poltcomp'}; % good for DistKm(synapse)
-%    nuisance = {''};
+    nuisance = {''};
 
     % using subjects (flys). sbj 7 shows NaN row in FC matrix
     sbjids = [1 2 3 4 5 6 8 9];
@@ -51,15 +51,15 @@ function analyzeFuncConnectivity
 %    roitypes = {'hemiRoi1','hemiRoi5','hemiRoi7','hemiRoi27','hemiRoi30','hemiRoi32','hemiRoi43','hemiRoi52', ...
 %        'hemiRoi54','hemiRoi57','hemiRoi59','hemiRoi63','hemiRoi65','hemiRoi67','hemiRoi78','hemiRoi82', ...
 %        'hemiRoi89','hemiRoi93','hemiRoi95','hemiRoi100','hemiRoi101','hemiRoi106','hemiRoi113'};
-    roitypes = {'flyemroi','flyemroi_fw','hemiBranson7065km50','hemiBranson7065km50_fw','hemiCmkm50','hemiCmkm50_fw', ...
-        'hemiCmkm50r1w1','hemiDistKm50','hemiDistKm50_fw','hemiRand50','hemiVrand50'};
+%    roitypes = {'flyemroi','flyemroi_fw','hemiBranson7065km50','hemiBranson7065km50_fw','hemiCmkm50','hemiCmkm50_fw', ...
+%        'hemiCmkm50r1w1','hemiDistKm50','hemiDistKm50_fw','hemiRand50','hemiVrand50'};
 %    roitypes = {'hemiBranson7065km30','hemiCmkm30','hemiCmkm30r1w1','hemiDistKm30','hemiRand30','hemiVrand30'};
 %    roitypes = {'hemiCmkm20000','hemiCmkm20000r1w1','hemiDistKm20000','hemiVrand20000'};
 %    roitypes = {'hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500','hemiCmkm1000','hemiDistKm1000'};
 %    roitypes = {'hemiCmkm5000','hemiDistKm5000','hemiCmkm10000','hemiDistKm10000'};
-%    roitypes = {'hemiBranson7065km20_fw','hemiBranson7065km30_fw','hemiBranson7065km50_fw','hemiBranson7065km100_fw','hemiBranson7065km200_fw',};% ...
-%    roitypes = {'hemiCmkm20_fw','hemiCmkm30_fw','hemiCmkm50_fw','hemiCmkm100_fw','hemiCmkm200_fw',};% ...
-%        'hemiDistKm20_fw','hemiDistKm30_fw','hemiDistKm50_fw','hemiDistKm100_fw',};
+    roitypes = {'hemiBranson7065km20_fw','hemiBranson7065km30_fw','hemiBranson7065km50_fw','hemiBranson7065km100_fw','hemiBranson7065km200_fw','hemiBranson7065km300_fw', ...
+        'hemiCmkm20_fw','hemiCmkm30_fw','hemiCmkm50_fw','hemiCmkm100_fw','hemiCmkm200_fw','hemiCmkm300_fw', ...
+        'hemiDistKm20_fw','hemiDistKm30_fw','hemiDistKm50_fw','hemiDistKm100_fw','hemiDistKm200_fw','hemiDistKm300_fw'};
 %    roitypes = {'hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
