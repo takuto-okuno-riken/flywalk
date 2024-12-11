@@ -236,7 +236,7 @@ function makeVoxelROIatlas
             aV = niftiread(atlasinfo);
         else
             load('data/hemibranson7065_connectlist.mat');
-            lcm2 = log10(countMat2(:,:,2));
+            lcm2 = log10(ncountMat(:,:,2));
             lcm2(lcm2<0) = 0;
             % to avoid zero for k-means
             Xnorm = sqrt(sum(lcm2.^2, 2));
@@ -246,18 +246,62 @@ function makeVoxelROIatlas
 %{
             % check sorted group result
             [S,I] = sort(idx,'ascend');
-            figure; imagesc(log10(countMat2(:,:,2))); colorbar;
-            figure; imagesc(log10(countMat2(I,I,2))); colorbar;
+            figure; imagesc(log10(ncountMat(:,:,2))); colorbar;
+            figure; imagesc(log10(ncountMat(I,I,2))); colorbar;
 
             M = zeros(k,k,'single');
             for i=1:k
-                a = sum(countMat2(idx==i,:,2),1);
+                a = sum(ncountMat(idx==i,:,2),1);
                 for j=1:k
                     M(i,j) = sum(a(:,idx==j));
                 end
             end
             figure; imagesc(log10(M)); colorbar;
 %}
+            info = niftiinfo('atlas/hemiBranson7065atlasCal.nii.gz');
+            V = niftiread(info);
+            roimax = max(V(:));
+            aV = V;
+            for i=1:roimax
+                ridx = find(V==i);
+                aV(ridx) = idx(i);
+            end
+
+            % check all ROI exist
+            for i=1:k
+                aidx = find(aV==i);
+                if isempty(aidx), disp([num2str(k) ') ROI ' num2str(i) ' voxel was not found.']); end
+            end
+    
+            % set info. info.raw is not necessary to set (niftiwrite() does it)
+            info.Description = 'k-means clustering based atlas';
+            % output nii file
+            niftiwrite(aV,atlas,info,'Compressed',true);
+        end
+        disp([atlas ' ROI count=' num2str(max(aV(:)))]);
+    end
+%}
+
+    % make ROI atlas based on k-means clustering of hemi branson7065 SC (FlyWire base).
+    % this requires wirebranson7065_connectlist.mat file. so need to run
+    % makeStructConnectivity.m (Branson 7065) first.
+    % this needs Statistics and Machine Learning Toolbox.
+%%{
+    for k=[20 30 50 100 200 300 500 1000]
+        atlas = ['atlas/wireBranson7065km' num2str(k) 'atlasCal.nii' ];
+        if exist([atlas '.gz'],'file')
+            atlasinfo = niftiinfo([atlas '.gz']);
+            aV = niftiread(atlasinfo);
+        else
+            load('data/wirebranson7065_connectlist.mat');
+            lcm2 = log10(ncountMat(:,:,2));
+            lcm2(lcm2<0) = 0;
+            % to avoid zero for k-means
+            Xnorm = sqrt(sum(lcm2.^2, 2));
+            lcm2(Xnorm==0,1) = eps(max(Xnorm)) * 2;
+
+            idx = kmeans(lcm2,k,'Distance','cosine');
+
             info = niftiinfo('atlas/hemiBranson7065atlasCal.nii.gz');
             V = niftiread(info);
             roimax = max(V(:));
