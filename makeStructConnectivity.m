@@ -14,7 +14,7 @@ function makeStructConnectivity
     turnerIds = [103	107	20	111	59	68	65	78  49	51	62	106	87	47 100 24	27	43	38	5	57	22	89	101	97	75	50	58	41	113	10	2	32	66	45	30	67	19	76	31	82	93	54	52	8	7	80	1	102	63	95	56];
 
     % load matfile
-    fname = 'data/neuprint_connectlist.mat'; scver = 1;
+    fname = 'data/flyemroi_connectlist.mat'; scver = 1;
     load(fname);
 
     %
@@ -138,7 +138,7 @@ function makeStructConnectivity
     % extract ROI ids from hemibrain mask
 %{
     clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
-    fname = 'data/neuprint_fw_connectlist.mat';
+    fname = 'data/flyemroi_fw_connectlist.mat';
     if exist(fname,'file')
         load(fname);
     else
@@ -163,7 +163,7 @@ function makeStructConnectivity
     end
     if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
         % set same order of FlyEM hemibrain.
-        flyemname = ['data/neuprint_connectlist.mat'];
+        flyemname = ['data/flyemroi_connectlist.mat'];
         cl = load(flyemname);
         primaryIds = cl.primaryIds;
         clear cl;
@@ -290,17 +290,29 @@ function makeStructConnectivity
         primaryIds = 1:roimax;
         roiNum = length(primaryIds);
 
-        [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'branson7065');
+        [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'branson7065');
 
-        countMat = []; weightMat = [];
-        save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','syweightMat','primaryIds','roiNum');
+        countMat = []; weightMat = []; scver = 4;
     end
-    if ~exist('ncountMat','var') 
-        ncountMat = countMat2; countMat2 = []; nweightMat = [];
-        if ~isempty(weightMat2), nweightMat = weightMat2 ./ sycountMat; weightMat2 = []; end % pure ROI-input neuron connection weight
-        scver = 3;
+    if scver <= SCVER
+        scver = scver + 0.1;
+        save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','primaryIds','roiNum','scver','-v7.3');
     end
-    if scver < 4 % recount sycountMat to make compatibility with FlyWire
+
+    ids = primaryIds;
+    CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+    figure; imagesc(log(CM)); colorbar; title(['branson7065 neurons matrix']);
+    figure; imagesc(log(SM)); colorbar; title(['branson7065 synapses matrix']);
+%}
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix from branson 7065 atlas.
+    % extract ROI ids from hemibrain mask
+%%{
+    fname = 'data/wirebranson7065_connectlist.mat';
+    clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
+    if exist(fname,'file')
+        load(fname);
+    else
         atlV = niftiread('atlas/hemiBranson7065atlasCal.nii.gz');
         roimax = max(atlV(:));
         sz = size(atlV);
@@ -309,18 +321,23 @@ function makeStructConnectivity
         for i=1:roimax
             roiIdxs{i} = find(atlV==i);
         end
-        sycountMat = makePostSycountMatrix(roiIdxs, sz, 0.8, 0, 'branson7065'); % recount post-synaptic connection of terget ROI
-        scver = 4;
+
+        primaryIds = 1:roimax;
+        roiNum = length(primaryIds);
+
+        [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, 0, 'wirebranson7065');
+
+        countMat = []; weightMat = []; scver = 4;
     end
     if scver <= SCVER
         scver = scver + 0.1;
-        save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+        save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','primaryIds','roiNum','scver','-v7.3');
     end
 
     ids = primaryIds;
     CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
-    figure; imagesc(log(CM)); colorbar; title(['branson7065 neurons matrix']);
-    figure; imagesc(log(SM)); colorbar; title(['branson7065 synapses matrix']);
+    figure; imagesc(log(CM)); colorbar; title(['wirebranson7065 neurons matrix']);
+    figure; imagesc(log(SM)); colorbar; title(['wirebranson7065 synapses matrix']);
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 k-means atlas.
@@ -1574,12 +1591,12 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             for j=1:roimax
                 if isempty(Nin{j}), continue; end
                 innidx = Nin{j}{p};
-                insidx = Sin{j}{p};
                 % find input neuron rate from ROI(i)
                 logi = ismember(innidx,outnidx);
                 X(j) = single(sum(logi)) / length(innidx); % in-weight (from i to j)
                 % syweightMat is heavy. calculate is if only it is required.
                 if issyweight
+                    insidx = Sin{j}{p};
                     logis = ismember(preNidx,innidx(logi));
                     logis = ismember(insidx,Sidx(logis));
                     SX(j) = single(sum(logis)) / length(insidx); % in-synaptic-weight (from i to j)
