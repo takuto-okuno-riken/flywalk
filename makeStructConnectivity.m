@@ -409,7 +409,7 @@ function makeStructConnectivity
     % make structural connectivity matrix from branson 7065 k-means atlas by FlyWire EM data
     % extract ROI ids from hemibrain mask
 %%{
-    for k=[20 30 50]% 100 200 300 500 1000]
+    for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiBranson7065km' num2str(k) '_fw'];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -1515,7 +1515,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
 
     % set pool num. this calculation takes time. we need big pool num.
     delete(gcp('nocreate')); % shutdown pools
-    parpool(12);
+    parpool(24);
 
     CC = cell(roimax,1);
 %    for i=1:roimax
