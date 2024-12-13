@@ -46,7 +46,7 @@ function plotFuncConnectivity
 
     % check correlation result of large smoothing size (s0 to 300, roi 50 to 500, '' & poltcomp)
     % roitype: Cm,Dist
-    checkLargeSmoothingPoltcompByRoinum(vslabels);
+%    checkLargeSmoothingPoltcompByRoinum(vslabels);
 
     % check correlation result in each ROI num (roi 100 to 20000)
     % roitype: Cm,CmR1w1,Dist,Vand
@@ -54,7 +54,7 @@ function plotFuncConnectivity
 
     % check correlation result in each ROI num (s30 & s80, roi 100 to 10000, '' & poltcomp)
     % roitype: Cm,DistKm
-    checkSmoothingNuisanceByRoinum(vslabels);
+%    checkSmoothingNuisanceByRoinum(vslabels);
 
     % check smoothing result of FlyEM vs. FlyWire around 50 ROIs (s0 to s80)
     % roitype: FlyEM,FlyEMFw,DistKm50,DistKm50Fw
@@ -62,7 +62,7 @@ function plotFuncConnectivity
 
     % check correlation result of FlyEM vs. FlyWire (s0 to s80, roi 20 to 1000)
     % roitype: Cm,CmFw,Branson,BransonFw,Dist,DistFw
-    checkSmoothingFlyWireByRoinum(vslabels);
+%    checkSmoothingFlyWireByRoinum(vslabels);
 
     % check SC matrix difference FlyEM vs. FlyWire (roi 20 to 1000)
     % roitype: Branson,Cm,DistKm
@@ -353,9 +353,9 @@ function checkSmoothNuisanceFlyWireResult50(vslabels)
             lN1 = log10(N1); lN1(isinf(lN1)) = 0; lN2 = log10(N2); lN2(isinf(lN2)) = 0; 
 %            figure; imagesc(lN1); colorbar; daspect([1 1 1]); title([roitype ' neuron']);
 %            figure; imagesc(lN2); colorbar; daspect([1 1 1]); title([roitype '\_fw neuron']);
-            figure; imagescLabel(N1-N2,labelNames,[-500 500], [roitype ' N1-N2 neuron diff']); colormap(gradmap);
+            figure; imagescLabel(N1-N2,labelNames,[-1000 1000], [roitype ' Hemi-Wire neuron diff']); colormap(gradmap);
 
-            figure; imagescLabel(S1-S2,labelNames,[-100000 100000], [roitype ' S1-S2 synapse diff']); colormap(gradmap);
+            figure; imagescLabel(S1-S2,labelNames,[-100000 100000], [roitype ' Hemi-Wire synapse diff']); colormap(gradmap);
 
             % scatter plot of connected neuron count
             m = max([N1(:); N2(:)]);
