@@ -408,7 +408,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 k-means atlas by FlyWire EM data
     % extract ROI ids from hemibrain mask
-%%{
+%{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiBranson7065km' num2str(k) '_fw'];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
@@ -439,6 +439,53 @@ function makeStructConnectivity
             cl = load(flyemname);
             primaryIds = cl.primaryIds;
             clear cl;
+        end
+        if scver <= SCVER
+            scver = scver + 0.1;
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+        end
+
+        ids = primaryIds;
+        CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
+    end
+%}
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix from branson 7065 k-means atlas (flyWire based clustering) by FlyWire EM data
+    % extract ROI ids from hemibrain mask
+%%{
+    for k=[20 30 50 100 200 300 500 1000]
+        idstr = ['wireBranson7065km' num2str(k) '_fw'];
+        fname = ['data/' lower(idstr) '_connectlist.mat'];
+
+        clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
+        if exist(fname,'file')
+            load(fname);
+        else
+            atlV = niftiread(['atlas/wireBranson7065km' num2str(k) 'atlasCal.nii.gz']);
+            roimax = max(atlV(:));
+            sz = size(atlV);
+    
+            roiIdxs = {};
+            for i=1:roimax
+                roiIdxs{i} = find(atlV==i);
+            end
+    
+            primaryIds = 1:roimax;
+            roiNum = length(primaryIds);
+
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, 0, lower(idstr));
+
+            countMat = []; weightMat = []; scver = 4;
+        end
+        if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
+            % reorder by tree clustering
+            cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
+            eucD = pdist(cm2,'euclidean');
+            Z = linkage(eucD,'ward');
+            [H,T,outperm] = dendrogram(Z,k);
+            primaryIds = outperm; % use default leaf order
         end
         if scver <= SCVER
             scver = scver + 0.1;
