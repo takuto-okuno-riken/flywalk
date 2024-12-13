@@ -57,10 +57,11 @@ function analyzeFuncConnectivity
 %    roitypes = {'hemiCmkm20000','hemiCmkm20000r1w1','hemiDistKm20000','hemiVrand20000'};
 %    roitypes = {'hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500','hemiCmkm1000','hemiDistKm1000'};
 %    roitypes = {'hemiCmkm5000','hemiDistKm5000','hemiCmkm10000','hemiDistKm10000'};
-    roitypes = {'hemiBranson7065km20_fw','hemiBranson7065km30_fw','hemiBranson7065km50_fw','hemiBranson7065km100_fw','hemiBranson7065km200_fw','hemiBranson7065km300_fw','hemiBranson7065km500_fw', ...
-        'hemiCmkm20_fw','hemiCmkm30_fw','hemiCmkm50_fw','hemiCmkm100_fw','hemiCmkm200_fw','hemiCmkm300_fw','hemiCmkm500_fw', ...
-        'hemiDistKm20_fw','hemiDistKm30_fw','hemiDistKm50_fw','hemiDistKm100_fw','hemiDistKm200_fw','hemiDistKm300_fw','hemiDistKm500_fw'};
-    roitypes = {'hemiCmkm50','hemiDistKm50','hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500'};
+%    roitypes = {'hemiBranson7065km20_fw','hemiBranson7065km30_fw','hemiBranson7065km50_fw','hemiBranson7065km100_fw','hemiBranson7065km200_fw','hemiBranson7065km300_fw','hemiBranson7065km500_fw', ...
+%        'hemiCmkm20_fw','hemiCmkm30_fw','hemiCmkm50_fw','hemiCmkm100_fw','hemiCmkm200_fw','hemiCmkm300_fw','hemiCmkm500_fw', ...
+%        'hemiDistKm20_fw','hemiDistKm30_fw','hemiDistKm50_fw','hemiDistKm100_fw','hemiDistKm200_fw','hemiDistKm300_fw','hemiDistKm500_fw'};
+    roitypes = {'hemiCmkm50','hemiDistKm50','hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500'}; % for large smoothing size
+%    roitypes = {'flyemroi','flyemroi_fw','hemiDistKm50','hemiDistKm50_fw'}; % for all nuisanse & s30, s80
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -382,8 +383,9 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
         end
     end
     % FC-SC correlation (6-type mixed box plot)
-    figure; boxplot(Rm(7:12,:),'Labels',rlabel); title([roitype ' FC-SC correlation (6-type mixed plot)']);
-    hold on; plot(Rm(7:12,:)'); hold off; legend;
+    dlabels = {'neuron vs. m-FC(z)','synapse vs. m-FC(z)'};
+    figure; boxplot(Rm([7 9],:),'Labels',rlabel); title([roitype ' FC-SC correlation (neuron vs. synapse)']);
+    hold on; plot(Rm([7 9],:)'); hold off; legend(dlabels);
 
     % FC-SC detection (m-FCz vs. neurons)
     % neurons: only ROI was transformed. neurons2: synapse points were transformed and re-counted in all ROI. 
@@ -399,6 +401,6 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
     figure; boxplot(A6,'Labels',rlabel); title([roitype ' FC-SC detection (m-FCz vs. synapse weight2)']);
 %}
     AA = squeeze(nanmean(AUC,2));
-    figure; boxplot(AA(7:12,:),'Labels',rlabel); title([roitype ' FC-SC detection (6-type mixed plot)']);
-    hold on; plot(AA(7:12,:)'); hold off; legend;
+    figure; boxplot(AA([7 9],:),'Labels',rlabel); title([roitype ' FC-SC detection  (neuron vs. synapse)']);
+    hold on; plot(AA([7 9],:)'); hold off; legend(dlabels);
 end
