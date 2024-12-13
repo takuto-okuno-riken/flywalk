@@ -109,7 +109,6 @@ function makeVoxelROIatlas
         disp([atlas ' ROI count=' num2str(max(aV(:)))]);
     end
 %}
-
     % make branson supervoxel based atlas
     atlas = ['atlas/' name 'Branson7065atlasCal.nii' ];
     if exist([atlas '.gz'],'file')
@@ -228,7 +227,7 @@ function makeVoxelROIatlas
     % this requires hemibranson7065_connectlist.mat file. so need to run
     % makeStructConnectivity.m (Branson 7065) first.
     % this needs Statistics and Machine Learning Toolbox.
-%{
+%%{
     for k=[20 30 50 100 200 300 500 1000]
         atlas = ['atlas/' name 'Branson7065km' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
