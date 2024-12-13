@@ -40,13 +40,13 @@ function plotFuncConnectivity
     % roitype: FlyEM,FlyEmFw,Branson,Cm,CmR1w1,Dist,Rand,Vrand
 %    checkNuisanceResult50(vslabels);
 
-    % check correlation result in each ROI num (roi 20 to 1000)
+    % check correlation result in each ROI num (all nuisance, roi 20 to 1000)
     % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
-%    checkNuisanceByRoinum(vslabels);
+    checkNuisanceByRoinum(vslabels);
 
     % check correlation result of large smoothing size (s0 to 300, roi 50 to 500, '' & poltcomp)
     % roitype: Cm,Dist
-%    checkLargeSmoothingPoltcompByRoinum(vslabels);
+    checkLargeSmoothingPoltcompByRoinum(vslabels);
 
     % check correlation result in each ROI num (roi 100 to 20000)
     % roitype: Cm,CmR1w1,Dist,Vand
@@ -155,7 +155,7 @@ function checkSmoothingResult50(vslabels)
     smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
     nuisance = {''};
     roitypes = {'flyemroi','flyemroi_fw','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
-    roitypelabels = {'FlyEM','FlyEMFw','Branson','BransonFw','Cm','CmFw','CmR1w1','Dist','Rand','Vrand'};
+    roitypelabels = {'FlyEM','FlyEMFw','Branson','Cm','CmR1w1','Dist','Rand','Vrand'};
 
     ylabels = {}; R3 = []; A3 = []; AA3 = [];
     for r = 1:length(roitypes)
