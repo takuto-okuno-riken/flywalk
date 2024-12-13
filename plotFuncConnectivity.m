@@ -28,34 +28,44 @@ function plotFuncConnectivity
         'ROI out-neuron weight vs. FC-Tval', ...
     };
 
-    % check smoothing result around 50 ROIs
+    % check smoothing result around 50 ROIs (s0 to s80)
+    % roitype: FlyEM,FlyEMFw,Branson,BransonFw,Cm,CmFw,CmR1w1,Dist,Rand,Vrand
 %    checkSmoothingResult50(vslabels);
 
-    % check correlation result in each ROI num
+    % check correlation result in each ROI num (s0 to s80, roi 20 to 1000)
+    % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
 %    checkSmoothingByRoinum(vslabels);
 
-    % check nuisance result round 50 ROIs
+    % check nuisance result round 50 ROIs (all nuisance)
+    % roitype: FlyEM,FlyEmFw,Branson,Cm,CmR1w1,Dist,Rand,Vrand
 %    checkNuisanceResult50(vslabels);
 
-    % check correlation result in each ROI num
+    % check correlation result in each ROI num (roi 20 to 1000)
+    % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
 %    checkNuisanceByRoinum(vslabels);
 
-    % check correlation result of large smoothing size & poltcomp in each ROI num
+    % check correlation result of large smoothing size (s0 to 300, roi 50 to 500, '' & poltcomp)
+    % roitype: Cm,Dist
     checkLargeSmoothingPoltcompByRoinum(vslabels);
 
-    % check correlation result in each ROI num
+    % check correlation result in each ROI num (roi 100 to 20000)
+    % roitype: Cm,CmR1w1,Dist,Vand
 %    checkNeuronVsSynapseByRoinum(vslabels);
 
-    % check correlation result in each ROI num (s30, s80)
+    % check correlation result in each ROI num (s30 & s80, roi 100 to 10000, '' & poltcomp)
+    % roitype: Cm,DistKm
     checkSmoothingNuisanceByRoinum(vslabels);
-    
-    % check smoothing result of FlyEM vs. FlyWire around 50 ROIs
+
+    % check smoothing result of FlyEM vs. FlyWire around 50 ROIs (s0 to s80)
+    % roitype: FlyEM,FlyEMFw,DistKm50,DistKm50Fw
     checkSmoothNuisanceFlyWireResult50(vslabels);
 
-    % check correlation result of FlyEM vs. FlyWire in each ROI num
+    % check correlation result of FlyEM vs. FlyWire (s0 to s80, roi 20 to 1000)
+    % roitype: Cm,CmFw,Branson,BransonFw,Dist,DistFw
     checkSmoothingFlyWireByRoinum(vslabels);
 
-    % check SC matrix difference FlyEM vs. FlyWire
+    % check SC matrix difference FlyEM vs. FlyWire (roi 20 to 1000)
+    % roitype: Branson,Cm,DistKm
     checkSCdiffFlyWire(vslabels);
 
     % hemibrain ROI check other piece (Orphan) body type check.
@@ -74,9 +84,9 @@ function checkSmoothingByRoinum(vslabels)
     smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
     nuisance = {''};
     roinums = [20 30 50 100 200 300 500 1000];
-    roitypes = {{'hemiBranson7065km',''},{'hemiCmkm',''},{'hemiCmkm','r1w1'},{'hemiDistKm',''},{'hemiRand',''},{'hemiVrand',''}}; %,{'hemiCmkm','r2w1'}};
-    roitypelabels = {'Branson','Cm','CmR1w1','Dist','Rand','Vand'}; %,'CmR2w1'};
-    
+    roitypes = {{'hemiBranson7065km',''},{'hemiCmkm',''},{'hemiCmkm','r1w1'},{'hemiDistKm',''},{'hemiRand',''},{'hemiVrand',''}};
+    roitypelabels = {'Branson','Cm','CmR1w1','Dist','Rand','Vand'};
+
     ylabels = {}; R3 = []; A3 = [];
     for r = 1:length(roitypes)
         Am = []; Rm = []; ii=1; xlabels = {};
