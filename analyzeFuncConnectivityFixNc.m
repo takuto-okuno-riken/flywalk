@@ -11,7 +11,9 @@ function analyzeFuncConnectivityFixNc
     hpfTh = [0]; % high-pass filter threshold
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
 %    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
-    smooth = {''};
+    smooth = {'s90', 's100', 's110', 's120', 's130', 's140', 's150', 's160', 's170', 's180', 's190', 's200', 's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
+%    smooth = {'', 's30', 's80'};
+%    smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
         '6hmacomp','6hmgmacomp','6hmgmgsacomp','6hmtcomp','6hmtacomp', ... %22
@@ -19,6 +21,7 @@ function analyzeFuncConnectivityFixNc
         'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
 %    nuisance = {'6hmtacomp'}; % good for bransonhemi, branson7065km50
+    nuisance = {'','poltcomp'}; % good for DistKm(synapse)
 %    nuisance = {''};
 
     % using subjects (flys). sbj 7 shows NaN row in FC matrix
@@ -36,8 +39,8 @@ function analyzeFuncConnectivityFixNc
 %        'hemiCmkm300r1w1','hemiCmkm500r1w1','hemiCmkm1000r1w1'};
 %    roitypes = {'hemiDistKm20','hemiDistKm30','hemiDistKm50','hemiDistKm100','hemiDistKm200', ...
 %        'hemiDistKm300','hemiDistKm500','hemiDistKm1000'};
-    roitypes = {'hemiRand20','hemiRand30','hemiRand50','hemiRand100','hemiRand200', ...
-        'hemiRand300','hemiRand500','hemiRand1000'};
+%    roitypes = {'hemiRand20','hemiRand30','hemiRand50','hemiRand100','hemiRand200', ...
+%        'hemiRand300','hemiRand500','hemiRand1000'};
 %    roitypes = {'hemiVrand20','hemiVrand30','hemiVrand50','hemiVrand100','hemiVrand200', ...
 %        'hemiVrand300','hemiVrand500','hemiVrand1000'};
 %    roitypes = {'hemiCube12','hemiCube8','hemiCube4'};
@@ -51,6 +54,12 @@ function analyzeFuncConnectivityFixNc
 %    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
 %    roitypes = {'hemiBranson7065km30','hemiCmkm30','hemiCmkm30r1w1','hemiDistKm30','hemiRand30','hemiVrand30'};
 %    roitypes = {'hemiCmkm20000','hemiCmkm20000r1w1','hemiDistKm20000','hemiVrand20000'};
+    % FlyEM vs. FlyWire in each roi num by smoothing 0 to 80 (no nuisanse)
+%    roitypes = {'hemiBranson7065km20_fw','hemiBranson7065km30_fw','hemiBranson7065km50_fw','hemiBranson7065km100_fw','hemiBranson7065km200_fw','hemiBranson7065km300_fw','hemiBranson7065km500_fw','hemiBranson7065km1000_fw', ...
+%        'hemiCmkm20_fw','hemiCmkm30_fw','hemiCmkm50_fw','hemiCmkm100_fw','hemiCmkm200_fw','hemiCmkm300_fw','hemiCmkm500_fw', 'hemiCmkm1000_fw',...
+%        'hemiDistKm20_fw','hemiDistKm30_fw','hemiDistKm50_fw','hemiDistKm100_fw','hemiDistKm200_fw','hemiDistKm300_fw','hemiDistKm500_fw','hemiDistKm1000_fw'};
+    roitypes = {'hemiCmkm50','hemiDistKm50','hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500'}; % for large smoothing size & no nuisanse, poltcomp
+%    roitypes = {'flyemroi','flyemroi_fw','hemiDistKm50','hemiDistKm50_fw'}; % for all nuisanse & s30, s80
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

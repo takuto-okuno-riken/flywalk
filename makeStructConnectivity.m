@@ -144,7 +144,7 @@ function makeStructConnectivity
 
         countMat = []; weightMat = []; scver = 5;
     end
-    if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
+    if scver <= SCVER
         % set same order of FlyEM hemibrain.
         flyemname = ['data/flyemroi_connectlist.mat'];
         cl = load(flyemname);
@@ -729,7 +729,7 @@ function makeStructConnectivity
 
             countMat = []; weightMat = []; scver = 5;
         end
-        if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
+        if scver <= SCVER
             % set same order of FlyEM hemibrain.
             flyemname = ['data/' lower(idstr(1:end-3)) '_connectlist.mat'];
             cl = load(flyemname);
@@ -832,7 +832,7 @@ function makeStructConnectivity
 
             countMat = []; weightMat = []; scver = 5;
         end
-        if primaryIds(1) == 1 && primaryIds(roiNum) == roiNum
+        if scver <= SCVER
             % set same order of FlyEM hemibrain.
             flyemname = ['data/' lower(idstr(1:end-3)) '_connectlist.mat'];
             cl = load(flyemname);
