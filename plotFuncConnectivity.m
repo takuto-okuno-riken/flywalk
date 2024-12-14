@@ -50,11 +50,11 @@ function plotFuncConnectivity
 
     % check correlation result in each ROI num (roi 100 to 20000)
     % roitype: Cm,CmR1w1,Dist,Vand
-%    checkNeuronVsSynapseByRoinum(vslabels);
+    checkNeuronVsSynapseByRoinum(vslabels);
 
     % check correlation result in each ROI num (s30 & s80, roi 100 to 10000, '' & poltcomp)
     % roitype: Cm,DistKm
-%    checkSmoothingNuisanceByRoinum(vslabels);
+    checkSmoothingNuisanceByRoinum(vslabels);
 
     % check smoothing result of FlyEM vs. FlyWire around 50 ROIs (s0 to s80)
     % roitype: FlyEM,FlyEMFw,DistKm50,DistKm50Fw
@@ -62,7 +62,7 @@ function plotFuncConnectivity
 
     % check correlation result of FlyEM vs. FlyWire (s0 to s80, roi 20 to 1000)
     % roitype: Cm,CmFw,Branson,BransonFw,Dist,DistFw
-    checkSmoothingFlyWireByRoinum(vslabels);
+%    checkSmoothingFlyWireByRoinum(vslabels);
 
     % check SC matrix difference FlyEM vs. FlyWire (roi 20 to 1000)
     % roitype: Branson,Cm,DistKm
