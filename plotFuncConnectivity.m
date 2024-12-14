@@ -42,11 +42,11 @@ function plotFuncConnectivity
 
     % check correlation result in each ROI num (all nuisance, roi 20 to 1000)
     % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
-    checkNuisanceByRoinum(vslabels);
+%    checkNuisanceByRoinum(vslabels);
 
     % check correlation result of large smoothing size (s0 to 300, roi 50 to 500, '' & poltcomp)
     % roitype: Cm,Dist
-    checkLargeSmoothingPoltcompByRoinum(vslabels);
+%    checkLargeSmoothingPoltcompByRoinum(vslabels);
 
     % check correlation result in each ROI num (roi 100 to 20000)
     % roitype: Cm,CmR1w1,Dist,Vand
@@ -58,11 +58,11 @@ function plotFuncConnectivity
 
     % check smoothing result of FlyEM vs. FlyWire around 50 ROIs (s0 to s80)
     % roitype: FlyEM,FlyEMFw,DistKm50,DistKm50Fw
-    checkSmoothNuisanceFlyWireResult50(vslabels);
+%    checkSmoothNuisanceFlyWireResult50(vslabels);
 
     % check correlation result of FlyEM vs. FlyWire (s0 to s80, roi 20 to 1000)
     % roitype: Cm,CmFw,Branson,BransonFw,Dist,DistFw
-%    checkSmoothingFlyWireByRoinum(vslabels);
+    checkSmoothingFlyWireByRoinum(vslabels);
 
     % check SC matrix difference FlyEM vs. FlyWire (roi 20 to 1000)
     % roitype: Branson,Cm,DistKm
@@ -683,7 +683,7 @@ end
 function checkNeuronVsSynapseByRoinum(vslabels)
     preproc = 'ar'; % for move correct, slice time correct
     hpfTh = [0]; % high-pass filter threshold
-    smooth = {''}; %, 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
+    smooth = {''};
     nuisance = {''};
     roinums = [100 500 1000 5000 10000 15000 20000];
     roitypes = {{'hemiCmkm',''},{'hemiCmkm','r1w1'},{'hemiDistKm',''},{'hemiVrand',''}};
@@ -889,8 +889,8 @@ function checkSCdiffFlyWire(vslabels)
 %    figure; bar(cats, Vs); title('atlas total ROI voxels');
 
     % plot cosine similarity result between FlyEM and FlyWire matrices
-    figure; imagescLabel2(NSims,xlabels,roitypes,[0.5 1]); colorbar; colormap(hot); title(['Similarity of neuron count matrices between FlyEM and FlyWire.'])
-    figure; imagescLabel2(SSims,xlabels,roitypes,[0.5 1]); colorbar; colormap(hot); title(['Similarity of synapse count matrices between FlyEM and FlyWire.'])
+    figure; imagescLabel2(NSims,xlabels,roitypes,[0 1]); colorbar; colormap(hot); title(['Similarity of neuron count matrices between FlyEM and FlyWire.'])
+    figure; imagescLabel2(SSims,xlabels,roitypes,[0 1]); colorbar; colormap(hot); title(['Similarity of synapse count matrices between FlyEM and FlyWire.'])
 
     % plot mean connected neuron & post-synapse num
     figure; plot([mN1' mN2']); legend(labels); setlineColors(3); title(['mean connected neuron count between FlyEM and FlyWire.'])

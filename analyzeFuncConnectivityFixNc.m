@@ -10,8 +10,8 @@ function analyzeFuncConnectivityFixNc
     % output time-series (smoothing, highpass filter, nuisance removal)
     hpfTh = [0]; % high-pass filter threshold
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
-%    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
-    smooth = {'s90', 's100', 's110', 's120', 's130', 's140', 's150', 's160', 's170', 's180', 's190', 's200', 's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
+    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
+%    smooth = {'s90', 's100', 's110', 's120', 's130', 's140', 's150', 's160', 's170', 's180', 's190', 's200', 's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
 %    smooth = {'', 's30', 's80'};
 %    smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
@@ -21,8 +21,8 @@ function analyzeFuncConnectivityFixNc
         'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
 %    nuisance = {'6hmtacomp'}; % good for bransonhemi, branson7065km50
-    nuisance = {'','poltcomp'}; % good for DistKm(synapse)
-%    nuisance = {''};
+%    nuisance = {'','poltcomp'}; % good for DistKm(synapse)
+    nuisance = {''};
 
     % using subjects (flys). sbj 7 shows NaN row in FC matrix
     sbjids = [1 2 3 4 5 6 8 9];
@@ -55,11 +55,11 @@ function analyzeFuncConnectivityFixNc
 %    roitypes = {'hemiBranson7065km30','hemiCmkm30','hemiCmkm30r1w1','hemiDistKm30','hemiRand30','hemiVrand30'};
 %    roitypes = {'hemiCmkm20000','hemiCmkm20000r1w1','hemiDistKm20000','hemiVrand20000'};
     % FlyEM vs. FlyWire in each roi num by smoothing 0 to 80 (no nuisanse)
-%    roitypes = {'hemiBranson7065km20_fw','hemiBranson7065km30_fw','hemiBranson7065km50_fw','hemiBranson7065km100_fw','hemiBranson7065km200_fw','hemiBranson7065km300_fw','hemiBranson7065km500_fw','hemiBranson7065km1000_fw', ...
-%        'hemiCmkm20_fw','hemiCmkm30_fw','hemiCmkm50_fw','hemiCmkm100_fw','hemiCmkm200_fw','hemiCmkm300_fw','hemiCmkm500_fw', 'hemiCmkm1000_fw',...
-%        'hemiDistKm20_fw','hemiDistKm30_fw','hemiDistKm50_fw','hemiDistKm100_fw','hemiDistKm200_fw','hemiDistKm300_fw','hemiDistKm500_fw','hemiDistKm1000_fw'};
-    roitypes = {'hemiCmkm50','hemiDistKm50','hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500'}; % for large smoothing size & no nuisanse, poltcomp
-%    roitypes = {'flyemroi','flyemroi_fw','hemiDistKm50','hemiDistKm50_fw'}; % for all nuisanse & s30, s80
+    roitypes = {'hemiBranson7065km20_fw','hemiBranson7065km30_fw','hemiBranson7065km50_fw','hemiBranson7065km100_fw','hemiBranson7065km200_fw','hemiBranson7065km300_fw','hemiBranson7065km500_fw','hemiBranson7065km1000_fw', ...
+        'hemiCmkm20_fw','hemiCmkm30_fw','hemiCmkm50_fw','hemiCmkm100_fw','hemiCmkm200_fw','hemiCmkm300_fw','hemiCmkm500_fw', 'hemiCmkm1000_fw',...
+        'hemiDistKm20_fw','hemiDistKm30_fw','hemiDistKm50_fw','hemiDistKm100_fw','hemiDistKm200_fw','hemiDistKm300_fw','hemiDistKm500_fw','hemiDistKm1000_fw'};
+%    roitypes = {'hemiCmkm50','hemiDistKm50','hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500'}; % for large smoothing size & no nuisanse, poltcomp
+%    roitypes = {'flyemroi','flyemroi_fw','hemiDistKm50','hemiDistKm50_fw'}; % for s0 to s80 (no nuisanse)
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -98,7 +98,11 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 pftype = [smooth{k} hpfstr nuisance{n} preproc roitype];
 
                 % load ROI time-series (from extractROItimeseries.m)
-                load(['results/ts/' pftype '-ts.mat']);
+                if strcmp(pftype(end-2:end),'_fw')
+                    load(['results/ts/' pftype(1:end-3) '-ts.mat']); % FlyWire SC calculation.
+                else
+                    load(['results/ts/' pftype '-ts.mat']);
+                end
     
                 CM = {};
                 for i=1:length(sbjids)
@@ -157,8 +161,8 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                         end
                     end
                 end
-                for th = 1:thN
-%                    parfor th = 1:thN
+%                for th = 1:thN
+                parfor th = 1:thN
                     % include injection voxel in ground truth
                     c2th = prctile(C2(C2>0),th-1);
                     ct2 = C2; ct2(ct2<c2th) = 0; ct2(ct2>0) = 1;
