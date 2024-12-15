@@ -92,7 +92,19 @@ function makeStructConnectivity
     WMo = outweightMat(ids,ids,2);
     figure; imagescLabel(log(WMi'), labelNames, 'hemibrain all input-rate matrix');
     figure; imagescLabel(log(WMo), labelNames, 'hemibrain all output-rate matrix');
-
+%{
+    info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
+    aV = niftiread(info); aV(:) = 0;
+    listing = dir(['atlas/flyemroi/*.nii.gz']);
+    for i=1:length(listing)
+        V = niftiread(['atlas/flyemroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+        idx = find(V>0);
+        if any(ismember(ids,i))
+            aV(idx) = i;
+        end
+    end
+    niftiwrite(aV,'atlas/hemiFlyemPrimaryatlasCal.nii','Compressed',true);
+%}
     % reorder by neuron count matrix clustering
     % for Turner et al. (2021) compatible (around 50 ROIs)
     if scver <= SCVER
@@ -118,7 +130,7 @@ function makeStructConnectivity
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from neuprint connectivity list (flyem hemibrain) by FlyWire EM data.
-    % extract ROI ids from hemibrain mask
+    %
 %{
     clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
     fname = 'data/flyemroi_fw_connectlist.mat';
@@ -234,7 +246,7 @@ function makeStructConnectivity
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 atlas.
-    % extract ROI ids from hemibrain mask
+    %
 %{
     fname = 'data/hemibranson7065_connectlist.mat';
     clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
@@ -269,7 +281,7 @@ function makeStructConnectivity
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 atlas.
-    % extract ROI ids from hemibrain mask
+    %
 %{
     fname = 'data/wirebranson7065_connectlist.mat';
     clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
@@ -304,7 +316,7 @@ function makeStructConnectivity
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 k-means atlas.
-    % extract ROI ids from hemibrain mask
+    %
 %{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiBranson7065km' num2str(k)];
@@ -351,7 +363,7 @@ function makeStructConnectivity
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 k-means atlas by FlyWire EM data
-    % extract ROI ids from hemibrain mask
+    %
 %{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiBranson7065km' num2str(k) '_fw'];
@@ -397,8 +409,8 @@ function makeStructConnectivity
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 k-means atlas (flyWire based clustering).
-    % extract ROI ids from hemibrain mask
-%%{
+    %
+%{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['wireBranson7065km' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
@@ -444,7 +456,7 @@ function makeStructConnectivity
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 k-means atlas (flyWire based clustering) by FlyWire EM data
-    % extract ROI ids from hemibrain mask
+    %
 %{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['wireBranson7065km' num2str(k) '_fw'];
@@ -605,7 +617,7 @@ function makeStructConnectivity
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from synapse list for all EM ROI voxels (except fibers).
-%%{
+%{
     clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
     fname = ['data/hemiroiwhole_connectlist.mat'];
     if exist([fname(1:end-4) '_cm.mat'],'file')
@@ -641,7 +653,7 @@ function makeStructConnectivity
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from k-means atlas.
-    % extract ROI ids from hemibrain mask
+    %
 %{
     for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000 30000]
         idstr = ['hemiCmkm' num2str(k)];
@@ -693,7 +705,7 @@ function makeStructConnectivity
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from k-means (smoothing) atlas.
-    % extract ROI ids from hemibrain mask
+    %
 %{
     for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiCmkm' num2str(k) 'r1w1'];
@@ -745,7 +757,7 @@ function makeStructConnectivity
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from k-means atlas by FlyWire EM data
-    % extract ROI ids from hemibrain mask
+    %
 %{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiCmkm' num2str(k) '_fw'];
@@ -796,7 +808,7 @@ function makeStructConnectivity
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from distance based k-means atlas.
-    % extract ROI ids from hemibrain mask
+    %
 %{
     for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000 30000]
         idstr = ['hemiDistKm' num2str(k)];
@@ -848,8 +860,8 @@ function makeStructConnectivity
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from distance based k-means atlas by FlyWire EM data.
-    % extract ROI ids from hemibrain mask
-%%{
+    %
+%{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiDistKm' num2str(k) '_fw'];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
@@ -898,8 +910,41 @@ function makeStructConnectivity
     end
 %}
     % ---------------------------------------------------------------------
+    % make structural connectivity matrix of hemibrain primary ROI atlas (flyem hemibrain) by taking mean from FlyEM and FlyWire.
+    %
+    for k=[20 30 50 100 200 300 500 1000]
+        idstr = ['hemiDistKm' num2str(k)];
+        fname = ['data/' lower(idstr) '_avg_connectlist.mat'];
+        if exist(fname,'file')
+            load(fname);
+        else
+            t1name = ['data/' lower(idstr) '_connectlist.mat'];
+            t1 = load(t1name);
+            t2name = ['data/' lower(idstr) '_fw_connectlist.mat'];
+            t2 = load(t2name);
+            ncountMat = (t1.ncountMat + t2.ncountMat) / 2;
+            nweightMat = (t1.nweightMat + t2.nweightMat) / 2;
+            sycountMat = (t1.sycountMat + t2.sycountMat) / 2;
+            syweightMat = (t1.syweightMat + t2.syweightMat) / 2;
+            outweightMat = (t1.outweightMat + t2.outweightMat) / 2;
+            primaryIds = t1.primaryIds;
+            roiNum = t1.roiNum;
+
+            countMat = []; weightMat = []; scver = 5;
+        end
+        if scver <= SCVER
+            scver = scver + 0.1;
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+        end
+        ids = primaryIds;
+        CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
+    end
+%}
+    % ---------------------------------------------------------------------
     % make structural connectivity matrix from fully random cluster atlas.
-    % extract ROI ids from hemibrain mask
+    %
 %{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiRand' num2str(k)];
@@ -946,7 +991,7 @@ function makeStructConnectivity
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from fully random voxel atlas.
-    % extract ROI ids from hemibrain mask
+    %
 
     for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiVrand' num2str(k)];

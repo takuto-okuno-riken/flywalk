@@ -1,0 +1,518 @@
+% analyze and plot SC and FC relation.
+
+function plotStructConnectivity
+    % check SC post synapse cloud
+    % roitype: flyemroi primary
+    checkSCpostSynapse();
+
+    % check SC matrix connection similarity FlyEM vs. FlyWire ()
+    % roitype: flyemroi primary
+    checkSCmatrixSimilarity();
+
+    % check SC matrix connection count diff FlyEM vs. FlyWire (roi 20 to 1000)
+    % roitype: Branson,Cm,DistKm
+    checkSCdiffConnectionCount();
+
+    % hemibrain ROI check other piece (Orphan) body type check.
+%{
+    load('data/flyemroi.mat');
+    ids = [107	16	59	68	65	78	4	49	106	87	100	27	43	5	57	89	101	97	50	58	113	10	32	66	30	67	19	76	31	82	93	54	52	8	7	42	1	63	95	112	98	33	18	103	15	20	111	34	51	62	47	24	38	22	75	41	2	45	80	102	56	28	91];
+    labelNames = roiname(ids,1);
+
+    checkOtherPieceSynapse('data/neuprint_connectlist.mat', ids, labelNames); % hemibrain ROI
+%}
+end
+
+function checkSCpostSynapse()
+    rateTh = 0.8;
+    roitypes = {'flyemroi_hb0sr80'};
+
+    % primary, R/L, name order
+    load('data/flyemroi.mat');
+
+    % make post-synapse could of FlyEM hemibrain
+    niifile = 'data/hemibrain_v1_2_postsynFDACal.nii';
+    if exist([niifile '.gz'],'file')
+        hbinfo = niftiinfo([niifile '.gz']);
+        hbV = niftiread(hbinfo);
+    else
+        % read FlyEM hemibrain synapse info & location in FDA
+        load('data/hemibrain_v1_2_neurons.mat');
+        clear Nconn; clear Ncrop; clear Nsize; 
+
+        load('data/hemibrain_v1_2_synapses.mat');
+        clear Sloc; clear StoS;
+        srate = (Srate >= rateTh); % use only accurate synapse more than 'rate'
+        straced = ismember(StoN,Nid(Nstatus==1)); % Find synapses belong to Traced neuron.
+        spost = (Sdir == 2); % Find post synapse
+
+        load('data/synapseloc_fdacal.mat');
+        SpostlocFc = SlocFc(srate & straced & spost,:);
+        clear SlocFc;
+
+        hbinfo = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
+        hbV = niftiread(hbinfo); % mask should have same transform with 4D nifti data
+        hbV(:) = 0;
+        sz = size(hbV);
+
+        for i=1:size(SpostlocFc,1)
+            t = ceil(SpostlocFc(i,:));
+            if t(1)>0 && t(2)>0 && t(3)>0 && t(1)<sz(1) && t(2)<sz(2) && t(3)<sz(3) 
+                hbV(t(1),t(2),t(3)) = hbV(t(1),t(2),t(3)) + 1;
+            else
+                disp(['out of bounds ' num2str(i) ') ' num2str(t)]);
+            end
+        end
+        clear SpostlocFc;
+
+        niftiwrite(hbV,niifile,hbinfo,'Compressed',true);
+    end
+
+    % make post-synapse could of FlyWire (hemibrain)
+    niifile = 'data/hemibrain_fw783_postsynFDACal.nii';
+    if exist([niifile '.gz'],'file')
+        fwinfo = niftiinfo([niifile '.gz']);
+        fwV = niftiread(fwinfo);
+    else
+        % read synapse info
+        load('data/flywire783_synapse.mat');
+        clear cleftScore;
+        valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
+    
+        % read synapse location in FDA
+        load('data/flywire783i_sypostloc_fdacal.mat');
+        SpostlocFc = SpostlocFc(valid,:);
+
+        fwinfo = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
+        fwV = niftiread(fwinfo); % mask should have same transform with 4D nifti data
+        fwV(:) = 0;
+        sz = size(fwV);
+
+        mV = imgaussfilt3(hbV, [10 10 10] / sqrt(8*log(2))); mV(mV>0)=1; % make mask
+
+        for i=1:size(SpostlocFc,1)
+            t = ceil(SpostlocFc(i,:));
+            if t(1)>0 && t(2)>0 && t(3)>0 && t(1)<sz(1) && t(2)<sz(2) && t(3)<sz(3) 
+                if mV(t(1),t(2),t(3)) > 0
+                    fwV(t(1),t(2),t(3)) = fwV(t(1),t(2),t(3)) + 1;
+                end
+            else
+                disp(['out of bounds ' num2str(i) ') ' num2str(t)]);
+            end
+        end
+        clear SpostlocFc;
+
+        niftiwrite(fwV,niifile,hbinfo,'Compressed',true);
+    end
+
+    % load SC & atlas
+    for i = 1:length(roitypes)
+        roitype = roitypes{i};
+        fname = ['data/' roitype '_postsyncount.mat'];
+        if exist(fname,'file')
+            load(fname);
+        else
+            clname = ['data/' roitype '_connectlist.mat'];
+            t = load(clname);
+            primaryIds = t.primaryIds;
+            str = split(roitype,'_');
+            roiIdxs = {};
+            switch(str{1})
+            case 'flyemroi'
+                listing = dir(['atlas/' str{1} '/*.nii.gz']);
+                for j=1:length(listing)
+                    V = niftiread(['atlas/' str{1} '/roi' num2str(j) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+                    roiIdxs{j} = find(V>0);
+                end
+            end
+
+            hbS = nan(length(roiIdxs),1,'single');
+            fwS = nan(length(roiIdxs),1,'single');
+            for j=1:length(roiIdxs)
+                hbSc = hbV(roiIdxs{j});
+                fwSc = fwV(roiIdxs{j});
+                hbS(j) = sum(hbSc);
+                fwS(j) = sum(fwSc);
+            end
+            save(fname,'hbS','fwS','primaryIds','-v7.3');
+
+            % export nii file
+            info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
+            V = single(niftiread(info)); % mask should have same transform with 4D nifti data
+            V(:) = 0;
+            ids = primaryIds;
+            for j=1:length(ids)
+                diff = hbS(j) - fwS(j);
+                V(roiIdxs{ids(j)}) = sign(diff) * log10(abs(diff));
+            end
+            info.Datatype = 'single';
+            niftiwrite(V,['data/' roitype '_postsyncount.nii'],info,'Compressed',true);
+        end
+        ids = primaryIds;
+
+        % plot bar total post-synapse count
+        cats=categorical({'FlyEM','FlyWire'});
+        figure; bar(cats,[sum(hbS(ids),1) sum(fwS(ids),1)]); %set(gca,'yscale','log');
+        title(['total post-synapse count in all ROI : ' roitype]); ylim([0 2e7]);
+
+        % plot bar mean post-synapse count of ROIs
+        figure; boxplot([hbS(ids) fwS(ids)]); %set(gca,'yscale','log');
+        p = ranksum(hbS(ids),fwS(ids));
+        title(['mean post-synapse count of ROIs : ' roitype ' p=' num2str(p)]); ylim([0 1e6]);
+
+        % plot bar in each ROI
+        str = split(roitype,'_');
+        switch(str{1})
+        case 'flyemroi'
+            labelNames = roiname(ids,1);
+        otherwise
+            labelNames = {};
+        end
+        cats=categorical(labelNames, labelNames);
+        figure; h=bar(cats,hbS(ids)); h.FaceAlpha = 0.4;
+        hold on; h=bar(cats,fwS(ids)); h.FaceAlpha = 0.4; hold off;
+        legend({'FlyEM','FlyWire'}); set(gca,'yscale','log');
+        title(['valid post-synapse count in each ROI : ' roitype]);
+    end
+end
+
+function checkSCmatrixSimilarity()
+    rateThs = [80];
+    synThs = [0 5 10 20 30 50 100];
+    roitypes = {'flyemroi'};
+    roisizes = [63];
+
+    rgbs = [107 41 147; 55 41 185; 0 0 0; 192 0 0; 254 254 41];
+    gradmap = colormapGen(rgbs,[0,0.25,0.5,0.75,1],256);
+
+    % primary, R/L, name order
+    flyemroiIds = [107	16	59	68	65	78	4	49	106	87	100	27	43	5	57	89	101	97	50	58	113	10	32	66	30	67	19	76	31	82	93	54	52	8	7	42	1	63	95	112	98	33	18	103	15	20	111	34	51	62	47	24	38	22	75	41	2	45	80	102	56	28	91];
+    load('data/flyemroi.mat');
+
+    % load SC & atlas
+    for i = 1:length(roitypes)
+        roitype = roitypes{i};
+        labels{i} = roitypes{i}; labels{i+length(roitypes)} = [roitypes{i} 'Fw'];
+
+        idlen = roisizes(i);
+        sytlen = length(synThs);
+        ncountMat = zeros(idlen,idlen,length(rateThs)*sytlen+sytlen);
+        sycountMat = zeros(idlen,idlen,length(rateThs)*sytlen+sytlen);
+        nweightMat = zeros(idlen,idlen,length(rateThs)*sytlen+sytlen);
+        syweightMat = zeros(idlen,idlen,length(rateThs)*sytlen+sytlen);
+        ii = 1;
+
+        xlabels = {}; labels = {}; axlabels = {}; 
+
+        % check connection matrix
+        for r=1:length(rateThs)
+            rateTh = rateThs(r);
+            for j=1:length(synThs)
+                synTh = synThs(j);
+                fname = ['data/' roitype '_hb' num2str(synTh) 'sr' num2str(rateTh) '_connectlist.mat'];
+                if exist(fname,'file')
+                    t = load(fname);
+                    if i==1
+                        ids = flyemroiIds;
+                    else
+                        ids = t.primaryIds;
+                    end
+                    ncountMat(:,:,ii) = t.ncountMat(ids,ids,2);
+                    sycountMat(:,:,ii) = t.sycountMat(ids,ids,2);
+                    nweightMat(:,:,ii) = t.nweightMat(ids,ids,2);
+                    syweightMat(:,:,ii) = t.syweightMat(ids,ids,2);
+                    ii = ii + 1;
+                end
+            end
+        end
+        for j=1:length(synThs)
+            synTh = synThs(j);
+            fname = ['data/' roitype '_fw' num2str(synTh) '_connectlist.mat'];
+            if exist(fname,'file')
+                t = load(fname);
+                if i==1
+                    ids = flyemroiIds;
+                else
+                    ids = t.primaryIds;
+                end
+                ncountMat(:,:,ii) = t.ncountMat(ids,ids,2);
+                sycountMat(:,:,ii) = t.sycountMat(ids,ids,2);
+                nweightMat(:,:,ii) = t.nweightMat(ids,ids,2);
+                syweightMat(:,:,ii) = t.syweightMat(ids,ids,2);
+                ii = ii + 1;
+            end
+        end
+        ii = ii - 1;
+
+        for j=1:ii
+            N1 = ncountMat(:,:,j);
+            S1 = sycountMat(:,:,j);
+            Nw1 = nweightMat(:,:,j); Nw1(isnan(Nw1)) = 0;
+            Sw1 = syweightMat(:,:,j); Sw1(isnan(Sw1)) = 0;
+            E = logical(eye(size(N1,1)));
+            mN(j) = mean(N1(:)); mS(j) = mean(S1(:));
+            mNin(j) = mean(N1(E),'all'); mSin(j) = mean(S1(E),'all');
+            mNoth(j) = mean(N1(~E),'all'); mSoth(j) = mean(S1(~E),'all');
+
+            for k=j:ii
+                N2 = ncountMat(:,:,k);
+                S2 = sycountMat(:,:,k);
+                Nw2 = nweightMat(:,:,k); Nw2(isnan(Nw2)) = 0;
+                Sw2 = syweightMat(:,:,k); Sw2(isnan(Sw2)) = 0;
+                NSims(j,k) = getCosSimilarity(N1, N2);
+                SSims(j,k) = getCosSimilarity(S1, S2);
+                NwSims(j,k) = getCosSimilarity(Nw1, Nw2);
+                SwSims(j,k) = getCosSimilarity(Sw1, Sw2);
+                Nr(j,k) = corr(N1(:),N2(:));
+                Sr(j,k) = corr(S1(:),S2(:));
+                Nwr(j,k) = corr(Nw1(:),Nw2(:));
+                Swr(j,k) = corr(Sw1(:),Sw2(:));
+
+                % plot SC matrix
+                if (j==1 && k==sytlen+1) % || (j==3 && k==sytlen+3) || (j==5 && k==sytlen+5)
+                    labelNames = roiname(ids,1);
+                    lN1 = log10(N1); lN1(isinf(lN1)) = 0; lN2 = log10(N2); lN2(isinf(lN2)) = 0; 
+%                    figure; imagesc(lN1); colorbar; daspect([1 1 1]); title([num2str(j) '-' num2str(k) ' ' roitype ' neuron']);
+%                    figure; imagesc(lN2); colorbar; daspect([1 1 1]); title([num2str(j) '-' num2str(k) ' ' roitype '\_fw neuron']);
+                    figure; imagescLabel(N1-N2,labelNames,[-1000 1000], [num2str(j) '-' num2str(k) ' ' roitype ' Hemi-Wire neuron diff']); colormap(gradmap);
+                    figure; imagescLabel(S1-S2,labelNames,[-100000 100000], [num2str(j) '-' num2str(k) ' ' roitype ' Hemi-Wire synapse diff']); colormap(gradmap);
+                    figure; imagescLabel(Nw1-Nw2,labelNames,[-0.5 0.5], [num2str(j) '-' num2str(k) ' ' roitype ' Hemi-Wire nweight diff']); colormap(gradmap);
+                    figure; imagescLabel(Sw1-Sw2,labelNames,[-0.5 0.5], [num2str(j) '-' num2str(k) ' ' roitype ' Hemi-Wire syweight diff']); colormap(gradmap);
+
+                    % scatter plot of connected neuron count
+                    m = max([N1(:); N2(:)]);
+                    figure; scatter(N1(:),N2(:)); ylim([0 m]); xlim([0 m]); daspect([1 1 1]); set(gca,'xscale','log'); set(gca,'yscale','log');
+                    hold on; plot([0 m], [0 m],':','Color',[0.5 0.5 0.5]); hold off; xlabel('connected neuron count (FlyEM)'); ylabel('connected neuron count (FlyWire)');
+                    title([num2str(j) '-' num2str(k) ' ' roitype ' r=' num2str(Nr(j,k))]);
+
+                    figure; scatter(Nw1(:),Nw2(:)); ylim([0 1]); xlim([0 1]); daspect([1 1 1]);
+                    hold on; plot([0 1], [0 1],':','Color',[0.5 0.5 0.5]); hold off; xlabel('connected neuron weight (FlyEM)'); ylabel('connected neuron count (FlyWire)');
+                    title([num2str(j) '-' num2str(k) ' ' roitype ' r=' num2str(Nwr(j,k))]);
+
+                    % scatter plot of connected post-synapse count
+                    m = max([S1(:); S2(:)]);
+                    figure; scatter(S1(:),S2(:)); ylim([0 m]); xlim([0 m]); daspect([1 1 1]); set(gca,'xscale','log'); set(gca,'yscale','log');
+                    hold on; plot([0 m], [0 m],':','Color',[0.5 0.5 0.5]); hold off; xlabel('connected synapse count (FlyEM)'); ylabel('connected synapse count (FlyWire)');
+                    title([num2str(j) '-' num2str(k) ' ' roitype ' r=' num2str(Sr(j,k))]);
+
+                    figure; scatter(Sw1(:),Sw2(:)); ylim([0 1]); xlim([0 1]); daspect([1 1 1]);
+                    hold on; plot([0 1], [0 1],':','Color',[0.5 0.5 0.5]); hold off; xlabel('connected synapse weight (FlyEM)'); ylabel('connected synapse count (FlyWire)');
+                    title([num2str(j) '-' num2str(k) ' ' roitype ' r=' num2str(Swr(j,k))]);
+                end
+            end
+        end
+        figure; imagesc(Nr(1:sytlen,sytlen+1:end),[0 1]); colorbar; daspect([1 1 1]); title('neurons');
+        figure; imagesc(Sr(1:sytlen,sytlen+1:end),[0 1]); colorbar; daspect([1 1 1]); title('synapses');
+    end
+end
+
+function checkSCdiffConnectionCount()
+    roinums = [20 30 50 100 200 300 500 1000];
+    roitypes = {'hemiBranson7065km','hemiCmkm','hemiDistKm'};
+
+    NSims = nan(length(roitypes),length(roinums),'single');
+    SSims = NSims; xlabels = {}; labels = {}; axlabels = {}; 
+    mN1 = NSims; mN2 = mN1; mS1 = mN1; mS2 = mN1;
+    mN1in = mN1; mN2in = mN1; mS1in = mN1; mS2in = mN1;
+    mN1oth = mN1; mN2oth = mN1; mS1oth = mN1; mS2oth = mN1;
+    Vs = [];
+
+    % load SC & atlas
+    for i = 1:length(roitypes)
+        labels{i} = roitypes{i}; labels{i+length(roitypes)} = [roitypes{i} 'Fw'];
+
+        for j=1:length(roinums)
+            % check atlas voxel size
+            ii = j+(i-1)*length(roinums);
+            axlabels{ii} = [roitypes{i} num2str(roinums(j))];
+            info = niftiinfo(['atlas\' axlabels{ii} 'atlasCal.nii.gz']);
+            V = niftiread(info);
+            Vs(ii) = length(find(V>0));
+
+            % check connection matrix
+            xlabels{j} = ['roi' num2str(roinums(j))];
+            roitype = [roitypes{i} num2str(roinums(j))];
+            confile = ['data/' lower(roitype) '_connectlist.mat'];
+            confilefw = ['data/' lower(roitype) '_fw_connectlist.mat'];
+            if exist(confile,'file') && exist(confilefw,'file')
+                t = load(confile);
+                ids = t.primaryIds;
+                N1 = t.ncountMat(ids,ids,2); S1 = t.sycountMat(ids,ids,2);
+                E = logical(eye(roinums(j)));
+                mN1(i,j) = mean(N1(:)); mS1(i,j) = mean(S1(:));
+                mN1in(i,j) = mean(N1(E),'all'); mS1in(i,j) = mean(S1(E),'all');
+                mN1oth(i,j) = mean(N1(~E),'all'); mS1oth(i,j) = mean(S1(~E),'all');
+                clear t;
+    
+                t = load(confilefw);
+                ids = t.primaryIds;
+                N2 = t.ncountMat(ids,ids,2); S2 = t.sycountMat(ids,ids,2);
+                mN2(i,j) = mean(N2(:)); mS2(i,j) = mean(S2(:));
+                mN2in(i,j) = mean(N2(E),'all'); mS2in(i,j) = mean(S2(E),'all');
+                mN2oth(i,j) = mean(N2(~E),'all'); mS2oth(i,j) = mean(S2(~E),'all');
+
+                NSims(i,j) = getCosSimilarity(N1, N2);
+                SSims(i,j) = getCosSimilarity(S1, S2);
+%{
+                % scatter plot of connected neuron count
+                m = max([N1(:); N2(:)]);
+                figure; plot([0 m], [0 m],':','Color',[0.5 0.5 0.5]); ylim([0 m]); xlim([0 m]); daspect([1 1 1]);
+                hold on; scatter(N1(:),N2(:)); hold off; xlabel('connected neuron count (FlyEM)'); ylabel('connected neuron count (FlyWire)');
+                title(roitype);
+
+                % scatter plot of connected post-synapse count
+                m = max([S1(:); S2(:)]);
+                figure; plot([0 m], [0 m],':','Color',[0.5 0.5 0.5]); ylim([0 m]); xlim([0 m]); daspect([1 1 1]);
+                hold on; scatter(S1(:),S2(:)); hold off; xlabel('connected synapse count (FlyEM)'); ylabel('connected synapse count (FlyWire)');
+                title(roitype);
+%}
+            end
+        end
+    end
+
+    % plot atlas total ROI voxels
+%    cats=categorical(axlabels);
+%    figure; bar(cats, Vs); title('atlas total ROI voxels');
+
+    % plot cosine similarity result between FlyEM and FlyWire matrices
+    figure; imagescLabel2(NSims,xlabels,roitypes,[0 1]); colorbar; colormap(hot); title(['Similarity of neuron count matrices between FlyEM and FlyWire.'])
+    figure; imagescLabel2(SSims,xlabels,roitypes,[0 1]); colorbar; colormap(hot); title(['Similarity of synapse count matrices between FlyEM and FlyWire.'])
+
+    % plot mean connected neuron & post-synapse num
+    figure; plot([mN1' mN2']); legend(labels); setlineColors(3); title(['mean connected neuron count between FlyEM and FlyWire.'])
+    figure; plot([mS1' mS2']); legend(labels); setlineColors(3); title(['mean connected synapse count between FlyEM and FlyWire.'])
+
+    figure; plot([mN1in' mN2in']); legend(labels); setlineColors(3); title(['mean inside connected neuron count between FlyEM and FlyWire.'])
+    figure; plot([mS1in' mS2in']); legend(labels); setlineColors(3); title(['mean inside connected synapse count between FlyEM and FlyWire.'])
+
+    figure; plot([mN1oth' mN2oth']); legend(labels); setlineColors(3); title(['mean other connected neuron count between FlyEM and FlyWire.'])
+    figure; plot([mS1oth' mS2oth']); legend(labels); setlineColors(3); title(['mean other connected synapse count between FlyEM and FlyWire.'])
+end
+
+function I = getR3idx(A,B)
+    I = repmat(A',[1 length(B)]) + repmat(B,[length(A) 1]); I=I(:);
+end
+
+function imagescLabel2(mat, xlabel, ylabel, range)
+    if isempty(range)
+        imagesc(mat);
+    else
+        imagesc(mat, range);
+    end
+    set(gca,'XTick',1:length(xlabel)); set(gca,'XTickLabel',xlabel);
+    set(gca,'YTick',1:length(ylabel)); set(gca,'YTickLabel',ylabel);
+end
+
+function setlineColors(maxcol)
+    cols = zeros(3*maxcol,3);
+    for i=1:3
+        cols(maxcol*(i-1)+1:maxcol*i,mod(i,3)+1) = 1;
+        cols(maxcol*(i-1)+1:maxcol*i,mod(i+1,3)+1) = 0:1/(maxcol-1):1;
+    end
+    for i=4:6
+        cols(maxcol*(i-1)+1:maxcol*i,mod(i,3)+1) = 0.4;
+        cols(maxcol*(i-1)+1:maxcol*i,mod(i+1,3)+1) = [0:1/(maxcol-1):1] * 0.5;
+        cols(maxcol*(i-1)+1:maxcol*i,mod(i+2,3)+1) = [1/maxcol:1/maxcol:1] * 0.5;
+    end
+    ax = gca; ax.ColorOrder = cols;
+end
+
+function setlineStyles(styles)
+    ax = gca; ax.LineStyleOrder = styles; % this is for R2023b
+end
+
+function checkOtherPieceSynapse(fname, ids, labelNames)
+    % load matrix info
+    load([fname(1:end-4) '_cnids.mat']); % connected nid cells
+    roimax = size(Cnids,1);
+
+    countMat = nan(roimax,roimax,3,'single');
+    for p=2:3
+        for i=1:roimax
+            for j=1:roimax
+                countMat(i,j,p) = length(Cnids{i,j,p});
+            end
+        end
+    end
+
+    CM2 = countMat(ids,ids,2);
+    CM3 = countMat(ids,ids,3);
+    logi = (CM3>0);
+    r = corr(CM2(:),CM3(:));
+    disp(['neuron count vs. other count : ' num2str(r)]);
+
+    lsz = length(ids);
+    E = eye(lsz,lsz); E=1-E;
+    CM2logi = CM2 .* logi .* E;
+    CM3 = CM3 .* E;
+    figure; imagescLabel(CM2logi.*E, labelNames, [], 'CM2 logi'); % ignore diag
+    figure; imagescLabel(CM3.*E, labelNames, [], 'other count'); % ignore diag
+    figure; scatter(CM2logi(:), CM3(:)); xlabel('CM2 logi'); ylabel('other count')
+
+    % find top 20 other count or other rate.
+    [M,idx1] = sort(CM3(:),'descend');
+    for i=1:20
+        [x,y] = ind2sub([lsz,lsz],idx1(i));
+        disp([num2str(i) ') ' labelNames{x} '-' labelNames{y}  ' neurons:' num2str(CM2(x,y)) ' others:' num2str(CM3(x,y))]);
+    end
+    Gr = CM3 ./ CM2; Gr(isnan(Gr))=0; Gr(CM2<5)=0; % others connection rate compared to neuron connection (neurons>=5)
+    [M,idx2] = sort(Gr(:),'descend');
+    for i=1:20
+        [x,y] = ind2sub([lsz,lsz],idx2(i));
+        disp([num2str(i) ') ' labelNames{x} '-' labelNames{y}  ' neurons:' num2str(CM2(x,y)) ' others:' num2str(CM3(x,y)) ' rate:' num2str(Gr(x,y))]);
+    end
+
+    % read neuron info (id, connection number, size)
+    load('data/hemibrain_v1_2_neurons.mat');
+    % read synapse info and show other synaptic info
+    load('data/hemibrain_v1_2_synapses.mat');
+
+    for i=1:20
+        [x,y] = ind2sub([lsz,lsz],idx2(i));
+        nids = Cnids{ids(x),ids(y),3};
+        logi = ismember(StoN,nids);
+        sids = find(logi==1);
+        idx = find(Sdir(sids)==1); % get pre-synapse ids
+        presids = sids(idx);
+        idx = find(Sdir(sids)==2); % get post-synapse ids
+        postsids = sids(idx);
+        disp([num2str(i) ') ' labelNames{x} '-' labelNames{y}  ' cells:' num2str(length(nids)) ' pre:' num2str(length(presids)) ' post:' num2str(length(postsids))]);
+
+        % show sample locations (sorted by large size)
+        ST={'non', 'Traced', 'Orphan', 'Assign', 'Unimportant'};
+        prenids = StoN(presids);
+        logi = ismember(Nid,prenids);
+        prenidx = find(logi==1);
+        [M,I] = sort(Nsize(prenidx),'descend');
+        for j=1:5
+            idx = prenidx(I(j));
+            logi = ismember(StoN,Nid(idx));
+            S2=find(logi==1); k=find(Sdir(S2)==1);
+            disp([' nid:' num2str(Nid(idx)) '  pre sidx:' num2str(S2(k(1))) ') loc: ' num2str(Sloc(S2(k(1)),:)) '   st:' ST{Nstatus(idx)+1} ' sz:' num2str(Nsize(idx))]);
+        end
+        postnids = StoN(postsids);
+        logi = ismember(Nid,postnids);
+        postnidx = find(logi==1);
+        [M,I] = sort(Nsize(postnidx),'descend');
+        for j=1:5
+            idx = postnidx(I(j));
+            logi = ismember(StoN,Nid(idx));
+            S2=find(logi==1); k=find(Sdir(S2)==2);
+            disp([' nid:' num2str(Nid(idx))  ' post sidx:' num2str(S2(k(1))) ' loc: ' num2str(Sloc(S2(k(1)),:)) '   st:' ST{Nstatus(idx)+1} ' sz:' num2str(Nsize(idx))]);
+        end
+    end
+end
+
+function imagescLabel(mat, labelNames, range, titlestr)
+    if isempty(range)
+        imagesc(mat);
+    else
+        imagesc(mat, range);
+    end
+    colorbar; daspect([1 1 1]); title(titlestr);
+    set(gca,'XTick',1:size(mat,1));
+    set(gca,'YTick',1:size(mat,1));
+    set(gca,'XTickLabel',labelNames);
+    set(gca,'YTickLabel',labelNames);
+end
+

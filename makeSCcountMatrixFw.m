@@ -9,8 +9,8 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     % read synapse info
     Sid = []; postNidx = []; preNidx = [];
     load('data/flywire783_synapse.mat');
-    clear cleftScore;
-    Sidx = int32(1:length(Sid));
+    score = (cleftScore >= rateTh);
+    Sidx = int32(1:length(Sid))';
     valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
 
     % read synapse location in FDA
@@ -55,7 +55,10 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             for j=1:length(D)
                 sididx = [sididx, D{j}]; % get pre-post synapse set in this ROI
             end
-            nidx = postNidx(sididx);
+            logis = ismember(Sidx, sididx); % get valid post-synapse ids in this ROI
+            rsidx = Sidx(logis & score);
+
+            nidx = postNidx(rsidx);
             numsyn = groupcounts(nidx); % number of synapse in each neuron
             nidx = unique(nidx);
             outnidx = nidx(numsyn >= synTh); % get thresholded (post-synapse) traced root-ids
@@ -122,7 +125,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
 
             % ROI(i) output all cells to pre-synapses for other ROIs
             logi = ismember(preNidx,outnidx); % find synapses which belong to ROI(i) output neurons
-            sidx = Sidx(logi & valid);
+            sidx = Sidx(logi & valid & score);
 
             % get connected synapse counts in each ROI (from ROI to connected ROI)
             conSlocFc = SpostlocFc(sidx,:); % get (pre-post) 3D location in FDA Cal template.
