@@ -58,7 +58,7 @@ function plotFuncConnectivity
 
     % check smoothing result of FlyEM vs. FlyWire around 50 ROIs (s0 to s80)
     % roitype: FlyEM,FlyEMFw,DistKm50,DistKm50Fw
-%    checkSmoothNuisanceFlyWireResult50(vslabels);
+    checkSmoothNuisanceFlyWireResult50(vslabels);
 
     % check correlation result of FlyEM vs. FlyWire (s0 to s80, roi 20 to 1000)
     % roitype: Cm,CmFw,Branson,BransonFw,Dist,DistFw
@@ -309,7 +309,7 @@ function checkSmoothNuisanceFlyWireResult50(vslabels)
     roitypes = {'flyemroi'};
 
     NSims = nan(length(roitypes),1,'single');
-    SSims = NSims; xlabels = {}; labels = {}; axlabels = {}; 
+    SSims = NSims; Nr = NSims; Sr = NSims; xlabels = {}; labels = {}; axlabels = {}; 
     mN1 = NSims; mN2 = mN1; mS1 = mN1; mS2 = mN1;
     mN1in = mN1; mN2in = mN1; mS1in = mN1; mS2in = mN1;
     mN1oth = mN1; mN2oth = mN1; mS1oth = mN1; mS2oth = mN1;
@@ -347,6 +347,8 @@ function checkSmoothNuisanceFlyWireResult50(vslabels)
 
             NSims(i) = getCosSimilarity(N1, N2);
             SSims(i) = getCosSimilarity(S1, S2);
+            Nr(i) = corr(N1(:),N2(:));
+            Sr(i) = corr(S1(:),S2(:));
 
             % plot SC matrix
             labelNames = roiname(ids,1);
@@ -359,15 +361,15 @@ function checkSmoothNuisanceFlyWireResult50(vslabels)
 
             % scatter plot of connected neuron count
             m = max([N1(:); N2(:)]);
-            figure; scatter(N1(:),N2(:)); ylim([0 m]); xlim([0 m]); daspect([1 1 1]);
+            figure; scatter(N1(:),N2(:)); ylim([0 m]); xlim([0 m]); daspect([1 1 1]); set(gca,'xscale','log'); set(gca,'yscale','log');
             hold on; plot([0 m], [0 m],':','Color',[0.5 0.5 0.5]); hold off; xlabel('connected neuron count (FlyEM)'); ylabel('connected neuron count (FlyWire)');
-            title([roitype ' similarity=' num2str(NSims(i))]);
+            title([roitype ' r=' num2str(Nr(i))]);
 
             % scatter plot of connected post-synapse count
             m = max([S1(:); S2(:)]);
-            figure; scatter(S1(:),S2(:)); ylim([0 m]); xlim([0 m]); daspect([1 1 1]);
+            figure; scatter(S1(:),S2(:)); ylim([0 m]); xlim([0 m]); daspect([1 1 1]); set(gca,'xscale','log'); set(gca,'yscale','log');
             hold on; plot([0 m], [0 m],':','Color',[0.5 0.5 0.5]); hold off; xlabel('connected synapse count (FlyEM)'); ylabel('connected synapse count (FlyWire)');
-            title([roitype ' similarity=' num2str(SSims(i))]);
+            title([roitype ' r=' num2str(Sr(i))]);
         end
     end
 end

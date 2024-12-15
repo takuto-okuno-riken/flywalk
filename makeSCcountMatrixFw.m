@@ -55,12 +55,19 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             for j=1:length(D)
                 sididx = [sididx, D{j}]; % get pre-post synapse set in this ROI
             end
-            outnidx = unique(postNidx(sididx)); % get (post-synapse) traced root-ids
+            nidx = postNidx(sididx);
+            numsyn = groupcounts(nidx); % number of synapse in each neuron
+            nidx = unique(nidx);
+            outnidx = nidx(numsyn >= synTh); % get thresholded (post-synapse) traced root-ids
+
             % get pre and post neurons in ROI(i)
             Nout{i}{2} = outnidx; % output traced neuron in ROI(i)
     
             if isweight
-                innidx = unique(preNidx(sididx)); % get (pre-synapse) traced root-ids
+                nidx = preNidx(sididx); 
+                numsyn = groupcounts(nidx); % number of synapse in each neuron
+                nidx = unique(nidx);
+                innidx = nidx(numsyn >= synTh); % get thresholded (pre-synapse) traced root-ids
                 Nin{i}{2} = innidx; % input traced neuron in ROI(i)
             end
 %{
@@ -69,7 +76,9 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
 %}
             % syweightMat is heavy. calculate is if only it is required.
             if issyweight
-                Sin{i}{2} = sididx; % output traced synapses in ROI(i)
+                logis = ismember(preNidx,Nin{i}{2});
+                logis = ismember(sididx,Sidx(logis)); % find may be slow, but Sid will consume memory.
+                Sin{i}{2} = sididx(logis); % output traced synapses in ROI(i)
             end
         end
         if issyweight
@@ -116,29 +125,21 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             sidx = Sidx(logi & valid);
 
             % get connected synapse counts in each ROI (from ROI to connected ROI)
-            Vs = zeros(sz(1),sz(2),sz(3),'int32');
             conSlocFc = SpostlocFc(sidx,:); % get (pre-post) 3D location in FDA Cal template.
             N = cell(sz(1),sz(2),sz(3));
             for j=1:size(conSlocFc,1)
                 t = ceil(conSlocFc(j,:));
                 if t(1)>0 && t(2)>0 && t(3)>0 && t(1)<sz(1) && t(2)<sz(2) && t(3)<sz(3) 
-                    Vs(t(1),t(2),t(3)) = Vs(t(1),t(2),t(3)) + 1;
                     N{t(1),t(2),t(3)} = [N{t(1),t(2),t(3)},preNidx(sidx(j))];
                 else
                     disp(['out of bounds ' num2str(i) ') ' num2str(t)]);
                 end
             end
             conSlocFc = []; % clear memory;
-            X = zeros(1,roimax,'int32');
-            for j=1:roimax
-                if isempty(roiIdxs{j}), continue; end
-                B = Vs(roiIdxs{j});
-                X(j) = nansum(B,1);
-            end
-            sycountMat(i,:,p) = X;
 
             % get connected neuron counts in each ROI (from ROI to connected ROI)
             X = zeros(1,roimax,'int32');
+            Y = zeros(1,roimax,'int32');
             for j=1:roimax
                 D = N(roiIdxs{j});
                 nidx = [];
@@ -149,8 +150,10 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                 nidx = unique(nidx);
                 CX{j,p} = nidx(numsyn >= synTh);
                 X(j) = length(CX{j,p}); % synapse number threshold for neurons in ROI(j)
+                Y(j) = nansum(numsyn(numsyn >= synTh),1);
             end
             countMat(i,:,p) = X;
+            sycountMat(i,:,p) = Y;
         end
         CC{i} = CX;
     end
@@ -199,7 +202,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     % pure input and output cells (full, neurons, others count)
     if nargout < 6, return; end
     Ncount = zeros(roimax,2,3,'single');
-    for p=1:3
+    for p=2
         for i=1:roimax
             if ~isempty(Nin{i})
                 Ncount(i,1,p) = length(Nin{i}{p});
@@ -213,7 +216,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     % connected neuron ids (cell), only output neurons and others, but not full.
     if nargout < 7, return; end
     Cnids = cell(roimax,roimax,3);
-    for p=2:3
+    for p=2
         for i=1:roimax
             for j=1:roimax
                 if ~isempty(CC{i})

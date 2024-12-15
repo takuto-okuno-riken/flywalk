@@ -70,9 +70,13 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                 sids = [sids, D{j}];
             end
             sids = unique(sids);
-            idx = find(Sdir(sids)==2); % get post-synapse ids in this ROI
+            idx = find(Sdir(sids)==2); % get valid post-synapse ids in this ROI
             postsids = sids(idx);
-            outnids = unique(StoN(postsids)); % get (post-synapse) traced & orphan body-ids
+            nids = StoN(postsids);
+            numsyn = groupcounts(nids); % number of synapse in each neuron
+            nids = unique(nids);
+            outnids = nids(numsyn >= synTh); % get thresholded (post-synapse) traced & orphan body-ids
+
             % get pre and post neurons in ROI(i)
             Nout{i}{1} = outnids; % all output cells (including orphan, etc)
             logis = ismember(Nid,outnids);
@@ -81,9 +85,13 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             Nout{i}{3} = outnids(~logis); % output orphan bodys
     
             if isweight
-                idx = find(Sdir(sids)==1); % get pre-synapse ids in this ROI
+                idx = find(Sdir(sids)==1); % get valid pre-synapse ids in this ROI
                 presids = sids(idx);
-                innids = unique(StoN(presids)); % get (pre-synapse) traced & orphan body-ids
+                nids = StoN(presids);
+                numsyn = groupcounts(nids); % number of synapse in each neuron
+                nids = unique(nids);
+                innids = nids(numsyn >= synTh); % get thresholded (pre-synapse) traced & orphan body-ids
+
                 Nin{i}{1} = innids; % all input cells (including orphan, etc)
                 logis = ismember(Nid,innids);
                 Nin{i}{2} = Nid(logis & Nstatus==1); % input traced neuron in ROI(i)
@@ -100,11 +108,14 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
 %}
             % syweightMat is heavy. calculate is if only it is required.
             if issyweight
-                Sin{i}{1} = presids; % all input synapses (including orphan, etc)
-                logis = ismember(StoN,Nin{i}{2});
+                logis = ismember(StoN,Nin{i}{1});
                 logis = ismember(presids,Sid(logis)); % find may be slow, but Sid will consume memory.
-                Sin{i}{2} = presids(logis); % output traced synapses in ROI(i)
-                Sin{i}{3} = presids(~logis); % output orphan bodys' synapses
+                thpresids = presids(logis);
+                Sin{i}{1} = thpresids; % all thresholded input synapses (including orphan, etc)
+                logis = ismember(StoN,Nin{i}{2});
+                logis = ismember(thpresids,Sid(logis)); % find may be slow, but Sid will consume memory.
+                Sin{i}{2} = thpresids(logis); % output thresholded traced synapses in ROI(i)
+                Sin{i}{3} = thpresids(~logis); % output thresholded orphan bodys' synapses
             end
         end
         if issyweight
@@ -165,29 +176,21 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             outsids = []; presids = []; % clear memory
 
             % get connected synapse counts in each ROI (from ROI to connected ROI)
-            Vs = zeros(sz(1),sz(2),sz(3),'int32');
             conSlocFc = SlocFc(cpostsids,:); % get 3D location in FDA Cal template.
             N = cell(sz(1),sz(2),sz(3));
             for j=1:size(conSlocFc,1)
                 t = ceil(conSlocFc(j,:));
                 if t(1)>0 && t(2)>0 && t(3)>0 && t(1)<sz(1) && t(2)<sz(2) && t(3)<sz(3) 
-                    Vs(t(1),t(2),t(3)) = Vs(t(1),t(2),t(3)) + 1;
                     N{t(1),t(2),t(3)} = [N{t(1),t(2),t(3)},StoN(cpresids(j))];
                 else
                     disp(['out of bounds ' num2str(i) ') ' num2str(t)]);
                 end
             end
             conSlocFc = []; % clear memory;
-            X = zeros(1,roimax,'int32');
-            for j=1:roimax
-                if isempty(roiIdxs{j}), continue; end
-                B = Vs(roiIdxs{j});
-                X(j) = nansum(B,1);
-            end
-            sycountMat(i,:,p) = X;
 
             % get connected neuron counts in each ROI (from ROI to connected ROI)
             X = zeros(1,roimax,'int32');
+            Y = zeros(1,roimax,'int32');
             for j=1:roimax
                 D = N(roiIdxs{j});
                 nids = [];
@@ -198,8 +201,10 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                 nids = unique(nids);
                 CX{j,p} = nids(numsyn >= synTh);
                 X(j) = length(CX{j,p}); % synapse number threshold for neurons in ROI(j)
+                Y(j) = nansum(numsyn(numsyn >= synTh),1);
             end
             countMat(i,:,p) = X;
+            sycountMat(i,:,p) = Y;
         end
         CC{i} = CX;
     end
@@ -207,7 +212,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
 
     % calculate weight matrix (full, neurons, others)
     if nargout < 3, return; end
-    for p=1:3
+    for p=1:2
 %        for i=1:roimax
         parfor i=1:roimax
             if isempty(Nout{i}), continue; end
@@ -219,12 +224,12 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             for j=1:roimax
                 if isempty(Nin{j}), continue; end
                 innids = Nin{j}{p};
-                insids = Sin{j}{p};
                 % find input neuron rate from ROI(i)
                 logi = ismember(innids,outnids);
                 X(j) = single(sum(logi)) / length(innids); % in-weight (from i to j)
                 % syweightMat is heavy. calculate is if only it is required.
                 if issyweight
+                    insids = Sin{j}{p};
                     logis = ismember(StoN,innids(logi));
                     logis = ismember(insids,Sid(logis));
                     SX(j) = single(sum(logis)) / length(insids); % in-synaptic-weight (from i to j)
@@ -248,7 +253,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     % pure input and output cells (full, neurons, others count)
     if nargout < 6, return; end
     Ncount = zeros(roimax,2,3,'single');
-    for p=1:3
+    for p=1:2
         for i=1:roimax
             if ~isempty(Nin{i})
                 Ncount(i,1,p) = length(Nin{i}{p});
@@ -262,7 +267,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     % connected neuron ids (cell), only output neurons and others, but not full.
     if nargout < 7, return; end
     Cnids = cell(roimax,roimax,3);
-    for p=2:3
+    for p=2
         for i=1:roimax
             for j=1:roimax
                 if ~isempty(CC{i})
