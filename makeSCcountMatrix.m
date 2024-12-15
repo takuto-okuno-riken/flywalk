@@ -201,7 +201,8 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                 nids = unique(nids);
                 CX{j,p} = nids(numsyn >= synTh);
                 X(j) = length(CX{j,p}); % synapse number threshold for neurons in ROI(j)
-                Y(j) = nansum(numsyn(numsyn >= synTh),1);
+                ns = numsyn(numsyn >= synTh);
+                if ~isempty(ns), Y(j) = nansum(ns,1); end
             end
             countMat(i,:,p) = X;
             sycountMat(i,:,p) = Y;
