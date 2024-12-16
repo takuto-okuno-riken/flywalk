@@ -34,7 +34,7 @@ function plotFuncConnectivity
 
     % check correlation result in each ROI num (s0 to s80, roi 20 to 1000)
     % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
-%    checkSmoothingByRoinum(vslabels);
+    checkSmoothingByRoinum(vslabels);
 
     % check nuisance result round 50 ROIs (all nuisance)
     % roitype: FlyEM,FlyEmFw,Branson,Cm,CmR1w1,Dist,Rand,Vrand
@@ -46,7 +46,7 @@ function plotFuncConnectivity
 
     % check correlation result of large smoothing size (s0 to 300, roi 50 to 500, '' & poltcomp)
     % roitype: Cm,Dist
-%    checkLargeSmoothingPoltcompByRoinum(vslabels);
+    checkLargeSmoothingPoltcompByRoinum(vslabels);
 
     % check correlation result in each ROI num (roi 100 to 20000)
     % roitype: Cm,CmR1w1,Dist,Vand
@@ -54,7 +54,7 @@ function plotFuncConnectivity
 
     % check correlation result in each ROI num (s30 & s80, roi 100 to 10000, '' & poltcomp)
     % roitype: Cm,DistKm
-%    checkSmoothingNuisanceByRoinum(vslabels);
+    checkSmoothingNuisanceByRoinum(vslabels);
 
     % check smoothing result of FlyEM vs. FlyWire around 50 ROIs (s0 to s80)
     % roitype: FlyEM,FlyEMFw,DistKm50,DistKm50Fw,DistKm50Avg
@@ -100,7 +100,7 @@ function checkSmoothingByRoinum(vslabels)
             end
         end
 
-        R3 = [R3;Rm]; A3 = [A3;Am];
+        R3 = [R3;Rm]; A3 = [A3;Am]; ii=ii-1;
         C = cell(24,1); C(1:24) = {[roitypelabels{r} ' ']};
         ylabels = [ylabels(:); strcat(C(:),vslabels(:))];
     end
@@ -113,7 +113,7 @@ function checkSmoothingByRoinum(vslabels)
     % FC-SC correlation Traced neuron vs synapse
     I = getR3idx([7 9],[0 24 48 72 96 120]);
  %   figure; imagescLabel2(R3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC correlation Full vs. Traced');
-    figure; plot(R3(I,:)'); legend(ylabels(I)); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+    figure; plot(R3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
 
     % FC-SC detection (all)
     I = getR3idx([7 9 19 21],[0 24 48 72 96 120]);  % show only Traced neuron, synapse
@@ -123,7 +123,7 @@ function checkSmoothingByRoinum(vslabels)
     % FC-SC detection Traced neuron vs synapse
     I = getR3idx([7 9], [0 24 48 72 96 120]);
 %    figure; imagescLabel2(A3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC detection Full vs. Traced');
-    figure; plot(A3(I,:)'); legend(ylabels(I)); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+    figure; plot(A3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
 
     % both FC-SC correlation & detection (all)
     B = abs(R3) + abs(A3-0.5)*2;
@@ -133,7 +133,7 @@ function checkSmoothingByRoinum(vslabels)
 
     % FC-SC correlation & detection Traced neuron vs synapse (which is best?)
     I = getR3idx([7 9],[0 24 48 72 96 120]);
-    figure; plot(B(I,:)'); legend(ylabels(I)); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
+    figure; plot(B(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
 end
 
 function checkSmoothingResult50(vslabels)
@@ -473,7 +473,7 @@ function checkNuisanceByRoinum(vslabels)
             end
         end
 
-        R3 = [R3;Rm]; A3 = [A3;Am];
+        R3 = [R3;Rm]; A3 = [A3;Am]; ii=ii-1;
         C = cell(24,1); C(1:24) = {[roitypelabels{r} ' ']};
         ylabels = [ylabels(:); strcat(C(:),vslabels(:))];
     end
@@ -486,7 +486,7 @@ function checkNuisanceByRoinum(vslabels)
     % FC-SC correlation Traced neuron vs synapse
     I = getR3idx([7 9],[0 24 48 72 96 120]);
  %   figure; imagescLabel2(R3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC correlation Full vs. Traced');
-    figure; plot(R3(I,:)'); legend(ylabels(I)); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+    figure; plot(R3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
 
     % FC-SC detection (all)
     I = getR3idx([7 9 19 21],[0 24 48 72 96 120]);  % show only Traced neuron, synapse
@@ -496,7 +496,7 @@ function checkNuisanceByRoinum(vslabels)
     % FC-SC detection Traced neuron vs synapse
     I = getR3idx([7 9], [0 24 48 72 96 120]);
 %    figure; imagescLabel2(A3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC detection Full vs. Traced');
-    figure; plot(A3(I,:)'); legend(ylabels(I)); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+    figure; plot(A3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
 
     % both FC-SC correlation & detection (all)
     B = abs(R3) + abs(A3-0.5)*2;
@@ -506,7 +506,7 @@ function checkNuisanceByRoinum(vslabels)
 
     % FC-SC correlation & detection Traced neuron vs synapse (which is best?)
     I = getR3idx([7 9],[0 24 48 72 96 120]);
-    figure; plot(B(I,:)'); legend(ylabels(I)); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
+    figure; plot(B(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
 end
 
 function checkLargeSmoothingPoltcompByRoinum(vslabels)
@@ -546,7 +546,7 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
             end
         end
 
-        R3 = [R3;Rm]; A3 = [A3;Am]; AA3 = cat(1,AA3,AA);
+        R3 = [R3;Rm]; A3 = [A3;Am]; AA3 = cat(1,AA3,AA); ii=ii-1;
         C = cell(24,1); C(1:24) = {[roitypelabels{r} ' ']};
         ylabels = [ylabels(:); strcat(C(:),vslabels(:))];
     end
@@ -559,7 +559,7 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
     % FC-SC correlation Traced neuron vs synapse
     I = getR3idx([7 9],[0 24]);
  %   figure; imagescLabel2(R3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC correlation Full vs. Traced');
-    figure; plot(R3(I,:)'); legend(ylabels(I)); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+    figure; plot(R3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
 
     % FC-SC detection (all)
     I = getR3idx([7 9 19 21],[0 24]);  % show only Traced neuron, synapse
@@ -569,7 +569,7 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
     % FC-SC detection Traced neuron vs synapse
     I = getR3idx([7 9], [0 24]);
 %    figure; imagescLabel2(A3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC detection Full vs. Traced');
-    figure; plot(A3(I,:)'); legend(ylabels(I)); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+    figure; plot(A3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
 
     % both FC-SC correlation & detection (all)
     B = abs(R3) + abs(A3-0.5)*2;
@@ -579,7 +579,7 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
 
     % FC-SC correlation & detection Traced neuron vs synapse (which is best?)
     I = getR3idx([7 9],[0 24]);
-    figure; plot(B(I,:)'); legend(ylabels(I)); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
+    figure; plot(B(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
 
     % find best smooth size
     i = 2; step = length(smooth); BMidx = [];
@@ -649,7 +649,7 @@ function checkNeuronVsSynapseByRoinum(vslabels)
     % FC-SC correlation Traced neuron vs synapse
     I = getR3idx([7 9],[0 24 48 72]);
  %   figure; imagescLabel2(R3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC correlation Full vs. Traced');
-    figure; plot(R3(I,:)'); legend(ylabels(I)); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+    figure; plot(R3(I,:)'); legend(ylabels(I)); xticklabels(xlabels); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
 
     % FC-SC detection (all)
     I = getR3idx([7 9 19 21],[0 24 48 72]);  % show only Traced neuron, synapse
@@ -659,7 +659,7 @@ function checkNeuronVsSynapseByRoinum(vslabels)
     % FC-SC detection Traced neuron vs synapse
     I = getR3idx([7 9], [0 24 48 72]);
 %    figure; imagescLabel2(A3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC detection Full vs. Traced');
-    figure; plot(A3(I,:)'); legend(ylabels(I)); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+    figure; plot(A3(I,:)'); legend(ylabels(I)); xticklabels(xlabels); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
 
     % both FC-SC correlation & detection (all)
     B = abs(R3) + abs(A3-0.5)*2;
@@ -669,7 +669,7 @@ function checkNeuronVsSynapseByRoinum(vslabels)
 
     % FC-SC correlation & detection Traced neuron vs synapse (which is best?)
     I = getR3idx([7 9],[0 24 48 72]);
-    figure; plot(B(I,:)'); legend(ylabels(I)); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
+    figure; plot(B(I,:)'); legend(ylabels(I)); xticklabels(xlabels); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
 end
 
 function checkSmoothingNuisanceByRoinum(vslabels)

@@ -6,9 +6,13 @@ function plotStructConnectivity
     % roitype: flyemroi primary
     checkSCpostSynapse();
 
-    % check SC matrix connection similarity FlyEM vs. FlyWire ()
+    % check SC matrix connection similarity FlyEM vs. FlyWire
     % roitype: flyemroi primary
     checkSCmatrixSimilarity();
+
+    % check SC vs. FC matrix connection FlyEM vs. FlyWire
+    % roitype: flyemroi primary
+    checkSCFCmatrixSimilarity();
 
     % check SC matrix connection count diff FlyEM vs. FlyWire (roi 20 to 1000)
     % roitype: Branson,Cm,DistKm
@@ -103,8 +107,6 @@ function checkSCmatrixSimilarity()
         fname = ['data/' roitype '_postsyncount.mat'];
         load(fname);
         ids = primaryIds;
-
-        labels{i} = roitypes{i}; labels{i+length(roitypes)} = [roitypes{i} 'Fw'];
 
         idlen = length(ids);
         zsz = length(hbrateThs)*length(hbsynThs)+length(fwrateThs)*length(fwsynThs);
@@ -211,6 +213,110 @@ function checkSCmatrixSimilarity()
         figure; imagescLabel(Nwr,labels,[0.8 1],'neuron weight matrix similarity');
         figure; imagescLabel(Swr,labels,[0.8 1],'synapse weight matrix similarity');
     end
+end
+
+function checkSCFCmatrixSimilarity()
+    vslabels = {
+        'log10(neurons f) vs. m-FCz', ...
+        'log10(synapse weight f) vs. m-FCz', ...
+        'log10(synapses f) vs. m-FCz', ...
+        'ROI in-neuron weight f vs. m-FCz', ...
+        'ROI in-synapse weight f vs. m-FCz', ...
+        'ROI out-neuron weight f vs. m-FCz', ...
+        'log10(neurons) vs. m-FCz', ... %7
+        'log10(synapse weight) vs. m-FCz', ...
+        'log10(synapses) vs. m-FCz', ...
+        'ROI in-neuron weight vs. m-FCz', ...
+        'ROI in-synapse weight vs. m-FCz', ...
+        'ROI out-neuron weight vs. m-FCz', ...
+        'log10(neurons f) vs. FC-Tval', ... %13
+        'log10(synapse weight f) vs. FC-Tval', ...
+        'log10(synapses f) vs. FC-Tval', ...
+        'ROI in-neuron weight f vs. FC-Tval', ...
+        'ROI in-synapse weight f vs. FC-Tval', ...
+        'ROI out-neuron weight f vs. FC-Tval', ...
+        'log10(neurons) vs. FC-Tval', ... %19
+        'log10(synapse weight) vs. FC-Tval', ...
+        'log10(synapses) vs. FC-Tval', ...
+        'ROI in-neuron weight vs. FC-Tval', ...
+        'ROI in-synapse weight vs. FC-Tval', ...
+        'ROI out-neuron weight vs. FC-Tval', ...
+    };
+
+    preproc = 'ar'; % for move correct, slice time correct
+    smooth = {'', 's30', 's80'};
+    nuisance = {'','poltcomp'};
+
+    % primary, R/L, name order
+    load('data/flyemroi.mat');
+
+    % load SC & atlas
+    roitypes = {'flyemroi_hb0sr50','flyemroi_hb0sr60','flyemroi_hb0sr70','flyemroi_hb0sr80','flyemroi_hb0sr90', ... % for s30 & s80, '' & poltcomp
+            'flyemroi_fw0sr50','flyemroi_fw0sr70','flyemroi_fw0sr100','flyemroi_fw0sr130','flyemroi_fw0sr140','flyemroi_fw0sr150'};
+
+    ylabels = {}; rlabels = {}; R3 = []; A3 = [];
+    for r = 1:length(roitypes)
+        str = split(roitypes{r},'_'); rlabels{r} = str{2};
+        Am = []; Rm = []; ii=1; xlabels = {};
+        for n=1:length(nuisance)
+            for k=1:length(smooth)
+                pftype = [smooth{k} nuisance{n} preproc roitypes{r}];
+                xlabels{ii} = [smooth{k} nuisance{n}]; ii=ii+1;
+                aucmat = ['results/auc/' pftype '-fcauc.mat'];
+                if exist(aucmat,'file')
+                    load(aucmat);
+                else
+                    A = nan(size(Am,1),100);
+                    R = nan(size(Rm,1),1);
+                end
+                Am = [Am,nanmean(A,2)];
+                Rm = [Rm,R(:)];
+            end
+        end
+
+        R3 = [R3;Rm]; A3 = [A3;Am];
+        C = cell(24,1); C(1:24) = {[str{2} ' ']};
+        ylabels = [ylabels(:); strcat(C(:),vslabels(:))];
+    end
+    % FC-SC correlation (all)
+    T = [0 24 48 72 96 120 144 168 192 216 240];
+    I = getR3idx([7 9],T);  % show only Traced neuron, synapse
+    figure; imagescLabel2(R3(I,:),xlabels,ylabels(I),[0.2 0.9]); colorbar; title(['FC-SC correlation (All) ']); colormap(hot);
+    
+    % FC-SC correlation Traced neuron vs synapse
+    I = getR3idx([7 9],T);
+    figure; plot(R3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % FC-SC detection (all)
+    I = getR3idx([7 9],T);  % show only Traced neuron, synapse
+    figure; imagescLabel2(A3(I,:),xlabels,ylabels(I),[0.5 1]); colorbar; title(['FC-SC detection (All) ']); colormap(hot);
+
+    % FC-SC detection Traced neuron vs synapse
+    I = getR3idx([7 9],T);
+    figure; plot(A3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % both FC-SC correlation & detection (all)
+    B = abs(R3) + abs(A3-0.5)*2;
+    I = getR3idx([7 9],T);  % show only Traced neuron, synapse
+    figure; imagescLabel2(B(I,:),xlabels,ylabels(I),[0 1.5]); colorbar; title('FC-SC correlation & detection'); colormap(hot);
+
+    % FC-SC correlation & detection Traced neuron vs synapse (which is best?)
+    I = getR3idx([7 9],T);
+    figure; plot(B(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
+
+    % plot neuron count vs. poltcomp m-FC(z)
+    I1 = getR3idx([7],T); I2 = getR3idx([9],T); I3 = getR3idx([10],T); I4 = getR3idx([11],T);
+    llabels = {'neuron count','synapse count','neuron weight','synapse weight'};
+    cats=categorical(rlabels,rlabels);
+
+    figure; bar(cats,[R3(I1,4)';R3(I2,4)';R3(I3,4)';R3(I4,4)']); ylim([0.5 0.8]);
+    title([str{1} ' FC-SC correlation : SC vs. poltcomp m-FC(z)']); legend(llabels);
+
+    figure; bar(cats,[A3(I1,4)';A3(I2,4)';A3(I3,4)';A3(I4,4)']); ylim([0.7 1]);
+    title([str{1} ' FC-SC detection : SC vs. poltcomp m-FC(z)']); legend(llabels);
+
+    figure; bar(cats,[B(I1,4)';B(I2,4)';B(I3,4)';B(I4,4)']); ylim([1.1 1.6]);
+    title([str{1} ' FC-SC correlation & detection : SC vs. poltcomp m-FC(z)']); legend(llabels);
 end
 
 function checkSCdiffConnectionCount()
@@ -417,7 +523,7 @@ function imagescLabel(mat, labelNames, range, titlestr)
         imagesc(mat, range);
     end
     colorbar; daspect([1 1 1]); title(titlestr);
-    set(gca,'XTick',1:size(mat,1));
+    set(gca,'XTick',1:size(mat,2));
     set(gca,'YTick',1:size(mat,1));
     set(gca,'XTickLabel',labelNames);
     set(gca,'YTickLabel',labelNames);

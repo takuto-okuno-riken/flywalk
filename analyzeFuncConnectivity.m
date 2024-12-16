@@ -10,9 +10,9 @@ function analyzeFuncConnectivity
     % output time-series (smoothing, highpass filter, nuisance removal)
     hpfTh = [0]; % high-pass filter threshold
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
-    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
+%    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
 %    smooth = {'s90', 's100', 's110', 's120', 's130', 's140', 's150', 's160', 's170', 's180', 's190', 's200', 's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
-%    smooth = {'', 's30', 's80'};
+    smooth = {'', 's30', 's80'};
 %    smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
@@ -21,8 +21,8 @@ function analyzeFuncConnectivity
         'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
 %    nuisance = {'6hmtacomp'}; % good for bransonhemi, branson7065km50
-%    nuisance = {'','poltcomp'}; % good for DistKm(synapse)
-    nuisance = {''};
+    nuisance = {'','poltcomp'}; % good for DistKm(synapse)
+%    nuisance = {''};
 
     % using subjects (flys). sbj 7 shows NaN row in FC matrix
     sbjids = [1 2 3 4 5 6 8 9];
@@ -63,7 +63,9 @@ function analyzeFuncConnectivity
 %        'hemiCmkm20_fw','hemiCmkm30_fw','hemiCmkm50_fw','hemiCmkm100_fw','hemiCmkm200_fw','hemiCmkm300_fw','hemiCmkm500_fw', 'hemiCmkm1000_fw',...
 %        'hemiDistKm20_fw','hemiDistKm30_fw','hemiDistKm50_fw','hemiDistKm100_fw','hemiDistKm200_fw','hemiDistKm300_fw','hemiDistKm500_fw','hemiDistKm1000_fw'};
 %    roitypes = {'hemiCmkm50','hemiDistKm50','hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500'}; % for large smoothing size & no nuisanse, poltcomp
-    roitypes = {'flyemroi','flyemroi_fw','hemiDistKm50','hemiDistKm50_fw','hemiDistKm50_avg'}; % for all nuisanse & s30, s80 % for s0 to s80 (no nuisanse)
+%    roitypes = {'flyemroi','flyemroi_fw','hemiDistKm50','hemiDistKm50_fw','hemiDistKm50_avg'}; % for all nuisanse & s30, s80 % for s0 to s80 (no nuisanse)
+    roitypes = {'flyemroi_hb0sr50','flyemroi_hb0sr60','flyemroi_hb0sr70','flyemroi_hb0sr80','flyemroi_hb0sr90', ... % for s30 & s80, '' & poltcomp
+            'flyemroi_fw0sr50','flyemroi_fw0sr70','flyemroi_fw0sr100','flyemroi_fw0sr130','flyemroi_fw0sr140','flyemroi_fw0sr150'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -73,6 +75,7 @@ function analyzeFuncConnectivity
 end
 
 function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
+    AUCVER = 2;
 
     % load structural connectivity matrix (from makeStructConnectivity.m)
     switch(roitype)
@@ -125,7 +128,6 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
     if ~exist('results/fc','dir'), mkdir('results/fc'); end
 
     sbjR = [];
-    roiR = [];
     Rm = []; rlabel = {}; ii=1;
     AUC = [];
     for h=1:length(hpfTh)
@@ -184,9 +186,18 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                     sbjR(k,i) = corr(lC2(:),abs(Dz(:)));
                 end
 
-                % each ROIs [log10(neurons) vs. m-FCz]
+                % each ROIs (Traced vs. m-FCz and only)
+                roiR = nan(size(lC2,1),24,'single');
                 for i=1:size(lC2,1)
-                    roiR(k,i) = corr([lC2(i,:)';lC2(:,i)],abs([Dmz(i,:)';Dmz(:,i)]));
+                    roiDmz = abs([Dmz(i,:)';Dmz(:,i)]);
+                    roiR(i,7) = corr([lC2b(i,:)';lC2b(:,i)],roiDmz);
+                    roiR(i,9) = corr([lSb(i,:)';lSb(:,i)],roiDmz);
+                    if isw2
+                        roiR(i,8) = corr([lW2b(i,:)';lW2b(:,i)],roiDmz);
+                        roiR(i,10) = corr([W3b(i,:)';W3b(:,i)],roiDmz);
+                        roiR(i,11) = corr([Swb(i,:)';Swb(:,i)],roiDmz);
+                        roiR(i,12) = corr([Wob(i,:)';Wob(:,i)],roiDmz);
+                    end
                 end
 
                 % full ROIs (vs. mean group data)
@@ -252,7 +263,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                     R(24) = corr(Wob(:),abs(T3(:)));
                     disp(['prefix=' pftype ' : ROI out-neuron weight b vs. FC-Tval = ' num2str(R(24))]);
                 end
-                Rm = [Rm, R'];
+                Rm = [Rm, R']; aucver = 2;
 
                 % calculate AUC
                 aucmat = ['results/auc/' pftype '-fcauc.mat'];
@@ -263,8 +274,8 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                     thN = 100;
                     aths = cell(thN,1);
                     XY = cell(thN,1);
-%                    for th = 1:thN
-                    parfor th = 1:thN
+                    for th = 1:thN
+%                    parfor th = 1:thN
                         % include injection voxel in ground truth
                         c2th = prctile(C2(C2>0),th-1);
                         ct2 = C2; ct2(ct2<c2th) = 0; ct2(ct2>0) = 1;
@@ -372,7 +383,10 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                             end
                         end
                     end
-                    save(aucmat,'A','R');
+                end
+                if aucver <= AUCVER
+                    aucver = aucver + 0.1;
+                    save(aucmat,'A','R','roiR','aucver','-v7.3');
                 end
                 AUC = cat(3,AUC,A);
 
