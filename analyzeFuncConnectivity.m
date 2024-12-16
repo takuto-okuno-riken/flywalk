@@ -30,6 +30,7 @@ function analyzeFuncConnectivity
     % ROI name
 %    roitypes = {'flyemroif'};  % flyem ROI full
 %    roitypes = {'flyemroi','bransonhemi'}; % flyem ROI (Turner compatible)
+%    roitypes = {'flyemroi_hb0sr80','flyemroi_fw0','flyemroi_avg0'}; % flyem ROI (Primary, FlyEM vs. FlyWire vs. Average)
 %    roitypes = {'hemiBranson7065'};
 %    roitypes = {'hemiBranson7065km20','hemiBranson7065km30','hemiBranson7065km50','hemiBranson7065km100','hemiBranson7065km200', ...
 %        'hemiBranson7065km300','hemiBranson7065km500','hemiBranson7065km300'};
@@ -58,11 +59,11 @@ function analyzeFuncConnectivity
 %    roitypes = {'hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500','hemiCmkm1000','hemiDistKm1000'};
 %    roitypes = {'hemiCmkm5000','hemiDistKm5000','hemiCmkm10000','hemiDistKm10000'};
     % FlyEM vs. FlyWire in each roi num by smoothing 0 to 80 (no nuisanse)
-    roitypes = {'hemiBranson7065km20_fw','hemiBranson7065km30_fw','hemiBranson7065km50_fw','hemiBranson7065km100_fw','hemiBranson7065km200_fw','hemiBranson7065km300_fw','hemiBranson7065km500_fw','hemiBranson7065km1000_fw', ...
-        'hemiCmkm20_fw','hemiCmkm30_fw','hemiCmkm50_fw','hemiCmkm100_fw','hemiCmkm200_fw','hemiCmkm300_fw','hemiCmkm500_fw', 'hemiCmkm1000_fw',...
-        'hemiDistKm20_fw','hemiDistKm30_fw','hemiDistKm50_fw','hemiDistKm100_fw','hemiDistKm200_fw','hemiDistKm300_fw','hemiDistKm500_fw','hemiDistKm1000_fw'};
+%    roitypes = {'hemiBranson7065km20_fw','hemiBranson7065km30_fw','hemiBranson7065km50_fw','hemiBranson7065km100_fw','hemiBranson7065km200_fw','hemiBranson7065km300_fw','hemiBranson7065km500_fw','hemiBranson7065km1000_fw', ...
+%        'hemiCmkm20_fw','hemiCmkm30_fw','hemiCmkm50_fw','hemiCmkm100_fw','hemiCmkm200_fw','hemiCmkm300_fw','hemiCmkm500_fw', 'hemiCmkm1000_fw',...
+%        'hemiDistKm20_fw','hemiDistKm30_fw','hemiDistKm50_fw','hemiDistKm100_fw','hemiDistKm200_fw','hemiDistKm300_fw','hemiDistKm500_fw','hemiDistKm1000_fw'};
 %    roitypes = {'hemiCmkm50','hemiDistKm50','hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500'}; % for large smoothing size & no nuisanse, poltcomp
-%    roitypes = {'flyemroi','flyemroi_fw','hemiDistKm50','hemiDistKm50_fw'}; % for all nuisanse & s30, s80
+    roitypes = {'flyemroi','flyemroi_fw','hemiDistKm50','hemiDistKm50_fw','hemiDistKm50_avg'}; % for all nuisanse & s30, s80 % for s0 to s80 (no nuisanse)
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -76,7 +77,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
     % load structural connectivity matrix (from makeStructConnectivity.m)
     switch(roitype)
     case 'flyemroif'
-        load('data/neuprint_connectlist.mat');
+        load('data/flyemroi_connectlist.mat');
         ids = 1:roiNum;
     otherwise
         roitype = lower(roitype);
@@ -136,11 +137,8 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 rlabel{ii} = [smooth{k} hpfstr nuisance{n}]; ii=ii+1;
 
                 % load ROI time-series (from extractROItimeseries.m)
-                if strcmp(pftype(end-2:end),'_fw')
-                    load(['results/ts/' pftype(1:end-3) '-ts.mat']); % FlyWire SC calculation.
-                else
-                    load(['results/ts/' pftype '-ts.mat']);
-                end
+                str = split(pftype,'_');
+                load(['results/ts/' str{1} '-ts.mat']); % FlyWire SC calculation.
     
                 CM = {};
                 for i=1:length(sbjids)
