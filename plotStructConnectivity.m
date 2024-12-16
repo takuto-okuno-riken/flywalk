@@ -247,17 +247,14 @@ function checkSCFCmatrixSimilarity()
     smooth = {'', 's30', 's80'};
     nuisance = {'','poltcomp'};
 
-    % primary, R/L, name order
-    load('data/flyemroi.mat');
-
     % load SC & atlas
     roitypes = {'flyemroi_hb0sr50','flyemroi_hb0sr60','flyemroi_hb0sr70','flyemroi_hb0sr80','flyemroi_hb0sr90', ... % for s30 & s80, '' & poltcomp
             'flyemroi_fw0sr50','flyemroi_fw0sr70','flyemroi_fw0sr100','flyemroi_fw0sr130','flyemroi_fw0sr140','flyemroi_fw0sr150'};
 
-    ylabels = {}; rlabels = {}; R3 = []; A3 = [];
+    ylabels = {}; rlabels = {}; R3 = []; A3 = []; roiR3 = [];
     for r = 1:length(roitypes)
         str = split(roitypes{r},'_'); rlabels{r} = str{2};
-        Am = []; Rm = []; ii=1; xlabels = {};
+        Am = []; Rm = []; roiRm = []; ii=1; xlabels = {};
         for n=1:length(nuisance)
             for k=1:length(smooth)
                 pftype = [smooth{k} nuisance{n} preproc roitypes{r}];
@@ -268,13 +265,15 @@ function checkSCFCmatrixSimilarity()
                 else
                     A = nan(size(Am,1),100);
                     R = nan(size(Rm,1),1);
+                    roiR = nan(size(roiRm,1),24);
                 end
                 Am = [Am,nanmean(A,2)];
                 Rm = [Rm,R(:)];
+                roiRm = cat(3,roiRm,roiR);
             end
         end
 
-        R3 = [R3;Rm]; A3 = [A3;Am];
+        R3 = [R3;Rm]; A3 = [A3;Am]; roiR3 = cat(2,roiR3,roiRm);
         C = cell(24,1); C(1:24) = {[str{2} ' ']};
         ylabels = [ylabels(:); strcat(C(:),vslabels(:))];
     end
@@ -304,7 +303,7 @@ function checkSCFCmatrixSimilarity()
     I = getR3idx([7 9],T);
     figure; plot(B(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
 
-    % plot neuron count vs. poltcomp m-FC(z)
+    % plot SC vs. poltcomp m-FC(z) result
     I1 = getR3idx([7],T); I2 = getR3idx([9],T); I3 = getR3idx([10],T); I4 = getR3idx([11],T);
     llabels = {'neuron count','synapse count','neuron weight','synapse weight'};
     cats=categorical(rlabels,rlabels);
@@ -317,6 +316,28 @@ function checkSCFCmatrixSimilarity()
 
     figure; bar(cats,[B(I1,4)';B(I2,4)';B(I3,4)';B(I4,4)']); ylim([1.1 1.6]);
     title([str{1} ' FC-SC correlation & detection : SC vs. poltcomp m-FC(z)']); legend(llabels);
+
+    % plot ROI SC vs. poltcomp m-FC(z) result
+    switch(str{1})
+    case 'flyemroi'
+        fname = ['data/' str{1} '_postsyncount.mat'];
+        load(fname);
+        ids = primaryIds;
+        % primary, R/L, name order
+        load('data/flyemroi.mat');
+        labelNames = roiname(ids,1);
+    otherwise
+        labelNames = {};
+    end
+    cats=categorical(labelNames, labelNames);
+    figure; h=bar(cats,roiR3(:,72+7,4)); h.FaceAlpha = 0.4;
+    hold on; h=bar(cats,roiR3(:,192+7,4)); h.FaceAlpha = 0.4; hold off;
+    title(['FC-SC correlation in each ROI']); legend({ylabels{72+7},ylabels{192+7}});
+
+    figure; scatter(roiR3(:,72+7,4),roiR3(:,192+7,4)); ylim([0 1]); xlim([0 1]); daspect([1 1 1]);
+    hold on; plot([0 1], [0 1],':','Color',[0.5 0.5 0.5]); hold off; xlabel(ylabels{72+7}); ylabel(ylabels{192+7});
+    r = corr(roiR3(:,72+7,4),roiR3(:,192+7,4));
+    title(['correlation of regional FC-SC between FlyEM and FlyWire r=' num2str(r)]);
 end
 
 function checkSCdiffConnectionCount()
