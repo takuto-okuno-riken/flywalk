@@ -106,7 +106,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
 
     % set pool num. this calculation takes time. we need big pool num.
     delete(gcp('nocreate')); % shutdown pools
-    parpool(24);
+    parpool(14);
 
     CC = cell(roimax,1);
 %    for i=1:roimax

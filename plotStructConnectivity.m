@@ -24,141 +24,48 @@ function plotStructConnectivity
 end
 
 function checkSCpostSynapse()
-    rateTh = 0.8;
-    roitypes = {'flyemroi_hb0sr80'};
-
     % primary, R/L, name order
     load('data/flyemroi.mat');
 
-    % make post-synapse could of FlyEM hemibrain
-    niifile = 'data/hemibrain_v1_2_postsynFDACal.nii';
-    if exist([niifile '.gz'],'file')
-        hbinfo = niftiinfo([niifile '.gz']);
-        hbV = niftiread(hbinfo);
-    else
-        % read FlyEM hemibrain synapse info & location in FDA
-        load('data/hemibrain_v1_2_neurons.mat');
-        clear Nconn; clear Ncrop; clear Nsize; 
-
-        load('data/hemibrain_v1_2_synapses.mat');
-        clear Sloc; clear StoS;
-        srate = (Srate >= rateTh); % use only accurate synapse more than 'rate'
-        straced = ismember(StoN,Nid(Nstatus==1)); % Find synapses belong to Traced neuron.
-        spost = (Sdir == 2); % Find post synapse
-
-        load('data/synapseloc_fdacal.mat');
-        SpostlocFc = SlocFc(srate & straced & spost,:);
-        clear SlocFc;
-
-        hbinfo = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
-        hbV = niftiread(hbinfo); % mask should have same transform with 4D nifti data
-        hbV(:) = 0;
-        sz = size(hbV);
-
-        for i=1:size(SpostlocFc,1)
-            t = ceil(SpostlocFc(i,:));
-            if t(1)>0 && t(2)>0 && t(3)>0 && t(1)<sz(1) && t(2)<sz(2) && t(3)<sz(3) 
-                hbV(t(1),t(2),t(3)) = hbV(t(1),t(2),t(3)) + 1;
-            else
-                disp(['out of bounds ' num2str(i) ') ' num2str(t)]);
-            end
-        end
-        clear SpostlocFc;
-
-        niftiwrite(hbV,niifile,hbinfo,'Compressed',true);
-    end
-
-    % make post-synapse could of FlyWire (hemibrain)
-    niifile = 'data/hemibrain_fw783_postsynFDACal.nii';
-    if exist([niifile '.gz'],'file')
-        fwinfo = niftiinfo([niifile '.gz']);
-        fwV = niftiread(fwinfo);
-    else
-        % read synapse info
-        load('data/flywire783_synapse.mat');
-        clear cleftScore;
-        valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
-    
-        % read synapse location in FDA
-        load('data/flywire783i_sypostloc_fdacal.mat');
-        SpostlocFc = SpostlocFc(valid,:);
-
-        fwinfo = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
-        fwV = niftiread(fwinfo); % mask should have same transform with 4D nifti data
-        fwV(:) = 0;
-        sz = size(fwV);
-
-        mV = imgaussfilt3(hbV, [10 10 10] / sqrt(8*log(2))); mV(mV>0)=1; % make mask
-
-        for i=1:size(SpostlocFc,1)
-            t = ceil(SpostlocFc(i,:));
-            if t(1)>0 && t(2)>0 && t(3)>0 && t(1)<sz(1) && t(2)<sz(2) && t(3)<sz(3) 
-                if mV(t(1),t(2),t(3)) > 0
-                    fwV(t(1),t(2),t(3)) = fwV(t(1),t(2),t(3)) + 1;
-                end
-            else
-                disp(['out of bounds ' num2str(i) ') ' num2str(t)]);
-            end
-        end
-        clear SpostlocFc;
-
-        niftiwrite(fwV,niifile,hbinfo,'Compressed',true);
-    end
-
     % load SC & atlas
+    roitypes = {'flyemroi'};
+
     for i = 1:length(roitypes)
         roitype = roitypes{i};
+
         fname = ['data/' roitype '_postsyncount.mat'];
-        if exist(fname,'file')
-            load(fname);
-        else
-            clname = ['data/' roitype '_connectlist.mat'];
-            t = load(clname);
-            primaryIds = t.primaryIds;
-            str = split(roitype,'_');
-            roiIdxs = {};
-            switch(str{1})
-            case 'flyemroi'
-                listing = dir(['atlas/' str{1} '/*.nii.gz']);
-                for j=1:length(listing)
-                    V = niftiread(['atlas/' str{1} '/roi' num2str(j) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
-                    roiIdxs{j} = find(V>0);
-                end
-            end
-
-            hbS = nan(length(roiIdxs),1,'single');
-            fwS = nan(length(roiIdxs),1,'single');
-            for j=1:length(roiIdxs)
-                hbSc = hbV(roiIdxs{j});
-                fwSc = fwV(roiIdxs{j});
-                hbS(j) = sum(hbSc);
-                fwS(j) = sum(fwSc);
-            end
-            save(fname,'hbS','fwS','primaryIds','-v7.3');
-
-            % export nii file
-            info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
-            V = single(niftiread(info)); % mask should have same transform with 4D nifti data
-            V(:) = 0;
-            ids = primaryIds;
-            for j=1:length(ids)
-                diff = hbS(j) - fwS(j);
-                V(roiIdxs{ids(j)}) = sign(diff) * log10(abs(diff));
-            end
-            info.Datatype = 'single';
-            niftiwrite(V,['data/' roitype '_postsyncount.nii'],info,'Compressed',true);
-        end
+        load(fname);
         ids = primaryIds;
-
+            
         % plot bar total post-synapse count
-        cats=categorical({'FlyEM','FlyWire'});
-        figure; bar(cats,[sum(hbS(ids),1) sum(fwS(ids),1)]); %set(gca,'yscale','log');
-        title(['total post-synapse count in all ROI : ' roitype]); ylim([0 2e7]);
+        labels = {}; X = []; Y = [];
+        for c=1:length(hbsynThs)
+            sth = hbsynThs(c);
+            for r=1:length(hbrateThs)
+                rth = hbrateThs(r);
+                labels{end+1} = ['FlyEM' num2str(sth) 'sr' num2str(rth)];
+                X(end+1) = sum(hbS(ids,r,c),'all');
+                Y = [Y, hbS(ids,r,c)];
+            end
+        end
+        for c=1:length(fwsynThs)
+            sth = fwsynThs(c);
+            for r=1:length(fwrateThs)
+                rth = fwrateThs(r);
+                labels{end+1} = ['FlyWire' num2str(sth) 'sr' num2str(rth)];
+                X(end+1) = sum(fwS(ids,r,c),'all');
+                Y = [Y, fwS(ids,r,c)];
+            end
+        end
+
+        cats=categorical(labels,labels);
+        figure; bar(cats,X); %set(gca,'yscale','log');
+        title(['total post-synapse count in all ROI : ' roitype]);
 
         % plot bar mean post-synapse count of ROIs
-        figure; boxplot([hbS(ids) fwS(ids)]); %set(gca,'yscale','log');
-        p = ranksum(hbS(ids),fwS(ids));
-        title(['mean post-synapse count of ROIs : ' roitype ' p=' num2str(p)]); ylim([0 1e6]);
+        figure; boxplot(Y); ylim([0 1.5e6]); %set(gca,'yscale','log');
+        p = ranksum(Y(:,4),Y(:,4)); xticklabels(labels);  % hbrate=0.8, fwscore=130
+        title(['boxplot post-synapse count of ROIs : ' roitype ' p=' num2str(p)]);
 
         % plot bar in each ROI
         str = split(roitype,'_');

@@ -13,7 +13,7 @@ function makeStructConnectivityWithConditions
     primaryIds = [107	16	59	68	65	78	4	49	106	87	100	27	43	5	57	89	101	97	50	58	113	10	32	66	30	67	19	76	31	82	93	54	52	8	7	42	1	63	95	112	98	33	18	103	15	20	111	34	51	62	47	24	38	22	75	41	2	45	80	102	56	28	91];
     roiNum = length(primaryIds);
     labelNames = roiname(primaryIds,1);
-%{
+%%{
     rateThs = [50 60 70 80 90];
     synThs = [0]; % 5 10 20 30 50 100];
     for r=1:length(rateThs)
@@ -53,7 +53,7 @@ function makeStructConnectivityWithConditions
     % ---------------------------------------------------------------------
     % make structural connectivity matrix of hemibrain primary ROI atlas (flyem hemibrain) by FlyWire EM data.
 %%{
-    rateThs = [50 60 70 80 90 100];
+    rateThs = [50 70 100 130 140 150];
     synThs = [0]; % 5 10 20 30 50 100];
     for r=1:length(rateThs)
         rateTh = rateThs(r);
@@ -84,8 +84,8 @@ function makeStructConnectivityWithConditions
             end
             ids = primaryIds;
             CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
-            figure; imagesc(log10(CM)); colorbar; title(['flywire scTh' num2str(synTh) ' neurons matrix']);
-            figure; imagesc(log10(SM)); colorbar; title(['flywire scTh' num2str(synTh) ' synapses matrix']);
+            figure; imagesc(log10(CM)); colorbar; title(['flywire scTh' num2str(synTh) 'srTh' num2str(rateTh) ' neurons matrix']);
+            figure; imagesc(log10(SM)); colorbar; title(['flywire scTh' num2str(synTh) 'srTh' num2str(rateTh) ' synapses matrix']);
         end
     end
 
@@ -118,7 +118,7 @@ function makeStructConnectivityWithConditions
         end
         ids = primaryIds;
         CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
-        figure; imagesc(log10(CM)); colorbar; title(['fly average scTh' num2str(synTh) ' neurons matrix']);
-        figure; imagesc(log10(SM)); colorbar; title(['fly average scTh' num2str(synTh) ' synapses matrix']);
+        figure; imagesc(log10(CM)); colorbar; title(['fly average scTh' num2str(synTh) 'srTh' num2str(rateTh) ' neurons matrix']);
+        figure; imagesc(log10(SM)); colorbar; title(['fly average scTh' num2str(synTh) 'srTh' num2str(rateTh) ' synapses matrix']);
     end
 end
