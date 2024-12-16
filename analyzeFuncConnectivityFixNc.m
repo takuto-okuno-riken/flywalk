@@ -53,7 +53,7 @@ function analyzeFuncConnectivityFixNc
 %        'hemiRoi89','hemiRoi93','hemiRoi95','hemiRoi100','hemiRoi101','hemiRoi106','hemiRoi113'};
 %    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
 %    roitypes = {'hemiBranson7065km30','hemiCmkm30','hemiCmkm30r1w1','hemiDistKm30','hemiRand30','hemiVrand30'};
-    roitypes = {'hemiCmkm5000','hemiCmkm5000r1w1','hemiDistKm5000','hemiVrand5000'};
+    roitypes = {'hemiCmkm20000','hemiCmkm20000r1w1','hemiDistKm20000','hemiVrand20000'};
 %    roitypes = {'hemiCmkm50','hemiDistKm50','hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500'}; % for large smoothing size & no nuisanse, poltcomp
 %    roitypes = {'hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500','hemiCmkm1000','hemiDistKm1000','hemiCmkm5000','hemiDistKm5000','hemiCmkm10000','hemiDistKm10000'};  % s30 & s80, '' & poltcomp 
     % FlyEM vs. FlyWire in each roi num by smoothing 0 to 80 (no nuisanse)
