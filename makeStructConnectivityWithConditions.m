@@ -88,9 +88,10 @@ function makeStructConnectivityWithConditions
             figure; imagesc(log10(SM)); colorbar; title(['flywire scTh' num2str(synTh) 'srTh' num2str(rateTh) ' synapses matrix']);
         end
     end
-
+%}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix of hemibrain primary ROI atlas (flyem hemibrain) by taking mean from FlyEM and FlyWire.
+%{
     rateTh = 80;
     synThs = [0 5 10 20 30 50 100];
     for j=1:length(synThs)
@@ -121,4 +122,5 @@ function makeStructConnectivityWithConditions
         figure; imagesc(log10(CM)); colorbar; title(['fly average scTh' num2str(synTh) 'srTh' num2str(rateTh) ' neurons matrix']);
         figure; imagesc(log10(SM)); colorbar; title(['fly average scTh' num2str(synTh) 'srTh' num2str(rateTh) ' synapses matrix']);
     end
+%}
 end

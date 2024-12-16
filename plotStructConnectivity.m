@@ -1,4 +1,5 @@
 % analyze and plot SC and FC relation.
+% this script can run after analyzeStructConnectivity.m
 
 function plotStructConnectivity
     % check SC post synapse cloud
@@ -62,12 +63,13 @@ function checkSCpostSynapse()
         figure; bar(cats,X); %set(gca,'yscale','log');
         title(['total post-synapse count in all ROI : ' roitype]);
 
-        % plot bar mean post-synapse count of ROIs
+        % plot bar mean post-synapse count of ROIs (FlyEM80-FlyWire130 case)
+        p = {[4 5+4],[1 5+1]};
         figure; boxplot(Y); ylim([0 1.5e6]); %set(gca,'yscale','log');
-        p = ranksum(Y(:,4),Y(:,4)); xticklabels(labels);  % hbrate=0.8, fwscore=130
-        title(['boxplot post-synapse count of ROIs : ' roitype ' p=' num2str(p)]);
+        pval = ranksum(Y(:,p{1}(1)),Y(:,p{1}(2))); xticklabels(labels);
+        title(['boxplot post-synapse count of ROIs : ' roitype ' ' labels{p{1}(1)} '-' labels{p{1}(2)} ' p=' num2str(pval)]);
 
-        % plot bar in each ROI
+        % plot bar in each ROI (FlyEM80-FlyWire130 case)
         str = split(roitype,'_');
         switch(str{1})
         case 'flyemroi'
@@ -76,77 +78,73 @@ function checkSCpostSynapse()
             labelNames = {};
         end
         cats=categorical(labelNames, labelNames);
-        figure; h=bar(cats,hbS(ids)); h.FaceAlpha = 0.4;
-        hold on; h=bar(cats,fwS(ids)); h.FaceAlpha = 0.4; hold off;
-        legend({'FlyEM','FlyWire'}); set(gca,'yscale','log');
-        title(['valid post-synapse count in each ROI : ' roitype]);
+        for j=1:length(p)
+            figure; h=bar(cats,Y(:,p{j}(1))); h.FaceAlpha = 0.4;
+            hold on; h=bar(cats,Y(:,p{j}(2))); h.FaceAlpha = 0.4; hold off;
+            legend({labels{p{j}(1)}, labels{p{j}(2)}}); set(gca,'yscale','log');
+            title(['valid post-synapse count in each ROI : ' roitype]);
+        end
     end
 end
 
 function checkSCmatrixSimilarity()
-    rateThs = [80];
-    synThs = [0 5 10 20 30 50 100];
-    roitypes = {'flyemroi'};
-    roisizes = [63];
-
     rgbs = [107 41 147; 55 41 185; 0 0 0; 192 0 0; 254 254 41];
     gradmap = colormapGen(rgbs,[0,0.25,0.5,0.75,1],256);
 
     % primary, R/L, name order
-    flyemroiIds = [107	16	59	68	65	78	4	49	106	87	100	27	43	5	57	89	101	97	50	58	113	10	32	66	30	67	19	76	31	82	93	54	52	8	7	42	1	63	95	112	98	33	18	103	15	20	111	34	51	62	47	24	38	22	75	41	2	45	80	102	56	28	91];
     load('data/flyemroi.mat');
 
     % load SC & atlas
+    roitypes = {'flyemroi'};
+
     for i = 1:length(roitypes)
         roitype = roitypes{i};
+
+        fname = ['data/' roitype '_postsyncount.mat'];
+        load(fname);
+        ids = primaryIds;
+
         labels{i} = roitypes{i}; labels{i+length(roitypes)} = [roitypes{i} 'Fw'];
 
-        idlen = roisizes(i);
-        sytlen = length(synThs);
-        ncountMat = zeros(idlen,idlen,length(rateThs)*sytlen+sytlen);
-        sycountMat = zeros(idlen,idlen,length(rateThs)*sytlen+sytlen);
-        nweightMat = zeros(idlen,idlen,length(rateThs)*sytlen+sytlen);
-        syweightMat = zeros(idlen,idlen,length(rateThs)*sytlen+sytlen);
-        ii = 1;
-
-        xlabels = {}; labels = {}; axlabels = {}; 
+        idlen = length(ids);
+        zsz = length(hbrateThs)*length(hbsynThs)+length(fwrateThs)*length(fwsynThs);
+        ncountMat = zeros(idlen,idlen,zsz);
+        sycountMat = zeros(idlen,idlen,zsz);
+        nweightMat = zeros(idlen,idlen,zsz);
+        syweightMat = zeros(idlen,idlen,zsz);
 
         % check connection matrix
-        for r=1:length(rateThs)
-            rateTh = rateThs(r);
-            for j=1:length(synThs)
-                synTh = synThs(j);
-                fname = ['data/' roitype '_hb' num2str(synTh) 'sr' num2str(rateTh) '_connectlist.mat'];
+        ii = 1; labels = {};
+        for c=1:length(hbsynThs)
+            sth = hbsynThs(c);
+            for r=1:length(hbrateThs)
+                rth = hbrateThs(r);
+                fname = ['data/' roitype '_hb' num2str(sth) 'sr' num2str(rth) '_connectlist.mat'];
                 if exist(fname,'file')
                     t = load(fname);
-                    if i==1
-                        ids = flyemroiIds;
-                    else
-                        ids = t.primaryIds;
-                    end
                     ncountMat(:,:,ii) = t.ncountMat(ids,ids,2);
                     sycountMat(:,:,ii) = t.sycountMat(ids,ids,2);
                     nweightMat(:,:,ii) = t.nweightMat(ids,ids,2);
                     syweightMat(:,:,ii) = t.syweightMat(ids,ids,2);
+                    labels{ii} = ['FlyEM' num2str(sth) 'sr' num2str(rth)];
                     ii = ii + 1;
                 end
             end
         end
-        for j=1:length(synThs)
-            synTh = synThs(j);
-            fname = ['data/' roitype '_fw' num2str(synTh) '_connectlist.mat'];
-            if exist(fname,'file')
-                t = load(fname);
-                if i==1
-                    ids = flyemroiIds;
-                else
-                    ids = t.primaryIds;
+        for c=1:length(fwsynThs)
+            sth = fwsynThs(c);
+            for r=1:length(fwrateThs)
+                rth = fwrateThs(r);
+                fname = ['data/' roitype '_fw' num2str(sth) 'sr' num2str(rth) '_connectlist.mat'];
+                if exist(fname,'file')
+                    t = load(fname);
+                    ncountMat(:,:,ii) = t.ncountMat(ids,ids,2);
+                    sycountMat(:,:,ii) = t.sycountMat(ids,ids,2);
+                    nweightMat(:,:,ii) = t.nweightMat(ids,ids,2);
+                    syweightMat(:,:,ii) = t.syweightMat(ids,ids,2);
+                    labels{ii} = ['FlyWire' num2str(sth) 'sr' num2str(rth)];
+                    ii = ii + 1;
                 end
-                ncountMat(:,:,ii) = t.ncountMat(ids,ids,2);
-                sycountMat(:,:,ii) = t.sycountMat(ids,ids,2);
-                nweightMat(:,:,ii) = t.nweightMat(ids,ids,2);
-                syweightMat(:,:,ii) = t.syweightMat(ids,ids,2);
-                ii = ii + 1;
             end
         end
         ii = ii - 1;
@@ -161,7 +159,7 @@ function checkSCmatrixSimilarity()
             mNin(j) = mean(N1(E),'all'); mSin(j) = mean(S1(E),'all');
             mNoth(j) = mean(N1(~E),'all'); mSoth(j) = mean(S1(~E),'all');
 
-            for k=j:ii
+            for k=j+1:ii
                 N2 = ncountMat(:,:,k);
                 S2 = sycountMat(:,:,k);
                 Nw2 = nweightMat(:,:,k); Nw2(isnan(Nw2)) = 0;
@@ -176,40 +174,42 @@ function checkSCmatrixSimilarity()
                 Swr(j,k) = corr(Sw1(:),Sw2(:));
 
                 % plot SC matrix
-                if (j==1 && k==sytlen+1) % || (j==3 && k==sytlen+3) || (j==5 && k==sytlen+5)
+                if (j==4 && k==5+4) % FlyEM80-FlyWire130 case
                     labelNames = roiname(ids,1);
                     lN1 = log10(N1); lN1(isinf(lN1)) = 0; lN2 = log10(N2); lN2(isinf(lN2)) = 0; 
 %                    figure; imagesc(lN1); colorbar; daspect([1 1 1]); title([num2str(j) '-' num2str(k) ' ' roitype ' neuron']);
 %                    figure; imagesc(lN2); colorbar; daspect([1 1 1]); title([num2str(j) '-' num2str(k) ' ' roitype '\_fw neuron']);
-                    figure; imagescLabel(N1-N2,labelNames,[-1000 1000], [num2str(j) '-' num2str(k) ' ' roitype ' Hemi-Wire neuron diff']); colormap(gradmap);
-                    figure; imagescLabel(S1-S2,labelNames,[-100000 100000], [num2str(j) '-' num2str(k) ' ' roitype ' Hemi-Wire synapse diff']); colormap(gradmap);
-                    figure; imagescLabel(Nw1-Nw2,labelNames,[-0.5 0.5], [num2str(j) '-' num2str(k) ' ' roitype ' Hemi-Wire nweight diff']); colormap(gradmap);
-                    figure; imagescLabel(Sw1-Sw2,labelNames,[-0.5 0.5], [num2str(j) '-' num2str(k) ' ' roitype ' Hemi-Wire syweight diff']); colormap(gradmap);
+                    figure; imagescLabel(N1-N2,labelNames,[-1000 1000], [labels{j} '-' labels{k} ' ' roitype ' Hemi-Wire neuron diff']); colormap(gradmap);
+                    figure; imagescLabel(S1-S2,labelNames,[-100000 100000], [labels{j} '-' labels{k} ' ' roitype ' Hemi-Wire synapse diff']); colormap(gradmap);
+                    figure; imagescLabel(Nw1-Nw2,labelNames,[-0.5 0.5], [labels{j} '-' labels{k} ' ' roitype ' Hemi-Wire nweight diff']); colormap(gradmap);
+                    figure; imagescLabel(Sw1-Sw2,labelNames,[-0.5 0.5], [labels{j} '-' labels{k} ' ' roitype ' Hemi-Wire syweight diff']); colormap(gradmap);
 
                     % scatter plot of connected neuron count
                     m = max([N1(:); N2(:)]);
                     figure; scatter(N1(:),N2(:)); ylim([0 m]); xlim([0 m]); daspect([1 1 1]); set(gca,'xscale','log'); set(gca,'yscale','log');
                     hold on; plot([0 m], [0 m],':','Color',[0.5 0.5 0.5]); hold off; xlabel('connected neuron count (FlyEM)'); ylabel('connected neuron count (FlyWire)');
-                    title([num2str(j) '-' num2str(k) ' ' roitype ' r=' num2str(Nr(j,k))]);
+                    title([labels{j} '-' labels{k} ' ' roitype ' r=' num2str(Nr(j,k))]);
 
                     figure; scatter(Nw1(:),Nw2(:)); ylim([0 1]); xlim([0 1]); daspect([1 1 1]);
-                    hold on; plot([0 1], [0 1],':','Color',[0.5 0.5 0.5]); hold off; xlabel('connected neuron weight (FlyEM)'); ylabel('connected neuron count (FlyWire)');
-                    title([num2str(j) '-' num2str(k) ' ' roitype ' r=' num2str(Nwr(j,k))]);
+                    hold on; plot([0 1], [0 1],':','Color',[0.5 0.5 0.5]); hold off; xlabel('connected neuron weight (FlyEM)'); ylabel('connected neuron weight (FlyWire)');
+                    title([labels{j} '-' labels{k} ' ' roitype ' r=' num2str(Nwr(j,k))]);
 
                     % scatter plot of connected post-synapse count
                     m = max([S1(:); S2(:)]);
                     figure; scatter(S1(:),S2(:)); ylim([0 m]); xlim([0 m]); daspect([1 1 1]); set(gca,'xscale','log'); set(gca,'yscale','log');
                     hold on; plot([0 m], [0 m],':','Color',[0.5 0.5 0.5]); hold off; xlabel('connected synapse count (FlyEM)'); ylabel('connected synapse count (FlyWire)');
-                    title([num2str(j) '-' num2str(k) ' ' roitype ' r=' num2str(Sr(j,k))]);
+                    title([labels{j} '-' labels{k} ' ' roitype ' r=' num2str(Sr(j,k))]);
 
                     figure; scatter(Sw1(:),Sw2(:)); ylim([0 1]); xlim([0 1]); daspect([1 1 1]);
-                    hold on; plot([0 1], [0 1],':','Color',[0.5 0.5 0.5]); hold off; xlabel('connected synapse weight (FlyEM)'); ylabel('connected synapse count (FlyWire)');
-                    title([num2str(j) '-' num2str(k) ' ' roitype ' r=' num2str(Swr(j,k))]);
+                    hold on; plot([0 1], [0 1],':','Color',[0.5 0.5 0.5]); hold off; xlabel('connected synapse weight (FlyEM)'); ylabel('connected synapse weight (FlyWire)');
+                    title([labels{j} '-' labels{k} ' ' roitype ' r=' num2str(Swr(j,k))]);
                 end
             end
         end
-        figure; imagesc(Nr(1:sytlen,sytlen+1:end),[0 1]); colorbar; daspect([1 1 1]); title('neurons');
-        figure; imagesc(Sr(1:sytlen,sytlen+1:end),[0 1]); colorbar; daspect([1 1 1]); title('synapses');
+        figure; imagescLabel(Nr,labels,[0.8 1],'neuron count matrix similarity');
+        figure; imagescLabel(Sr,labels,[0.8 1],'synapse count matrix similarity');
+        figure; imagescLabel(Nwr,labels,[0.8 1],'neuron weight matrix similarity');
+        figure; imagescLabel(Swr,labels,[0.8 1],'synapse weight matrix similarity');
     end
 end
 
