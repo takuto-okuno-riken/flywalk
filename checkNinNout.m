@@ -85,7 +85,7 @@ function checkNinNout
     end
 
     % check fw0 and old file
-    t1 = load('results/cache-hemiroi_fw0_Nin_Nout.mat');
+    t1 = load('results/cache-hemiroi_fw0sr50_Nin_Nout.mat');
     t2 = load('results/cache-hemiroi_fw_Nin_Nout.mat');
 
     for i=1:length(t1.Nin)
@@ -127,7 +127,7 @@ function checkNinNout
         end
     end
 
-    t1 = load('data/hemiroi_fw0_connectlist.mat');
+    t1 = load('data/hemiroi_fw0sr50_connectlist.mat');
     t2 = load('data/hemiroi_fw_connectlist.mat');
     for p=2
         mat1 = t1.ncountMat;
