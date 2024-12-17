@@ -14,9 +14,14 @@ function plotStructConnectivity
     % roitype: hemiroi primary
     checkSCFCmatrixSimilarity();
 
-    % check SC matrix connection count diff FlyEM vs. FlyWire (roi 20 to 1000)
+    % check neural transmitter type in each neuron
+    % roitype: hemiroi primary
+    checkNeuralTransmitter();
+
+    % check SC matrix connection count diff FlyEM 0sr80 vs. FlyWire 0sr50 (roi 20 to 1000)
+    % but FlyWire 0sr50 will not be used, so this one was obsolete.
     % roitype: Branson,Cm,DistKm
-    checkSCdiffConnectionCount();
+%    checkSCdiffConnectionCount();
 
     % hemibrain ROI check other piece (Orphan) body type check.
 %{
@@ -338,6 +343,83 @@ function checkSCFCmatrixSimilarity()
     hold on; plot([0 1], [0 1],':','Color',[0.5 0.5 0.5]); hold off; xlabel(ylabels{72+7}); ylabel(ylabels{192+7});
     r = corr(roiR3(:,72+7,4),roiR3(:,192+7,4));
     title(['correlation of regional FC-SC between FlyEM and FlyWire r=' num2str(r)]);
+end
+
+
+function checkNeuralTransmitter()
+    llabels = {'Unknown','DA','SER','GABA','GLUT','ACH','OCT'};
+    rateThs = [130]; %50 70 100  140 150];
+    synThs = [0];
+    roitypes = {'hemiroi'};
+
+    for n = 1:length(roitypes)
+        roitype = roitypes{n};
+        for rt=1:length(rateThs)
+            rth = rateThs(rt);
+            for j=1:length(synThs)
+                sth = synThs(j);
+                idstr = [roitype '_fw' num2str(sth) 'sr' num2str(rth)];
+                fname = ['data/' idstr '_transmitter.mat'];
+                load(fname);
+
+                fname = ['data/' idstr '_connectlist.mat'];
+                load(fname);
+                ids = primaryIds;
+
+                switch(roitype)
+                case 'hemiroi'
+                    % primary, R/L, name order
+                    load('data/hemiroi.mat');
+                    labelNames = roiname(ids,1);
+                    pftype = ['poltcomp' 'ar' idstr];
+                otherwise
+                    labelNames = {};
+                end
+                cats=categorical(labelNames,labelNames);
+
+                % plot just transmitter rate in each ROI.
+                % because neuron number in each ROI is heavly different, so
+                % absolute count is not so infomative.
+                outNTypes = outNTypes ./ sum(outNTypes,2);
+                figure; bar(cats,outNTypes(ids,:)','stacked'); ylim([0 1]);
+                title([idstr ' out-neuron transmitters in each ROI']); legend(llabels);
+
+                inNTypes = inNTypes ./ sum(inNTypes,2);
+                figure; bar(cats,inNTypes(ids,:)','stacked'); ylim([0 1]);
+                title([idstr ' in-neuron transmitters in each ROI']); legend(llabels);
+
+                inSyTypes = inSyTypes ./ sum(inSyTypes,2);
+                figure; bar(cats,inSyTypes(ids,:)','stacked'); ylim([0 1]);
+                title([idstr ' in-synapse transmitters in each ROI']); legend(llabels);
+
+                % compare with FC-SC correlation in each ROI.
+                aucmat = ['results/auc/' pftype '-fcauc.mat'];
+                load(aucmat);
+                FcSc = roiR(:,7); % already primaryId. (neuron count vs. m-FC(z))
+                figure; sgtitle([pftype ' FC-SC vs. out-neuron ']);
+                for i=2:7
+                    [r,p] = corr(FcSc,outNTypes(ids,i)); 
+                    disp([pftype ' FC-SC vs. out-neuron ' llabels{i} ' r=' num2str(r) ' p=' num2str(p)]);
+                    subplot(3,2,i-1);
+                    scatter(FcSc,outNTypes(ids,i)); title([llabels{i} ' r=' num2str(r) ' p=' num2str(p)]);
+                end
+                figure; sgtitle([pftype ' FC-SC vs. in-neuron ']);
+                for i=2:7
+                    [r,p] = corr(FcSc,inNTypes(ids,i)); 
+                    disp([pftype ' FC-SC vs. in-neuron ' llabels{i} ' r=' num2str(r) ' p=' num2str(p)]);
+                    subplot(3,2,i-1);
+                    scatter(FcSc,inNTypes(ids,i)); title([llabels{i} ' r=' num2str(r) ' p=' num2str(p)]);
+                end
+                figure; sgtitle([pftype ' FC-SC vs. in-synapse ']);
+                for i=2:7
+                    [r,p] = corr(FcSc,inSyTypes(ids,i)); 
+                    disp([pftype ' FC-SC vs. in-synapse ' llabels{i} ' r=' num2str(r) ' p=' num2str(p)]);
+                    subplot(3,2,i-1);
+                    scatter(FcSc,inSyTypes(ids,i)); title([llabels{i} ' r=' num2str(r) ' p=' num2str(p)]);
+                end
+            end
+        end
+    end
 end
 
 function checkSCdiffConnectionCount()

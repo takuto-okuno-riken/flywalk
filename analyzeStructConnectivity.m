@@ -161,16 +161,12 @@ end
 function checkNeuralTransmitter()
     % read neuron info (id, type)
     load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
-%{
+
     % read synapse info
-    Sid = []; postNidx = []; preNidx = [];
     load('data/flywire783_synapse.mat');
-    score = (cleftScore >= rateTh);
-    Sidx = int32(1:length(Sid))';
-    valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
-%}
+
     % make transmitter type of FlyWire (hemibrain)
-    rateThs = [130];
+    rateThs = [50 70 100 130 140 150];
     synThs = [0];
     roitypes = {'hemiroi'};
 
@@ -179,9 +175,43 @@ function checkNeuralTransmitter()
             rth = rateThs(r);
             for j=1:length(synThs)
                 sth = synThs(j);
-                nfile = ['results/cache-' roitypes{n} '_fw' num2str(sth) 'sr' num2str(rth) '_Nin_Nout.mat'];
-                load(nfile);
+                idstr = [roitypes{n} '_fw' num2str(sth) 'sr' num2str(rth)];
+                fname = ['data/' idstr '_transmitter.mat'];
+                if ~exist(fname,'file')
+                    nfile = ['results/cache-' idstr '_Nin_Nout.mat'];
+                    load(nfile);
+    
+                    roiNum = length(Nout);
+                    outNTypes = zeros(roiNum,7,'single');
+                    inNTypes = zeros(roiNum,7,'single');
+                    inSyTypes = zeros(roiNum,7,'single');
+                    for i=1:roiNum
+                        nidx = Nout{i}{2};
+                        types = Ntype(nidx);
+                        numtype = groupcounts(types); % number of neurons in each transmitter
+                        tidx = unique(types);
+                        outNTypes(i,tidx+1) = numtype;
 
+                        nidx = Nin{i}{2};
+                        types = Ntype(nidx);
+                        numtype = groupcounts(types); % number of neurons in each transmitter
+                        tidx = unique(types);
+                        inNTypes(i,tidx+1) = numtype;
+
+                        sidx = Sin{i}{2}; % pre-synapse in this ROI
+                        presnidx = preNidx(sidx); % get neuron index of pre-synapse
+                        [nidx2,ia,ic] = unique(presnidx);
+                        % check neuron index nidx should be same as nidx2
+                        if sum(nidx-nidx2) ~= 0
+                            disp([idstr ' nidx ~= nidx2 i=' num2str(i)])
+                        end
+                        prestypes = types(ic); % get pre-synapse transmitter
+                        numtype = groupcounts(prestypes); % number of pre-synapses in each transmitter
+                        tidx = unique(prestypes);
+                        inSyTypes(i,tidx+1) = numtype;
+                    end
+                    save(fname,'inNTypes','outNTypes','inSyTypes','-v7.3');
+                end
             end
         end
     end
