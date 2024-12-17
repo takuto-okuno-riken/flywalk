@@ -30,19 +30,19 @@ function plotFuncConnectivity
 
     % check smoothing result around 50 ROIs (s0 to s80)
     % roitype: FlyEM,FlyEMFw,Branson,BransonFw,Cm,CmFw,CmR1w1,Dist,Rand,Vrand
-    checkSmoothingResult50(vslabels);
+%    checkSmoothingResult50(vslabels);
 
     % check correlation result in each ROI num (s0 to s80, roi 20 to 1000)
     % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
-    checkSmoothingByRoinum(vslabels);
+%    checkSmoothingByRoinum(vslabels);
 
     % check nuisance result round 50 ROIs (all nuisance)
     % roitype: FlyEM,FlyEmFw,Branson,Cm,CmR1w1,Dist,Rand,Vrand
-    checkNuisanceResult50(vslabels);
+%    checkNuisanceResult50(vslabels);
 
     % check correlation result in each ROI num (all nuisance, roi 20 to 1000)
     % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
-    checkNuisanceByRoinum(vslabels);
+%    checkNuisanceByRoinum(vslabels);
 
     % check correlation result of large smoothing size (s0 to 300, roi 50 to 500, '' & poltcomp)
     % roitype: Cm,Dist
@@ -50,9 +50,10 @@ function plotFuncConnectivity
 
     % check correlation result in each ROI num (roi 100 to 20000)
     % roitype: Cm,CmR1w1,Dist,Vand
-    checkNeuronVsSynapseByRoinum(vslabels); % TODO: recalc 5000 to 20000
+%    checkNeuronVsSynapseByRoinum(vslabels);
 
-    % check correlation result in each ROI num (s30 & s80, roi 100 to 10000, '' & poltcomp)
+    % check correlation result in each ROI num (s30,80,150,230,300, roi 50 to 10000, '' & poltcomp)
+    % because LargeSmoothing showed better result around s230, this function extended range.
     % roitype: Cm,DistKm
     checkSmoothingNuisanceByRoinum(vslabels);
 
@@ -675,9 +676,9 @@ end
 function checkSmoothingNuisanceByRoinum(vslabels)
     preproc = 'ar'; % for move correct, slice time correct
     hpfTh = [0]; % high-pass filter threshold
-    smooth = {'', 's30', 's80'};
+    smooth = {'', 's30', 's80', 's150', 's230', 's300'};
     nuisance = {'', 'poltcomp'};
-    roinums = [100 500 1000 5000 10000];
+    roinums = [50 100 500 1000 5000 10000];
     roitypes = {{'hemiCmkm',''},{'hemiDistKm',''}};
     roitypelabels = {'Cm','Dist'};
     
@@ -688,8 +689,8 @@ function checkSmoothingNuisanceByRoinum(vslabels)
             for h=1:length(hpfTh)
                 hpfstr = '';
                 if hpfTh(h) > 0, hpfstr = ['hf' num2str(round(1/hpfTh(h)))]; end
-                for k=1:length(smooth)
-                    for n=1:length(nuisance)
+                for n=1:length(nuisance)
+                    for k=1:length(smooth)
                         pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}{1} num2str(roinums(rr)) roitypes{r}{2}];
                         xlabels{ii} = [smooth{k} nuisance{n} 'roi' num2str(roinums(rr))]; ii=ii+1;
                         aucmat = ['results/auc/' pftype '-fcauc.mat'];
@@ -706,7 +707,7 @@ function checkSmoothingNuisanceByRoinum(vslabels)
             end
         end
 
-        R3 = [R3;Rm]; A3 = [A3;Am];
+        R3 = [R3;Rm]; A3 = [A3;Am]; ii=ii-1;
         C = cell(24,1); C(1:24) = {[roitypelabels{r} ' ']};
         ylabels = [ylabels(:); strcat(C(:),vslabels(:))];
     end
@@ -719,7 +720,7 @@ function checkSmoothingNuisanceByRoinum(vslabels)
     % FC-SC correlation Traced neuron vs synapse
     I = getR3idx([7 9],[0 24]);
  %   figure; imagescLabel2(R3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC correlation Full vs. Traced');
-    figure; plot(R3(I,:)'); legend(ylabels(I)); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+    figure; plot(R3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
 
     % FC-SC detection (all)
     I = getR3idx([7 9 19 21],[0 24]);  % show only Traced neuron, synapse
@@ -729,7 +730,7 @@ function checkSmoothingNuisanceByRoinum(vslabels)
     % FC-SC detection Traced neuron vs synapse
     I = getR3idx([7 9], [0 24]);
 %    figure; imagescLabel2(A3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC detection Full vs. Traced');
-    figure; plot(A3(I,:)'); legend(ylabels(I)); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+    figure; plot(A3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
 
     % both FC-SC correlation & detection (all)
     B = abs(R3) + abs(A3-0.5)*2;
@@ -739,7 +740,7 @@ function checkSmoothingNuisanceByRoinum(vslabels)
 
     % FC-SC correlation & detection Traced neuron vs synapse (which is best?)
     I = getR3idx([7 9],[0 24]);
-    figure; plot(B(I,:)'); legend(ylabels(I)); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
+    figure; plot(B(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
 end
 
 function I = getR3idx(A,B)
