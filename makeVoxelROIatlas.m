@@ -155,10 +155,10 @@ function makeVoxelROIatlas
             atlasinfo = niftiinfo([atlas '.gz']);
             aV = niftiread(atlasinfo);
         else
-            info = niftiinfo(['atlas/flyemroi/roi' num2str(roiids{i}(1)) '.nii.gz']);
+            info = niftiinfo(['atlas/hemiroi/roi' num2str(roiids{i}(1)) '.nii.gz']);
             aV = niftiread(info); % ROI mask should have same transform with 4D nifti data
             for j=2:length(roiids{i})
-                bV = niftiread(['atlas/flyemroi/roi' num2str(roiids{i}(j)) '.nii.gz']);
+                bV = niftiread(['atlas/hemiroi/roi' num2str(roiids{i}(j)) '.nii.gz']);
                 bidx = find(bV>0);
                 aV(bidx) = bV(bidx);
             end
@@ -192,10 +192,10 @@ function makeVoxelROIatlas
         atlasinfo = niftiinfo([atlas '.gz']);
         aV = niftiread(atlasinfo);
     else
-        info = niftiinfo(['atlas/flyemroi/roi' num2str(primaryId(1)) '.nii.gz']);
+        info = niftiinfo(['atlas/hemiroi/roi' num2str(primaryId(1)) '.nii.gz']);
         aV = niftiread(info); % ROI mask should have same transform with 4D nifti data
         for i=1:length(primaryId)
-            bV = niftiread(['atlas/flyemroi/roi' num2str(primaryId(i)) '.nii.gz']);
+            bV = niftiread(['atlas/hemiroi/roi' num2str(primaryId(i)) '.nii.gz']);
             bidx = find(bV>0);
             aV(bidx) = primaryId(i);
         end

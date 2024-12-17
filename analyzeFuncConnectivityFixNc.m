@@ -28,8 +28,8 @@ function analyzeFuncConnectivityFixNc
     sbjids = [1 2 3 4 5 6 8 9];
 
     % ROI name
-%    roitypes = {'flyemroif'};  % flyem ROI full
-%    roitypes = {'flyemroi','bransonhemi'}; % flyem ROI (Turner compatible)
+%    roitypes = {'hemiroif'};  % flyem ROI full
+%    roitypes = {'hemiroi','bransonhemi'}; % flyem ROI (Turner compatible)
 %    roitypes = {'hemiBranson7065'};
 %    roitypes = {'hemiBranson7065km20','hemiBranson7065km30','hemiBranson7065km50','hemiBranson7065km100','hemiBranson7065km200', ...
 %        'hemiBranson7065km300','hemiBranson7065km500','hemiBranson7065km1000'};
@@ -51,7 +51,7 @@ function analyzeFuncConnectivityFixNc
 %    roitypes = {'hemiRoi1','hemiRoi5','hemiRoi7','hemiRoi27','hemiRoi30','hemiRoi32','hemiRoi43','hemiRoi52', ...
 %        'hemiRoi54','hemiRoi57','hemiRoi59','hemiRoi63','hemiRoi65','hemiRoi67','hemiRoi78','hemiRoi82', ...
 %        'hemiRoi89','hemiRoi93','hemiRoi95','hemiRoi100','hemiRoi101','hemiRoi106','hemiRoi113'};
-%    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
+%    roitypes = {'hemiroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
 %    roitypes = {'hemiBranson7065km30','hemiCmkm30','hemiCmkm30r1w1','hemiDistKm30','hemiRand30','hemiVrand30'};
     roitypes = {'hemiCmkm20000','hemiCmkm20000r1w1','hemiDistKm20000','hemiVrand20000'};
 %    roitypes = {'hemiCmkm50','hemiDistKm50','hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500'}; % for large smoothing size & no nuisanse, poltcomp
@@ -60,7 +60,7 @@ function analyzeFuncConnectivityFixNc
 %    roitypes = {'hemiBranson7065km20_fw','hemiBranson7065km30_fw','hemiBranson7065km50_fw','hemiBranson7065km100_fw','hemiBranson7065km200_fw','hemiBranson7065km300_fw','hemiBranson7065km500_fw', ...
 %        'hemiCmkm20_fw','hemiCmkm30_fw','hemiCmkm50_fw','hemiCmkm100_fw','hemiCmkm200_fw','hemiCmkm300_fw','hemiCmkm500_fw',...
 %        'hemiDistKm20_fw','hemiDistKm30_fw','hemiDistKm50_fw','hemiDistKm100_fw','hemiDistKm200_fw','hemiDistKm300_fw','hemiDistKm500_fw'};
-%    roitypes = {'flyemroi','flyemroi_fw','hemiDistKm50','hemiDistKm50_fw'}; % for all nuisanse & s30 & s80 % for s0 to s80 (no nuisanse)
+%    roitypes = {'hemiroi','hemiroi_fw','hemiDistKm50','hemiDistKm50_fw'}; % for all nuisanse & s30 & s80 % for s0 to s80 (no nuisanse)
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -73,7 +73,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
 
     % load structural connectivity matrix (from makeStructConnectivity.m)
     switch(roitype)
-    case 'flyemroif'
+    case 'hemiroif'
         load('data/neuprint_connectlist.mat');
         ids = 1:roiNum;
     otherwise

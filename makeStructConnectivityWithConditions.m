@@ -9,7 +9,7 @@ function makeStructConnectivityWithConditions
     % make structural connectivity matrix of hemibrain primary ROI atlas.
 %{
     % primary, R/L, name order
-    load('data/flyemroi.mat');
+    load('data/hemiroi.mat');
     primaryIds = [107	16	59	68	65	78	4	49	106	87	100	27	43	5	57	89	101	97	50	58	113	10	32	66	30	67	19	76	31	82	93	54	52	8	7	42	1	63	95	112	98	33	18	103	15	20	111	34	51	62	47	24	38	22	75	41	2	45	80	102	56	28	91];
     roiNum = length(primaryIds);
     labelNames = roiname(primaryIds,1);
@@ -20,21 +20,23 @@ function makeStructConnectivityWithConditions
         rateTh = rateThs(r);
         for j=1:length(synThs)
             synTh = synThs(j);
+            idstr = ['hemiroi_hb' num2str(synTh) 'sr' num2str(rateTh)];
+            fname = ['data/' lower(idstr) '_connectlist.mat'];
 
-            fname = ['data/flyemroi_hb' num2str(synTh) 'sr' num2str(rateTh) '_connectlist.mat'];
+            clear ncountMat; clear sycountMat; clear nweightMat; scver = 1;
             if exist(fname,'file')
                 load(fname);
             else
                 roiIdxs = {};
-                listing = dir(['atlas/flyemroi/*.nii.gz']);
+                listing = dir(['atlas/hemiroi/*.nii.gz']);
                 for i=1:length(listing)
-                    V = niftiread(['atlas/flyemroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+                    V = niftiread(['atlas/hemiroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
                     idx = find(V>0);
                     roiIdxs{i} = idx;
                     sz = size(V);
                 end
         
-                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, rateTh/100, synTh, ['hemiroi_hb' num2str(synTh) 'sr' num2str(rateTh)]);
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, rateTh/100, synTh, lower(idstr));
         
                 countMat = []; weightMat = []; scver = 5;
             end
@@ -45,8 +47,8 @@ function makeStructConnectivityWithConditions
         
             ids = primaryIds;
             CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
-            figure; imagesc(log10(CM)); colorbar; title(['hemibrain scTh' num2str(synTh) 'srTh' num2str(rateTh) ' neurons matrix']);
-            figure; imagesc(log10(SM)); colorbar; title(['hemibrain scTh' num2str(synTh) 'srTh' num2str(rateTh) ' synapses matrix']);
+            figure; imagesc(log10(CM)); colorbar; title([idstr ' neurons matrix']);
+            figure; imagesc(log10(SM)); colorbar; title([idstr ' synapses matrix']);
         end
     end
 %}
@@ -59,22 +61,23 @@ function makeStructConnectivityWithConditions
         rateTh = rateThs(r);
         for j=1:length(synThs)
             synTh = synThs(j);
-    
+            idstr = ['hemiroi_fw' num2str(synTh) 'sr' num2str(rateTh)];
+            fname = ['data/' lower(idstr) '_connectlist.mat'];
+
             clear ncountMat; clear sycountMat; clear nweightMat; scver = 1;
-            fname = ['data/flyemroi_fw' num2str(synTh) 'sr' num2str(rateTh) '_connectlist.mat'];
             if exist(fname,'file')
                 load(fname);
             else
                 roiIdxs = {};
-                listing = dir(['atlas/flyemroi/*.nii.gz']);
+                listing = dir(['atlas/hemiroi/*.nii.gz']);
                 for i=1:length(listing)
-                    V = niftiread(['atlas/flyemroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+                    V = niftiread(['atlas/hemiroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
                     idx = find(V>0);
                     roiIdxs{i} = idx;
                     sz = size(V);
                 end
 
-                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, rateTh, synTh, ['hemiroi_fw' num2str(synTh) 'sr' num2str(rateTh)]);
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, rateTh, synTh, lower(idstr));
 
                 countMat = []; weightMat = []; scver = 5;
             end
@@ -84,8 +87,8 @@ function makeStructConnectivityWithConditions
             end
             ids = primaryIds;
             CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
-            figure; imagesc(log10(CM)); colorbar; title(['flywire scTh' num2str(synTh) 'srTh' num2str(rateTh) ' neurons matrix']);
-            figure; imagesc(log10(SM)); colorbar; title(['flywire scTh' num2str(synTh) 'srTh' num2str(rateTh) ' synapses matrix']);
+            figure; imagesc(log10(CM)); colorbar; title([idstr ' neurons matrix']);
+            figure; imagesc(log10(SM)); colorbar; title([idstr ' synapses matrix']);
         end
     end
 %}
@@ -97,13 +100,13 @@ function makeStructConnectivityWithConditions
     for j=1:length(synThs)
         synTh = synThs(j);
 
-        fname = ['data/flyemroi_avg' num2str(synTh) '_connectlist.mat'];
+        fname = ['data/hemiroi_avg' num2str(synTh) '_connectlist.mat'];
         if exist(fname,'file')
             load(fname);
         else
-            t1name = ['data/flyemroi_hb' num2str(synTh) 'sr' num2str(rateTh) '_connectlist.mat'];
+            t1name = ['data/hemiroi_hb' num2str(synTh) 'sr' num2str(rateTh) '_connectlist.mat'];
             t1 = load(t1name);
-            t2name = ['data/flyemroi_fw' num2str(synTh) '_connectlist.mat'];
+            t2name = ['data/hemiroi_fw' num2str(synTh) '_connectlist.mat'];
             t2 = load(t2name);
             ncountMat = (t1.ncountMat + t2.ncountMat) / 2;
             nweightMat = (t1.nweightMat + t2.nweightMat) / 2;

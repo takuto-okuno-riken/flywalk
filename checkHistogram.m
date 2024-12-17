@@ -11,7 +11,7 @@ function checkHistogram
     roinum = 114;
     voxsize = [];
     for i=1:roinum
-        info = niftiinfo(['atlas/flyemroi/roi' num2str(i) '.nii.gz']);
+        info = niftiinfo(['atlas/hemiroi/roi' num2str(i) '.nii.gz']);
         aV = niftiread(info);
         voxsize(i) = length(find(aV>0));
     end

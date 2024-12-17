@@ -26,7 +26,7 @@ function extractROItimeseries
     nuisance = {''};
 
     % ROI name
-%    roitypes = {'flyemroi','bransonhemi'};
+%    roitypes = {'hemiroi','bransonhemi'};
 %    roitypes = {'hemiBranson7065'};
 %    roitypes = {'hemiBranson7065km20','hemiBranson7065km30','hemiBranson7065km50','hemiBranson7065km100','hemiBranson7065km200', ...
 %        'hemiBranson7065km300','hemiBranson7065km500','hemiBranson7065km1000'};
@@ -50,11 +50,11 @@ function extractROItimeseries
 %    roitypes = {'hemiRoi1','hemiRoi5','hemiRoi7','hemiRoi27','hemiRoi30','hemiRoi32','hemiRoi43','hemiRoi52', ...
 %        'hemiRoi54','hemiRoi57','hemiRoi59','hemiRoi63','hemiRoi65','hemiRoi67','hemiRoi78','hemiRoi82', ...
 %        'hemiRoi89','hemiRoi93','hemiRoi95','hemiRoi100','hemiRoi101','hemiRoi106','hemiRoi113'};
-%    roitypes = {'flyemroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
+%    roitypes = {'hemiroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
 %    roitypes = {'hemiBranson7065km200','hemiCmkm200','hemiCmkm200r1w1','hemiDistKm200','hemiRand200','hemiVrand200'};
 %    roitypes = {'hemiCmkm5000','hemiDistKm5000','hemiCmkm10000','hemiDistKm10000'};
 %    roitypes = {'hemiCmkm50','hemiDistKm50','hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500'}; % for large smoothing size & no nuisanse, poltcomp
-%    roitypes = {'flyemroi','hemiDistKm50'}; % for all nuisanse & s30, s80
+%    roitypes = {'hemiroi','hemiDistKm50'}; % for all nuisanse & s30, s80
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -64,7 +64,7 @@ end
 function roiIdxs = getRoiIdxs(roitype)
     roiIdxs = {};
     switch(roitype)
-    case 'flyemroi'
+    case 'hemiroi'
         listing = dir(['atlas/' roitype '/*.nii.gz']);
         for i=1:length(listing)
             V = niftiread(['atlas/' roitype '/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data

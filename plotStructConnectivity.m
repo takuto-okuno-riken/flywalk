@@ -3,15 +3,15 @@
 
 function plotStructConnectivity
     % check SC post synapse cloud
-    % roitype: flyemroi primary
+    % roitype: hemiroi primary
     checkSCpostSynapse();
 
     % check SC matrix connection similarity FlyEM vs. FlyWire
-    % roitype: flyemroi primary
+    % roitype: hemiroi primary
     checkSCmatrixSimilarity();
 
     % check SC vs. FC matrix connection FlyEM vs. FlyWire
-    % roitype: flyemroi primary
+    % roitype: hemiroi primary
     checkSCFCmatrixSimilarity();
 
     % check SC matrix connection count diff FlyEM vs. FlyWire (roi 20 to 1000)
@@ -20,7 +20,7 @@ function plotStructConnectivity
 
     % hemibrain ROI check other piece (Orphan) body type check.
 %{
-    load('data/flyemroi.mat');
+    load('data/hemiroi.mat');
     ids = [107	16	59	68	65	78	4	49	106	87	100	27	43	5	57	89	101	97	50	58	113	10	32	66	30	67	19	76	31	82	93	54	52	8	7	42	1	63	95	112	98	33	18	103	15	20	111	34	51	62	47	24	38	22	75	41	2	45	80	102	56	28	91];
     labelNames = roiname(ids,1);
 
@@ -30,10 +30,10 @@ end
 
 function checkSCpostSynapse()
     % primary, R/L, name order
-    load('data/flyemroi.mat');
+    load('data/hemiroi.mat');
 
     % load SC & atlas
-    roitypes = {'flyemroi'};
+    roitypes = {'hemiroi'};
 
     for i = 1:length(roitypes)
         roitype = roitypes{i};
@@ -76,7 +76,7 @@ function checkSCpostSynapse()
         % plot bar in each ROI (FlyEM80-FlyWire130 case)
         str = split(roitype,'_');
         switch(str{1})
-        case 'flyemroi'
+        case 'hemiroi'
             labelNames = roiname(ids,1);
         otherwise
             labelNames = {};
@@ -96,10 +96,10 @@ function checkSCmatrixSimilarity()
     gradmap = colormapGen(rgbs,[0,0.25,0.5,0.75,1],256);
 
     % primary, R/L, name order
-    load('data/flyemroi.mat');
+    load('data/hemiroi.mat');
 
     % load SC & atlas
-    roitypes = {'flyemroi'};
+    roitypes = {'hemiroi'};
 
     for i = 1:length(roitypes)
         roitype = roitypes{i};
@@ -248,8 +248,8 @@ function checkSCFCmatrixSimilarity()
     nuisance = {'','poltcomp'};
 
     % load SC & atlas
-    roitypes = {'flyemroi_hb0sr50','flyemroi_hb0sr60','flyemroi_hb0sr70','flyemroi_hb0sr80','flyemroi_hb0sr90', ... % for s30 & s80, '' & poltcomp
-            'flyemroi_fw0sr50','flyemroi_fw0sr70','flyemroi_fw0sr100','flyemroi_fw0sr130','flyemroi_fw0sr140','flyemroi_fw0sr150'};
+    roitypes = {'hemiroi_hb0sr50','hemiroi_hb0sr60','hemiroi_hb0sr70','hemiroi_hb0sr80','hemiroi_hb0sr90', ... % for s30 & s80, '' & poltcomp
+            'hemiroi_fw0sr50','hemiroi_fw0sr70','hemiroi_fw0sr100','hemiroi_fw0sr130','hemiroi_fw0sr140','hemiroi_fw0sr150'};
 
     ylabels = {}; rlabels = {}; R3 = []; A3 = []; roiR3 = [];
     for r = 1:length(roitypes)
@@ -319,12 +319,12 @@ function checkSCFCmatrixSimilarity()
 
     % plot ROI SC vs. poltcomp m-FC(z) result
     switch(str{1})
-    case 'flyemroi'
+    case 'hemiroi'
         fname = ['data/' str{1} '_postsyncount.mat'];
         load(fname);
         ids = primaryIds;
         % primary, R/L, name order
-        load('data/flyemroi.mat');
+        load('data/hemiroi.mat');
         labelNames = roiname(ids,1);
     otherwise
         labelNames = {};

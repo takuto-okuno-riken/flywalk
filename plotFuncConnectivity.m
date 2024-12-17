@@ -30,7 +30,7 @@ function plotFuncConnectivity
 
     % check smoothing result around 50 ROIs (s0 to s80)
     % roitype: FlyEM,FlyEMFw,Branson,BransonFw,Cm,CmFw,CmR1w1,Dist,Rand,Vrand
-%    checkSmoothingResult50(vslabels);
+    checkSmoothingResult50(vslabels);
 
     % check correlation result in each ROI num (s0 to s80, roi 20 to 1000)
     % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
@@ -38,11 +38,11 @@ function plotFuncConnectivity
 
     % check nuisance result round 50 ROIs (all nuisance)
     % roitype: FlyEM,FlyEmFw,Branson,Cm,CmR1w1,Dist,Rand,Vrand
-%    checkNuisanceResult50(vslabels);
+    checkNuisanceResult50(vslabels);
 
     % check correlation result in each ROI num (all nuisance, roi 20 to 1000)
     % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
-%    checkNuisanceByRoinum(vslabels);
+    checkNuisanceByRoinum(vslabels);
 
     % check correlation result of large smoothing size (s0 to 300, roi 50 to 500, '' & poltcomp)
     % roitype: Cm,Dist
@@ -58,11 +58,11 @@ function plotFuncConnectivity
 
     % check smoothing result of FlyEM vs. FlyWire around 50 ROIs (s0 to s80)
     % roitype: FlyEM,FlyEMFw,DistKm50,DistKm50Fw,DistKm50Avg
-%    checkSmoothNuisanceFlyWireResult50(vslabels);
+    checkSmoothNuisanceFlyWireResult50(vslabels);
 
     % check correlation result of FlyEM vs. FlyWire (s0 to s80, roi 20 to 1000)
     % roitype: Cm,CmFw,Branson,BransonFw,Dist,DistFw
-%    checkSmoothingFlyWireByRoinum(vslabels);
+    checkSmoothingFlyWireByRoinum(vslabels);
 
 end
 
@@ -142,7 +142,7 @@ function checkSmoothingResult50(vslabels)
     hpfTh = [0]; % high-pass filter threshold
     smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
     nuisance = {''};
-    roitypes = {'flyemroi','flyemroi_fw','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
+    roitypes = {'hemiroi','hemiroi_fw','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
     roitypelabels = {'FlyEM','FlyEMFw','Branson','Cm','CmR1w1','Dist','Rand','Vrand'};
 
     ylabels = {}; R3 = []; A3 = []; AA3 = [];
@@ -223,7 +223,7 @@ function checkSmoothNuisanceFlyWireResult50(vslabels)
     hpfTh = [0]; % high-pass filter threshold
     smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
     nuisance = {''};
-    roitypes = {'flyemroi','flyemroi_fw','hemiDistKm50','hemiDistKm50_fw','hemiDistKm50_avg'};
+    roitypes = {'hemiroi','hemiroi_fw','hemiDistKm50','hemiDistKm50_fw','hemiDistKm50_avg'};
     roitypelabels = {'FlyEM','FlyEMFw','DistKm50','DistKm50Fw','DistKm50Avg'};
 
     ylabels = {}; R3 = []; A3 = []; AA3 = [];
@@ -375,7 +375,7 @@ function checkNuisanceResult50(vslabels)
         '24hmacomp','24hmgmacomp','24hmgmgsacomp','24hmtcomp','24hmtacomp', ... %27
         'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
-    roitypes = {'flyemroi','flyemroi_fw','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
+    roitypes = {'hemiroi','hemiroi_fw','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
     roitypelabels = {'FlyEM','FlyEmFw','Branson','Cm','CmR1w1','Dist','Rand','Vrand',};
 
     ylabels = {}; R3 = []; A3 = [];

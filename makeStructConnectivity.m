@@ -14,7 +14,7 @@ function makeStructConnectivity
     turnerIds = [103	107	20	111	59	68	65	78  49	51	62	106	87	47 100 24	27	43	38	5	57	22	89	101	97	75	50	58	41	113	10	2	32	66	45	30	67	19	76	31	82	93	54	52	8	7	80	1	102	63	95	56];
 
     % load matfile
-    fname = 'data/flyemroi_connectlist.mat'; scver = 1;
+    fname = 'data/hemiroi_connectlist.mat'; scver = 1;
     load(fname);
 
     %
@@ -31,9 +31,9 @@ function makeStructConnectivity
         aV = niftiread(info); aV(:) = 0;
         cnt = 1;
         roiIdxs = {};
-        listing = dir(['atlas/flyemroi/*.nii.gz']);
+        listing = dir(['atlas/hemiroi/*.nii.gz']);
         for i=1:length(listing)
-            V = niftiread(['atlas/flyemroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+            V = niftiread(['atlas/hemiroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
             idx = find(V>0);
             roiIdxs{i} = idx;
             if any(ismember(turnerIds,i))
@@ -52,9 +52,9 @@ function makeStructConnectivity
     % check large sparse version
 %{
         roiIdxs = {};
-        listing = dir(['atlas/flyemroi/*.nii.gz']);
+        listing = dir(['atlas/hemiroi/*.nii.gz']);
         for i=1:length(listing)
-            V = niftiread(['atlas/flyemroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+            V = niftiread(['atlas/hemiroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
             roiIdxs{i} = find(V>0);
             sz = size(V);
         end
@@ -81,7 +81,7 @@ function makeStructConnectivity
     figure; imagesc(log(WM)); colorbar; title('hemibrain all synapse weight matrix');
 %}
     % primary, R/L, name order
-    load('data/flyemroi.mat');
+    load('data/hemiroi.mat');
     ids = [107	16	59	68	65	78	4	49	106	87	100	27	43	5	57	89	101	97	50	58	113	10	32	66	30	67	19	76	31	82	93	54	52	8	7	42	1	63	95	112	98	33	18	103	15	20	111	34	51	62	47	24	38	22	75	41	2	45	80	102	56	28	91];
     labelNames = roiname(ids,1);
 
@@ -95,9 +95,9 @@ function makeStructConnectivity
 %{
     info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
     aV = niftiread(info); aV(:) = 0;
-    listing = dir(['atlas/flyemroi/*.nii.gz']);
+    listing = dir(['atlas/hemiroi/*.nii.gz']);
     for i=1:length(listing)
-        V = niftiread(['atlas/flyemroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+        V = niftiread(['atlas/hemiroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
         idx = find(V>0);
         if any(ismember(ids,i))
             aV(idx) = i;
@@ -133,7 +133,7 @@ function makeStructConnectivity
     %
 %{
     clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
-    fname = 'data/flyemroi_fw_connectlist.mat';
+    fname = 'data/hemiroi_fw_connectlist.mat';
     if exist(fname,'file')
         load(fname);
     else
@@ -141,9 +141,9 @@ function makeStructConnectivity
         aV = niftiread(info); aV(:) = 0;
         cnt = 1;
         roiIdxs = {};
-        listing = dir(['atlas/flyemroi/*.nii.gz']);
+        listing = dir(['atlas/hemiroi/*.nii.gz']);
         for i=1:length(listing)
-            V = niftiread(['atlas/flyemroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+            V = niftiread(['atlas/hemiroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
             idx = find(V>0);
             roiIdxs{i} = idx;
             if any(ismember(turnerIds,i))
@@ -158,7 +158,7 @@ function makeStructConnectivity
     end
     if scver <= SCVER
         % set same order of FlyEM hemibrain.
-        flyemname = ['data/flyemroi_connectlist.mat'];
+        flyemname = ['data/hemiroi_connectlist.mat'];
         cl = load(flyemname);
         primaryIds = cl.primaryIds;
         clear cl;

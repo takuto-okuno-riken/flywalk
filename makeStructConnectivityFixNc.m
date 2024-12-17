@@ -14,7 +14,7 @@ function makeStructConnectivityFixNc
     turnerIds = [103	107	20	111	59	68	65	78  49	51	62	106	87	47 100 24	27	43	38	5	57	22	89	101	97	75	50	58	41	113	10	2	32	66	45	30	67	19	76	31	82	93	54	52	8	7	80	1	102	63	95	56];
 
     % load matfile
-    fname = 'data/flyemroi_connectlist.mat'; scver = 1;
+    fname = 'data/hemiroi_connectlist.mat'; scver = 1;
     load(fname);
 
     if scver <= SCVER
@@ -22,9 +22,9 @@ function makeStructConnectivityFixNc
         aV = niftiread(info); aV(:) = 0;
         cnt = 1;
         roiIdxs = {};
-        listing = dir(['atlas/flyemroi/*.nii.gz']);
+        listing = dir(['atlas/hemiroi/*.nii.gz']);
         for i=1:length(listing)
-            V = niftiread(['atlas/flyemroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+            V = niftiread(['atlas/hemiroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
             idx = find(V>0);
             roiIdxs{i} = idx;
             if any(ismember(turnerIds,i))

@@ -42,8 +42,8 @@ function checkNinNout
         end
     end
 
-    t1 = load('data/flyemroi_hb0sr80_connectlist.mat');
-    t2 = load('data/flyemroi_connectlist.mat');
+    t1 = load('data/hemiroi_hb0sr80_connectlist.mat');
+    t2 = load('data/hemiroi_connectlist.mat');
     for p=1:2
         mat1 = t1.ncountMat;
         mat2 = t2.ncountMat;
@@ -127,8 +127,8 @@ function checkNinNout
         end
     end
 
-    t1 = load('data/flyemroi_fw0_connectlist.mat');
-    t2 = load('data/flyemroi_fw_connectlist.mat');
+    t1 = load('data/hemiroi_fw0_connectlist.mat');
+    t2 = load('data/hemiroi_fw_connectlist.mat');
     for p=2
         mat1 = t1.ncountMat;
         mat2 = t2.ncountMat;

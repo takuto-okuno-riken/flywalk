@@ -2,8 +2,13 @@
 
 function analyzeStructConnectivity
     % check SC post synapse cloud
-    % roitype: flyemroi primary
+    % roitype: hemiroi primary
     checkSCpostSynapse();
+
+    % check neural transmitter type in each neuron
+    % roitype: hemiroi primary
+    checkNeuralTransmitter();
+
 end
 
 function checkSCpostSynapse()
@@ -101,7 +106,7 @@ function checkSCpostSynapse()
     end
 
     % load SC & atlas
-    roitypes = {'flyemroi'};
+    roitypes = {'hemiroi'};
 
     for i = 1:length(roitypes)
         roitype = roitypes{i};
@@ -112,7 +117,7 @@ function checkSCpostSynapse()
         else
             roiIdxs = {};
             switch(roitype)
-            case 'flyemroi'
+            case 'hemiroi'
                 primaryIds = [107	16	59	68	65	78	4	49	106	87	100	27	43	5	57	89	101	97	50	58	113	10	32	66	30	67	19	76	31	82	93	54	52	8	7	42	1	63	95	112	98	33	18	103	15	20	111	34	51	62	47	24	38	22	75	41	2	45	80	102	56	28	91];
                 listing = dir(['atlas/' roitype '/*.nii.gz']);
                 for j=1:length(listing)
@@ -153,3 +158,31 @@ function checkSCpostSynapse()
     end
 end
 
+function checkNeuralTransmitter()
+    % read neuron info (id, type)
+    load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+%{
+    % read synapse info
+    Sid = []; postNidx = []; preNidx = [];
+    load('data/flywire783_synapse.mat');
+    score = (cleftScore >= rateTh);
+    Sidx = int32(1:length(Sid))';
+    valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
+%}
+    % make transmitter type of FlyWire (hemibrain)
+    rateThs = [130];
+    synThs = [0];
+    roitypes = {'hemiroi'};
+
+    for n = 1:length(roitypes)
+        for r=1:length(rateThs)
+            rth = rateThs(r);
+            for j=1:length(synThs)
+                sth = synThs(j);
+                nfile = ['results/cache-' roitypes{n} '_fw' num2str(sth) 'sr' num2str(rth) '_Nin_Nout.mat'];
+                load(nfile);
+
+            end
+        end
+    end
+end
