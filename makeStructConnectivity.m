@@ -4,6 +4,9 @@
 
 function makeStructConnectivity
     SCVER = 5;
+    fwSth = 130; % FlyWire score threshold
+    synTh = 0; % synapse count at one neuron threshold
+
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from neuprint connectivity list.
     % list data was acquired by c.fetch_roi_connectivity() of neuprint python api.
@@ -43,7 +46,7 @@ function makeStructConnectivity
         end
 %        niftiwrite(aV,'atlas/hemiFlyem52atlasCal.nii','Compressed',true);
 
-        [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'hemiroi');
+        [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, 'hemiroi');
 
         save([fname(1:end-4) '_cnids.mat'],'Cnids','-v7.3');
         scver = 3;
@@ -58,7 +61,7 @@ function makeStructConnectivity
             roiIdxs{i} = find(V>0);
             sz = size(V);
         end
-        [countMat3, sycountMat3] = makeSCcountMatrixLarge(roiIdxs, sz, 0.8, 0, 'hemiroi');
+        [countMat3, sycountMat3] = makeSCcountMatrixLarge(roiIdxs, sz, 0.8, synTh, 'hemiroi');
         dcm = ncountMat(:,:,2) - full(countMat3);
         disp(['ncountMat-countMat3 : '  num2str(sum(abs(dcm),'all'))]);
         dsm = sycountMat(:,:,2) - full(sycountMat3);
@@ -152,7 +155,7 @@ function makeStructConnectivity
             sz = size(V);
         end
 
-        [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, 0, 'hemiroi_fw');
+        [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, synTh, 'hemiroi_fw');
 
         countMat = []; weightMat = []; scver = 5;
     end
@@ -228,7 +231,7 @@ function makeStructConnectivity
             end
         end
 
-        [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'branson');
+        [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, 'branson');
         scver = 5;
     end
     if scver <= SCVER
@@ -265,7 +268,7 @@ function makeStructConnectivity
         primaryIds = 1:roimax;
         roiNum = length(primaryIds);
 
-        [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, 'branson7065');
+        [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, 'branson7065');
 
         countMat = []; weightMat = []; scver = 5;
     end
@@ -300,7 +303,7 @@ function makeStructConnectivity
         primaryIds = 1:roimax;
         roiNum = length(primaryIds);
 
-        [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, 0, 'wirebranson7065');
+        [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, synTh, 'wirebranson7065');
 
         countMat = []; weightMat = []; scver = 5;
     end
@@ -338,7 +341,7 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
 
             countMat = []; weightMat = []; scver = 5;
         end
@@ -385,7 +388,7 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
 
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, 0, lower(idstr));
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, synTh, lower(idstr));
 
             countMat = []; weightMat = []; scver = 5;
         end
@@ -431,7 +434,7 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
 
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
 
             countMat = []; weightMat = []; scver = 5;
         end
@@ -478,7 +481,7 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
 
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, 0, lower(idstr));
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, synTh, lower(idstr));
 
             countMat = []; weightMat = []; scver = 5;
         end
@@ -525,7 +528,7 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
     
             countMat = []; weightMat = [];
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
@@ -560,7 +563,7 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
     
             countMat = []; weightMat = [];
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum','scver','-v7.3');
@@ -600,7 +603,7 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, ['hemiroi' idstr]);
+            [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, ['hemiroi' idstr]);
     
             countMat = []; weightMat = []; scver = 5;
         end
@@ -636,7 +639,7 @@ function makeStructConnectivity
         primaryIds = 1:roimax;
         roiNum = length(primaryIds);
 
-        [countMat, sycountMat] = makeSCcountMatrixLarge(roiIdxs, sz, 0.8, 0, 'hemiRoiWhole');
+        [countMat, sycountMat] = makeSCcountMatrixLarge(roiIdxs, sz, 0.8, synTh, 'hemiRoiWhole');
         
         save([fname(1:end-4) '_cm.mat'],'countMat','-v7.3');
         save([fname(1:end-4) '_sm.mat'],'sycountMat','-v7.3');
@@ -676,9 +679,9 @@ function makeStructConnectivity
             roiNum = length(primaryIds);
 
             if k <= 1000
-                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
             else
-                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
                 nweightMat = []; outweightMat = []; syweightMat = [];
             end
 
@@ -728,9 +731,9 @@ function makeStructConnectivity
             roiNum = length(primaryIds);
     
             if k <= 1000
-                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
             else
-                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
                 nweightMat = []; outweightMat = []; syweightMat = [];
             end
 
@@ -780,9 +783,9 @@ function makeStructConnectivity
             roiNum = length(primaryIds);
 
             if k <= 1000
-                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, 0, lower(idstr));
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, synTh, lower(idstr));
             else
-                [ncountMat, sycountMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, 0, lower(idstr));
+                [ncountMat, sycountMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, synTh, lower(idstr));
                 nweightMat = []; outweightMat = []; syweightMat = [];
             end
 
@@ -831,9 +834,9 @@ function makeStructConnectivity
             roiNum = length(primaryIds);
 
             if k <= 1000
-                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
             else
-                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
                 nweightMat = []; outweightMat = []; syweightMat = [];
             end
 
@@ -861,9 +864,9 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from distance based k-means atlas by FlyWire EM data.
     %
-%{
-    for k=[20 30 50 100 200 300 500 1000]
-        idstr = ['hemiDistKm' num2str(k) '_fw'];
+%%{
+    for k=[20 30 50 100 200 300 500 1000 5000 10000]
+        idstr = ['hemiDistKm' num2str(k) '_fw' num2str(synTh) 'sr' num2str(fwSth)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
@@ -883,9 +886,9 @@ function makeStructConnectivity
             roiNum = length(primaryIds);
 
             if k <= 1000
-                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, 0, lower(idstr));
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, fwSth, synTh, lower(idstr));
             else
-                [ncountMat, sycountMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, 0, lower(idstr));
+                [ncountMat, sycountMat] = makeSCcountMatrixFw(roiIdxs, sz, fwSth, synTh, lower(idstr));
                 nweightMat = []; outweightMat = []; syweightMat = [];
             end
 
@@ -912,6 +915,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix of hemibrain primary ROI atlas (flyem hemibrain) by taking mean from FlyEM and FlyWire.
     %
+%{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiDistKm' num2str(k)];
         fname = ['data/' lower(idstr) '_avg_connectlist.mat'];
@@ -966,7 +970,7 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
 
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
 
             countMat = []; weightMat = []; scver = 5;
         end
@@ -992,7 +996,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from fully random voxel atlas.
     %
-
+%{
     for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiVrand' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
@@ -1014,9 +1018,9 @@ function makeStructConnectivity
             roiNum = length(primaryIds);
 
             if k <= 1000
-                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
             else
-                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, 0, lower(idstr));
+                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
                 nweightMat = []; outweightMat = []; syweightMat = [];
             end
 
@@ -1040,6 +1044,7 @@ function makeStructConnectivity
         figure; imagesc(log(CM),[8 10]); colorbar; title([idstr ' neurons matrix']);
         figure; imagesc(log(SM),[8 12]); colorbar; title([idstr ' synapses matrix']);
     end
+%}
 end
 
 function imagescLabel(mat, labelNames, titlestr)
