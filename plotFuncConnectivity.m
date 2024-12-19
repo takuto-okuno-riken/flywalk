@@ -46,7 +46,7 @@ function plotFuncConnectivity
 
     % check correlation result of large smoothing size (s0 to 300, roi 50 to 500, '' & poltcomp)
     % roitype: Cm,Dist
-    checkLargeSmoothingPoltcompByRoinum(vslabels);
+%    checkLargeSmoothingPoltcompByRoinum(vslabels);
 
     % check correlation result in each ROI num (roi 100 to 20000)
     % roitype: Cm,CmR1w1,Dist,Vand
@@ -682,9 +682,9 @@ function checkSmoothingNuisanceByRoinum(vslabels)
     roitypes = {{'hemiCmkm',''},{'hemiDistKm',''}};
     roitypelabels = {'Cm','Dist'};
     
-    ylabels = {}; R3 = []; A3 = [];
+    ylabels = {}; R3 = []; A3 = []; AA3 = [];
     for r = 1:length(roitypes)
-        Am = []; Rm = []; ii=1; xlabels = {};
+        Am = []; Rm = []; AA = []; ii=1; xlabels = {};
         for rr=1:length(roinums)
             for h=1:length(hpfTh)
                 hpfstr = '';
@@ -700,14 +700,14 @@ function checkSmoothingNuisanceByRoinum(vslabels)
                             A = nan(size(Am,1),100);
                             R = nan(size(Rm,1),1);
                         end
+                        AA = cat(3,AA,A);
                         Am = [Am,nanmean(A,2)];
                         Rm = [Rm,R(:)];
                     end
                 end
             end
         end
-
-        R3 = [R3;Rm]; A3 = [A3;Am]; ii=ii-1;
+        R3 = [R3;Rm]; A3 = [A3;Am]; AA3 = cat(1,AA3,AA); ii=ii-1;
         C = cell(24,1); C(1:24) = {[roitypelabels{r} ' ']};
         ylabels = [ylabels(:); strcat(C(:),vslabels(:))];
     end
@@ -731,6 +731,21 @@ function checkSmoothingNuisanceByRoinum(vslabels)
     I = getR3idx([7 9], [0 24]);
 %    figure; imagescLabel2(A3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC detection Full vs. Traced');
     figure; plot(A3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    for i=[7 9]
+        X = []; slabels = {};
+        for j=1:length(roitypelabels)
+            idx = [];
+            for k=1:length(roinums)
+                [m,kk] = max(A3(i+(j-1)*24,(k-1)*12+1:k*12),[],2);
+                idx = (k-1)*12+kk;
+                slabels = [slabels(:); [roitypelabels{j} ' ' xlabels{idx}]];
+                Y = squeeze(AA3(i+(j-1)*24,:,idx)); Y(Y==0)=nan; % ignore zero result
+                X = [X, Y'];
+            end
+        end
+        figure; plot(X); legend(slabels); title(['FC-SC detection results by threshold in (' num2str(i) ') ' vslabels{i}]); setlineColors(6);
+    end
 
     % both FC-SC correlation & detection (all)
     B = abs(R3) + abs(A3-0.5)*2;
