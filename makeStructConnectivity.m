@@ -896,7 +896,8 @@ function makeStructConnectivity
         end
         if scver <= SCVER
             % set same order of FlyEM hemibrain.
-            flyemname = ['data/' lower(idstr(1:end-3)) '_connectlist.mat'];
+            str = split(idstr,'_');
+            flyemname = ['data/' lower(str{1}) '_connectlist.mat'];
             cl = load(flyemname);
             primaryIds = cl.primaryIds;
             clear cl;
