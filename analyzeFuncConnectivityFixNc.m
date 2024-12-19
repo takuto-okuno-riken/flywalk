@@ -99,11 +99,8 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 pftype = [smooth{k} hpfstr nuisance{n} preproc roitype];
 
                 % load ROI time-series (from extractROItimeseries.m)
-                if strcmp(pftype(end-2:end),'_fw')
-                    load(['results/ts/' pftype(1:end-3) '-ts.mat']); % FlyWire SC calculation.
-                else
-                    load(['results/ts/' pftype '-ts.mat']);
-                end
+                str = split(pftype,'_');
+                load(['results/ts/' str{1} '-ts.mat']); % FlyWire SC calculation.
     
                 CM = {};
                 for i=1:length(sbjids)
