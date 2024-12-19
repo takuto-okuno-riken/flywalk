@@ -30,27 +30,27 @@ function plotFuncConnectivity
 
     % check smoothing result around 50 ROIs (s0 to s80)
     % roitype: FlyEM,FlyEMFw,Branson,BransonFw,Cm,CmFw,CmR1w1,Dist,Rand,Vrand
-%    checkSmoothingResult50(vslabels);
+    checkSmoothingResult50(vslabels);
 
     % check correlation result in each ROI num (s0 to s80, roi 20 to 1000)
     % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
-%    checkSmoothingByRoinum(vslabels);
+    checkSmoothingByRoinum(vslabels);
 
     % check nuisance result round 50 ROIs (all nuisance)
     % roitype: FlyEM,FlyEmFw,Branson,Cm,CmR1w1,Dist,Rand,Vrand
-%    checkNuisanceResult50(vslabels);
+    checkNuisanceResult50(vslabels);
 
     % check correlation result in each ROI num (all nuisance, roi 20 to 1000)
     % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
-%    checkNuisanceByRoinum(vslabels);
+    checkNuisanceByRoinum(vslabels);
 
     % check correlation result of large smoothing size (s0 to 300, roi 50 to 500, '' & poltcomp)
     % roitype: Cm,Dist
-%    checkLargeSmoothingPoltcompByRoinum(vslabels);
+    checkLargeSmoothingPoltcompByRoinum(vslabels);
 
     % check correlation result in each ROI num (roi 100 to 20000)
     % roitype: Cm,CmR1w1,Dist,Vand
-%    checkNeuronVsSynapseByRoinum(vslabels);
+    checkNeuronVsSynapseByRoinum(vslabels);
 
     % check correlation result in each ROI num (s30,80,150,230,300, roi 50 to 10000, '' & poltcomp)
     % because LargeSmoothing showed better result around s230, this function extended range.
@@ -143,7 +143,7 @@ function checkSmoothingResult50(vslabels)
     hpfTh = [0]; % high-pass filter threshold
     smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
     nuisance = {''};
-    roitypes = {'hemiroi','hemiroi_fw','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
+    roitypes = {'hemiroi','hemiroi_fw0sr50','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
     roitypelabels = {'FlyEM','FlyEMFw','Branson','Cm','CmR1w1','Dist','Rand','Vrand'};
 
     ylabels = {}; R3 = []; A3 = []; AA3 = [];
@@ -224,7 +224,7 @@ function checkSmoothNuisanceFlyWireResult50(vslabels)
     hpfTh = [0]; % high-pass filter threshold
     smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
     nuisance = {''};
-    roitypes = {'hemiroi','hemiroi_fw','hemiDistKm50','hemiDistKm50_fw','hemiDistKm50_avg'};
+    roitypes = {'hemiroi','hemiroi_fw0sr50','hemiDistKm50','hemiDistKm50_fw0sr50','hemiDistKm50_avg'};
     roitypelabels = {'FlyEM','FlyEMFw','DistKm50','DistKm50Fw','DistKm50Avg'};
 
     ylabels = {}; R3 = []; A3 = []; AA3 = [];
@@ -301,7 +301,7 @@ function checkSmoothingFlyWireByRoinum(vslabels)
     smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
     nuisance = {''};
     roinums = [20 30 50 100 200 300 500 1000];
-    roitypes = {{'hemiCmkm',''},{'hemiCmkm','_fw'},{'hemiBranson7065km',''},{'hemiBranson7065km','_fw'},{'hemiDistKm',''},{'hemiDistKm','_fw'}};
+    roitypes = {{'hemiCmkm',''},{'hemiCmkm','_fw0sr50'},{'hemiBranson7065km',''},{'hemiBranson7065km','_fw0sr50'},{'hemiDistKm',''},{'hemiDistKm','_fw0sr50'}};
     roitypelabels = {'Cm','CmFw','Branson','BransonFw','Dist','DistFw'};
 
     ylabels = {}; R3 = []; A3 = [];
@@ -376,7 +376,7 @@ function checkNuisanceResult50(vslabels)
         '24hmacomp','24hmgmacomp','24hmgmgsacomp','24hmtcomp','24hmtacomp', ... %27
         'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
-    roitypes = {'hemiroi','hemiroi_fw','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
+    roitypes = {'hemiroi','hemiroi_fw0sr50','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
     roitypelabels = {'FlyEM','FlyEmFw','Branson','Cm','CmR1w1','Dist','Rand','Vrand',};
 
     ylabels = {}; R3 = []; A3 = [];
