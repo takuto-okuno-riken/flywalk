@@ -30,9 +30,10 @@ function analyzeFuncConnectivityFixNc
     % ROI name
 %    roitypes = {'hemiroif'};  % flyem ROI full
 %    roitypes = {'hemiroi','bransonhemi'}; % flyem ROI (Turner compatible)
+%    roitypes = {'hemiroi_hb0sr80','hemiroi_fw0','hemiroi_avg0'}; % flyem ROI (Primary, FlyEM vs. FlyWire vs. Average)
 %    roitypes = {'hemiBranson7065'};
 %    roitypes = {'hemiBranson7065km20','hemiBranson7065km30','hemiBranson7065km50','hemiBranson7065km100','hemiBranson7065km200', ...
-%        'hemiBranson7065km300','hemiBranson7065km500','hemiBranson7065km1000'};
+%        'hemiBranson7065km300','hemiBranson7065km500','hemiBranson7065km300'};
 %    roitypes = {'hemiCmkm20','hemiCmkm30','hemiCmkm50','hemiCmkm100','hemiCmkm200', ...
 %        'hemiCmkm300','hemiCmkm500','hemiCmkm1000'};
 %    roitypes = {'hemiCmkm20r1w1','hemiCmkm30r1w1','hemiCmkm50r1w1','hemiCmkm100r1w1','hemiCmkm200r1w1', ...
@@ -51,16 +52,20 @@ function analyzeFuncConnectivityFixNc
 %    roitypes = {'hemiRoi1','hemiRoi5','hemiRoi7','hemiRoi27','hemiRoi30','hemiRoi32','hemiRoi43','hemiRoi52', ...
 %        'hemiRoi54','hemiRoi57','hemiRoi59','hemiRoi63','hemiRoi65','hemiRoi67','hemiRoi78','hemiRoi82', ...
 %        'hemiRoi89','hemiRoi93','hemiRoi95','hemiRoi100','hemiRoi101','hemiRoi106','hemiRoi113'};
-%    roitypes = {'hemiroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
+    roitypes = {'hemiroi','hemiroi_fw0sr50','hemiBranson7065km50','hemiBranson7065km50_fw0sr50','hemiCmkm50','hemiCmkm50_fw0sr50', ...
+        'hemiCmkm50r1w1','hemiDistKm50','hemiDistKm50_fw0sr50','hemiRand50','hemiVrand50'};
 %    roitypes = {'hemiBranson7065km30','hemiCmkm30','hemiCmkm30r1w1','hemiDistKm30','hemiRand30','hemiVrand30'};
-    roitypes = {'hemiCmkm20000','hemiCmkm20000r1w1','hemiDistKm20000','hemiVrand20000'};
-%    roitypes = {'hemiCmkm50','hemiDistKm50','hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500'}; % for large smoothing size & no nuisanse, poltcomp
-%    roitypes = {'hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500','hemiCmkm1000','hemiDistKm1000','hemiCmkm5000','hemiDistKm5000','hemiCmkm10000','hemiDistKm10000'};  % s30 & s80, '' & poltcomp 
+%    roitypes = {'hemiCmkm20000','hemiCmkm20000r1w1','hemiDistKm20000','hemiVrand20000'};
+%    roitypes = {'hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500','hemiCmkm1000','hemiDistKm1000'};
+%    roitypes = {'hemiCmkm5000','hemiDistKm5000','hemiCmkm10000','hemiDistKm10000'};
     % FlyEM vs. FlyWire in each roi num by smoothing 0 to 80 (no nuisanse)
-%    roitypes = {'hemiBranson7065km20_fw','hemiBranson7065km30_fw','hemiBranson7065km50_fw','hemiBranson7065km100_fw','hemiBranson7065km200_fw','hemiBranson7065km300_fw','hemiBranson7065km500_fw', ...
-%        'hemiCmkm20_fw','hemiCmkm30_fw','hemiCmkm50_fw','hemiCmkm100_fw','hemiCmkm200_fw','hemiCmkm300_fw','hemiCmkm500_fw',...
-%        'hemiDistKm20_fw','hemiDistKm30_fw','hemiDistKm50_fw','hemiDistKm100_fw','hemiDistKm200_fw','hemiDistKm300_fw','hemiDistKm500_fw'};
-%    roitypes = {'hemiroi','hemiroi_fw','hemiDistKm50','hemiDistKm50_fw'}; % for all nuisanse & s30 & s80 % for s0 to s80 (no nuisanse)
+    roitypes = {'hemiBranson7065km20_fw0sr50','hemiBranson7065km30_fw0sr50','hemiBranson7065km50_fw0sr50','hemiBranson7065km100_fw0sr50','hemiBranson7065km200_fw0sr50','hemiBranson7065km300_fw0sr50','hemiBranson7065km500_fw0sr50','hemiBranson7065km1000_fw0sr50', ...
+        'hemiCmkm20_fw0sr50','hemiCmkm30_fw0sr50','hemiCmkm50_fw0sr50','hemiCmkm100_fw0sr50','hemiCmkm200_fw0sr50','hemiCmkm300_fw0sr50','hemiCmkm500_fw0sr50', 'hemiCmkm1000_fw0sr50',...
+        'hemiDistKm20_fw0sr50','hemiDistKm30_fw0sr50','hemiDistKm50_fw0sr50','hemiDistKm100_fw0sr50','hemiDistKm200_fw0sr50','hemiDistKm300_fw0sr50','hemiDistKm500_fw0sr50','hemiDistKm1000_fw0sr50'};
+%    roitypes = {'hemiCmkm50','hemiDistKm50','hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500'}; % for large smoothing size & no nuisanse, poltcomp
+%    roitypes = {'hemiroi','hemiroi_fw0sr50','hemiDistKm50','hemiDistKm50_fw0sr50','hemiDistKm50_avg'}; % for all nuisanse & s30, s80 % for s0 to s80 (no nuisanse)
+%    roitypes = {'hemiroi_hb0sr50','hemiroi_hb0sr60','hemiroi_hb0sr70','hemiroi_hb0sr80','hemiroi_hb0sr90', ... % for s30 & s80, '' & poltcomp
+%            'hemiroi_fw0sr50','hemiroi_fw0sr70','hemiroi_fw0sr100','hemiroi_fw0sr130','hemiroi_fw0sr140','hemiroi_fw0sr150'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

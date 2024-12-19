@@ -373,7 +373,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 k-means atlas by FlyWire EM data
     %
-%{
+%%{
     for k=[20 30 50 100 200 300 500 1000] % :TODO
         idstr = ['hemiBranson7065km' num2str(k) '_fw'  num2str(synTh) 'sr' num2str(fwSth)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
@@ -400,7 +400,8 @@ function makeStructConnectivity
         end
         if scver <= SCVER
             % set same order of FlyEM hemibrain.
-            flyemname = ['data/' lower(idstr(1:end-3)) '_connectlist.mat'];
+            str = split(idstr,'_');
+            flyemname = ['data/' lower(str{1}) '_connectlist.mat'];
             cl = load(flyemname);
             primaryIds = cl.primaryIds;
             clear cl;
