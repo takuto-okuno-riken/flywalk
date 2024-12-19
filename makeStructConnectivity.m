@@ -4,7 +4,8 @@
 
 function makeStructConnectivity
     SCVER = 5;
-    fwSth = 130; % FlyWire score threshold
+    hbSth = 80; % FlyEM hemibrain synapse threshold
+    fwSth = 130; % FlyWire synapse score threshold
     synTh = 0; % synapse count at one neuron threshold
 
     % ---------------------------------------------------------------------
@@ -17,7 +18,8 @@ function makeStructConnectivity
     turnerIds = [103	107	20	111	59	68	65	78  49	51	62	106	87	47 100 24	27	43	38	5	57	22	89	101	97	75	50	58	41	113	10	2	32	66	45	30	67	19	76	31	82	93	54	52	8	7	80	1	102	63	95	56];
 
     % load matfile
-    fname = 'data/hemiroi_connectlist.mat'; scver = 1;
+    idstr = 'hemiroi';
+    fname = ['data/' lower(idstr) '_connectlist.mat']; scver = 1;
     load(fname);
 
     %
@@ -46,7 +48,7 @@ function makeStructConnectivity
         end
 %        niftiwrite(aV,'atlas/hemiFlyem52atlasCal.nii','Compressed',true);
 
-        [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, 'hemiroi');
+        [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
 
         save([fname(1:end-4) '_cnids.mat'],'Cnids','-v7.3');
         scver = 3;
@@ -61,7 +63,7 @@ function makeStructConnectivity
             roiIdxs{i} = find(V>0);
             sz = size(V);
         end
-        [countMat3, sycountMat3] = makeSCcountMatrixLarge(roiIdxs, sz, 0.8, synTh, 'hemiroi');
+        [countMat3, sycountMat3] = makeSCcountMatrixLarge(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
         dcm = ncountMat(:,:,2) - full(countMat3);
         disp(['ncountMat-countMat3 : '  num2str(sum(abs(dcm),'all'))]);
         dsm = sycountMat(:,:,2) - full(sycountMat3);
@@ -136,7 +138,8 @@ function makeStructConnectivity
     %
 %{
     clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
-    fname = 'data/hemiroi_fw_connectlist.mat';
+    idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth)];
+    fname = ['data/' lower(idstr) '_connectlist.mat'];
     if exist(fname,'file')
         load(fname);
     else
@@ -155,7 +158,7 @@ function makeStructConnectivity
             sz = size(V);
         end
 
-        [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, synTh, 'hemiroi_fw');
+        [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
 
         countMat = []; weightMat = []; scver = 5;
     end
@@ -180,7 +183,8 @@ function makeStructConnectivity
     % branson matrix csv was acquired from Turner et al. (2021).
 %{
     clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
-    fname = 'data/bransonhemi_connectlist.mat';
+    idstr = 'bransonhemi';
+    fname = ['data/' lower(idstr) '_connectlist.mat'];
     if exist(fname,'file')
         load(fname);
     else
@@ -231,7 +235,7 @@ function makeStructConnectivity
             end
         end
 
-        [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, 'branson');
+        [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
         scver = 5;
     end
     if scver <= SCVER
@@ -251,7 +255,8 @@ function makeStructConnectivity
     % make structural connectivity matrix from branson 7065 atlas.
     %
 %{
-    fname = 'data/hemibranson7065_connectlist.mat';
+    idstr = 'hemibranson7065';
+    fname = ['data/' lower(idstr) '_connectlist.mat'];
     clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
     if exist(fname,'file')
         load(fname);
@@ -268,7 +273,7 @@ function makeStructConnectivity
         primaryIds = 1:roimax;
         roiNum = length(primaryIds);
 
-        [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, 'branson7065');
+        [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
 
         countMat = []; weightMat = []; scver = 5;
     end
@@ -286,7 +291,8 @@ function makeStructConnectivity
     % make structural connectivity matrix from branson 7065 atlas.
     %
 %{
-    fname = 'data/wirebranson7065_connectlist.mat';
+    idstr = 'wirebranson7065';
+    fname = ['data/' idstr '_connectlist.mat'];
     clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
     if exist(fname,'file')
         load(fname);
@@ -303,7 +309,7 @@ function makeStructConnectivity
         primaryIds = 1:roimax;
         roiNum = length(primaryIds);
 
-        [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, synTh, 'wirebranson7065');
+        [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrixFw(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
 
         countMat = []; weightMat = []; scver = 5;
     end
@@ -314,8 +320,8 @@ function makeStructConnectivity
 
     ids = primaryIds;
     CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
-    figure; imagesc(log(CM)); colorbar; title(['wirebranson7065 neurons matrix']);
-    figure; imagesc(log(SM)); colorbar; title(['wirebranson7065 synapses matrix']);
+    figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
+    figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 k-means atlas.
@@ -341,7 +347,7 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
 
             countMat = []; weightMat = []; scver = 5;
         end
@@ -368,8 +374,8 @@ function makeStructConnectivity
     % make structural connectivity matrix from branson 7065 k-means atlas by FlyWire EM data
     %
 %{
-    for k=[20 30 50 100 200 300 500 1000]
-        idstr = ['hemiBranson7065km' num2str(k) '_fw'];
+    for k=[20 30 50 100 200 300 500 1000] % :TODO
+        idstr = ['hemiBranson7065km' num2str(k) '_fw'  num2str(synTh) 'sr' num2str(fwSth)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
@@ -388,7 +394,7 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
 
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, synTh, lower(idstr));
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
 
             countMat = []; weightMat = []; scver = 5;
         end
@@ -434,7 +440,7 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
 
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
 
             countMat = []; weightMat = []; scver = 5;
         end
@@ -461,8 +467,8 @@ function makeStructConnectivity
     % make structural connectivity matrix from branson 7065 k-means atlas (flyWire based clustering) by FlyWire EM data
     %
 %{
-    for k=[20 30 50 100 200 300 500 1000]
-        idstr = ['wireBranson7065km' num2str(k) '_fw'];
+    for k=[20 30 50 100 200 300 500 1000] % TODO
+        idstr = ['wireBranson7065km' num2str(k) '_fw'  num2str(synTh) 'sr' num2str(fwSth)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
@@ -481,7 +487,7 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
 
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, synTh, lower(idstr));
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
 
             countMat = []; weightMat = []; scver = 5;
         end
@@ -516,7 +522,7 @@ function makeStructConnectivity
         if exist(fname,'file')
             load(fname);
         else
-            atlV = niftiread(['atlas/' idstr 'atlasCal.nii.gz']);
+            atlV = niftiread(['atlas/' lower(idstr) 'atlasCal.nii.gz']);
             roimax = max(atlV(:));
             sz = size(atlV);
     
@@ -528,7 +534,7 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
+            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
     
             countMat = []; weightMat = [];
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
@@ -551,7 +557,7 @@ function makeStructConnectivity
         if exist(fname,'file')
             load(fname);
         else
-            atlV = niftiread(['atlas/' idstr 'atlasCal.nii.gz']);
+            atlV = niftiread(['atlas/' lower(idstr) 'atlasCal.nii.gz']);
             roimax = max(atlV(:));
             sz = size(atlV);
     
@@ -563,7 +569,7 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
+            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
     
             countMat = []; weightMat = [];
             save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum','scver','-v7.3');
@@ -583,15 +589,15 @@ function makeStructConnectivity
     roiids = {1	5	7	27	30	32	43	52	54	57	59	63	65	67	78	82	89	93	95	100	101	106	113};
 
     for k = 1:length(roiids)
-        idstr = num2str(roiids{k}(1));
+        idstr = ['hemiRoi' num2str(roiids{k}(1))];
         for j=2:length(roiids{k}), idstr=[idstr '-' num2str(roiids{k}(j))]; end
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
-        fname = ['data/hemiroi' idstr '_connectlist.mat'];
+        fname = ['data/hemiroi' lower(idstr) '_connectlist.mat'];
         if exist(fname,'file')
             load(fname);
         else
-            atlV = niftiread(['atlas/hemiRoi' idstr 'atlasCal.nii.gz']);
+            atlV = niftiread(['atlas/' idstr 'atlasCal.nii.gz']);
             roimax = max(atlV(:));
             sz = size(atlV);
     
@@ -603,7 +609,7 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, ['hemiroi' idstr]);
+            [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
     
             countMat = []; weightMat = []; scver = 5;
         end
@@ -622,12 +628,13 @@ function makeStructConnectivity
     % make structural connectivity matrix from synapse list for all EM ROI voxels (except fibers).
 %{
     clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
-    fname = ['data/hemiroiwhole_connectlist.mat'];
+    idstr = 'hemiRoiWhole';
+    fname = ['data/' idstr '_connectlist.mat'];
     if exist([fname(1:end-4) '_cm.mat'],'file')
         load([fname(1:end-4) '_cm.mat']);
         load([fname(1:end-4) '_sm.mat']);
     else
-        atlV = niftiread(['atlas/hemiRoiWholeatlasCal.nii.gz']);
+        atlV = niftiread(['atlas/' idstr 'atlasCal.nii.gz']);
         roimax = max(atlV(:));
         sz = size(atlV);
 
@@ -639,7 +646,7 @@ function makeStructConnectivity
         primaryIds = 1:roimax;
         roiNum = length(primaryIds);
 
-        [countMat, sycountMat] = makeSCcountMatrixLarge(roiIdxs, sz, 0.8, synTh, 'hemiRoiWhole');
+        [countMat, sycountMat] = makeSCcountMatrixLarge(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
         
         save([fname(1:end-4) '_cm.mat'],'countMat','-v7.3');
         save([fname(1:end-4) '_sm.mat'],'sycountMat','-v7.3');
@@ -649,7 +656,7 @@ function makeStructConnectivity
     else
         roiNum = size(sycountMat,1);
         primaryIds = 1:roiNum;
-        [weightMat] = makeSCweightMatrixLarge(sycountMat, 'hemiRoiWhole');
+        [weightMat] = makeSCweightMatrixLarge(sycountMat, lower(idstr));
 
         save([fname(1:end-4) '_wm.mat'],'weightMat','primaryIds','roiNum','scver','-v7.3');
     end
@@ -679,9 +686,9 @@ function makeStructConnectivity
             roiNum = length(primaryIds);
 
             if k <= 1000
-                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
             else
-                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
+                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
                 nweightMat = []; outweightMat = []; syweightMat = [];
             end
 
@@ -731,9 +738,9 @@ function makeStructConnectivity
             roiNum = length(primaryIds);
     
             if k <= 1000
-                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
             else
-                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
+                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
                 nweightMat = []; outweightMat = []; syweightMat = [];
             end
 
@@ -763,7 +770,7 @@ function makeStructConnectivity
     %
 %{
     for k=[20 30 50 100 200 300 500 1000]
-        idstr = ['hemiCmkm' num2str(k) '_fw'];
+        idstr = ['hemiCmkm' num2str(k) '_fw'  num2str(synTh) 'sr' num2str(fwSth)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
@@ -783,9 +790,9 @@ function makeStructConnectivity
             roiNum = length(primaryIds);
 
             if k <= 1000
-                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, synTh, lower(idstr));
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
             else
-                [ncountMat, sycountMat] = makeSCcountMatrixFw(roiIdxs, sz, 0.8, synTh, lower(idstr));
+                [ncountMat, sycountMat] = makeSCcountMatrixFw(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
                 nweightMat = []; outweightMat = []; syweightMat = [];
             end
 
@@ -834,9 +841,9 @@ function makeStructConnectivity
             roiNum = length(primaryIds);
 
             if k <= 1000
-                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
             else
-                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
+                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
                 nweightMat = []; outweightMat = []; syweightMat = [];
             end
 
@@ -925,7 +932,7 @@ function makeStructConnectivity
         else
             t1name = ['data/' lower(idstr) '_connectlist.mat'];
             t1 = load(t1name);
-            t2name = ['data/' lower(idstr) '_fw_connectlist.mat'];
+            t2name = ['data/' lower(idstr) '_fw'  num2str(synTh) 'sr' num2str(fwSth) '_connectlist.mat'];
             t2 = load(t2name);
             ncountMat = (t1.ncountMat + t2.ncountMat) / 2;
             nweightMat = (t1.nweightMat + t2.nweightMat) / 2;
@@ -971,7 +978,7 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
 
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
 
             countMat = []; weightMat = []; scver = 5;
         end
@@ -1019,9 +1026,9 @@ function makeStructConnectivity
             roiNum = length(primaryIds);
 
             if k <= 1000
-                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
             else
-                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, 0.8, synTh, lower(idstr));
+                [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
                 nweightMat = []; outweightMat = []; syweightMat = [];
             end
 
