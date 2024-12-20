@@ -13,8 +13,8 @@ function extractROItimeseries
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
 %    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
 %    smooth = {'s90', 's100', 's110', 's120', 's130', 's140', 's150', 's160', 's170', 's180', 's190', 's200', 's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
-%    smooth = {'', 's30', 's80', 's150','s230','s300'};
-    smooth = {''};
+    smooth = {'', 's30', 's80', 's150','s230','s300'};
+%    smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
         '6hmacomp','6hmgmacomp','6hmgmgsacomp','6hmtcomp','6hmtacomp', ... %22
@@ -52,9 +52,9 @@ function extractROItimeseries
 %        'hemiRoi89','hemiRoi93','hemiRoi95','hemiRoi100','hemiRoi101','hemiRoi106','hemiRoi113'};
 %    roitypes = {'hemiroi','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
 %    roitypes = {'hemiBranson7065km200','hemiCmkm200','hemiCmkm200r1w1','hemiDistKm200','hemiRand200','hemiVrand200'};
-    roitypes = {'hemiCmkm5000','hemiDistKm5000','hemiCmkm10000','hemiDistKm10000','hemiCmkm20000','hemiDistKm20000'};
+%    roitypes = {'hemiCmkm5000','hemiDistKm5000','hemiCmkm10000','hemiDistKm10000','hemiCmkm20000','hemiDistKm20000'};
 %    roitypes = {'hemiCmkm50','hemiDistKm50','hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500'}; % for large smoothing size & no nuisanse, poltcomp
-%    roitypes = {'hemiroi','hemiDistKm50'}; % for all nuisanse & s30, s80
+    roitypes = {'hemiRoi68-59-87-106-50-27-54'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

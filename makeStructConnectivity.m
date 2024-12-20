@@ -71,8 +71,8 @@ function makeStructConnectivity
 
         [weightMat3] = makeSCweightMatrixLarge(sycountMat3, 'hemiroi');
         swm = single(full(weightMat3) ./ sycountMat(:,:,2)); swm(isnan(swm)) = 0;
-        dwm = weightMat2(:,:,2) - sycountMat(:,:,2) .* swm;
-        disp(['weightMat2-weightMat3 : '  num2str(sum(abs(dwm),'all'))]);
+        dwm = nweightMat(:,:,2) - sycountMat(:,:,2) .* swm;
+        disp(['nweightMat-weightMat3 : '  num2str(sum(abs(dwm),'all'))]);
 %}
 
     % find primary ROI ids from list 
@@ -130,7 +130,7 @@ function makeStructConnectivity
     CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
     figure; imagesc(log10(CM)); colorbar; title('hemibrain neurons matrix');
     figure; imagesc(log10(SM)); colorbar; title('hemibrain synapses matrix');
-%    CM2b = ncountMat(ids,ids,2); SMb = sycountMat(ids,ids,2); WM2b = weightMat2(ids,ids,2); WMob = outweightMat(ids,ids,2);
+%    CM2b = ncountMat(ids,ids,2); SMb = sycountMat(ids,ids,2); WM2b = nweightMat(ids,ids,2); WMob = outweightMat(ids,ids,2);
 %    WM3b = WM2b ./ SMb; WM3b(SMb==0) = 0; % pure ROI-input neuron connection weight
 %}
     % ---------------------------------------------------------------------
@@ -235,7 +235,7 @@ function makeStructConnectivity
             end
         end
 
-        [countMat2, sycountMat, weightMat2, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
+        [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
         scver = 5;
     end
     if scver <= SCVER
@@ -373,7 +373,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 k-means atlas by FlyWire EM data
     %
-%%{
+%{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiBranson7065km' num2str(k) '_fw'  num2str(synTh) 'sr' num2str(fwSth)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
@@ -535,14 +535,14 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
+            [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
     
             countMat = []; weightMat = [];
-            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum');
+            save(fname,'countMat','weightMat','ncountMat','sycountMat','nweightMat','outweightMat','primaryIds','roiNum');
         end
     
         ids = primaryIds;
-        CM2 = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
+        CM2 = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
         figure; imagesc(log(CM2)); colorbar; title([idstr ' neurons 2 matrix']);
         figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
     end
@@ -570,14 +570,14 @@ function makeStructConnectivity
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
     
-            [countMat2, sycountMat, weightMat2, outweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
+            [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
     
             countMat = []; weightMat = [];
-            save(fname,'countMat','weightMat','countMat2','sycountMat','weightMat2','outweightMat','primaryIds','roiNum','scver','-v7.3');
+            save(fname,'countMat','weightMat','ncountMat','sycountMat','nweightMat','outweightMat','primaryIds','roiNum','scver','-v7.3');
         end
     
         ids = primaryIds;
-        CM2 = countMat2(ids,ids); SM = sycountMat(ids,ids);
+        CM2 = ncountMat(ids,ids); SM = sycountMat(ids,ids);
         figure; imagesc(log(CM2)); colorbar; title([idstr ' neurons 2 matrix']);
         figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
     end
@@ -585,9 +585,10 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from synapse list for fanshape body (FB) and others.
     % extract voxel ids from fanshape-body (FB), eliptic-body (EB), and other atlas.
-%{
+%%{
+    roiids = {[68 59 87 106 50 27 54]}; % a'L(R)-aL(R)-b'L(R)-bL(R)-gL(R)-CA(R)-PED(R)
 %    roiids = {[101],[57],[57,51],[51,62,20,111,100]}; % FB, EB, EB-bL(L), bL-b'L-aL-a'L-BU(L)
-    roiids = {1	5	7	27	30	32	43	52	54	57	59	63	65	67	78	82	89	93	95	100	101	106	113};
+%    roiids = {1	5	7	27	30	32	43	52	54	57	59	63	65	67	78	82	89	93	95	100	101	106	113};
 
     for k = 1:length(roiids)
         idstr = ['hemiRoi' num2str(roiids{k}(1))];
@@ -614,13 +615,21 @@ function makeStructConnectivity
     
             countMat = []; weightMat = []; scver = 5;
         end
-        if scver <= SCVER
+        if true %scver <= SCVER
+            % reorder by tree clustering
+            cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
+            eucD = pdist(cm2,'euclidean');
+            Z = linkage(eucD,'ward');
+            [H,T,outperm] = dendrogram(Z,roiNum);
+            primaryIds = outperm; % use default leaf order
+        end
+        if true %scver <= SCVER
             scver = scver + 0.1;
             save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
         end
 
         ids = primaryIds;
-        CM = countMat2(ids,ids,2); SM = sycountMat(ids,ids,2);
+        CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
         figure; imagesc(log(CM)); colorbar; title(['hemiroi ' idstr ' neurons 2 matrix']);
         figure; imagesc(log(SM)); colorbar; title(['hemiroi ' idstr ' synapses matrix']);
     end

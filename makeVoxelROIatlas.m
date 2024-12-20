@@ -143,9 +143,10 @@ function makeVoxelROIatlas
     disp([atlas ' ROI count=' num2str(max(V(:)))]);
 
     % make neuropil specific voxel type atlas
-%{
+%%{
+    roiids = {[68 59 87 106 50 27 54]}; % a'L(R)-aL(R)-b'L(R)-bL(R)-gL(R)-CA(R)-PED(R)
 %    roiids = {[101],[57],[57,51],[51,62,20,111,100]}; % FB, EB, EB-bL(L),bL-b'L-aL-a'L-BU(L)
-    roiids = {1	5	7	27	30	32	43	52	54	57	59	63	65	67	78	82	89	93	95	100	101	106	113};
+%    roiids = {1	5	7	27	30	32	43	52	54	57	59	63	65	67	78	82	89	93	95	100	101	106	113};
     for i=1:length(roiids)
         idstr = num2str(roiids{i}(1));
         for j=2:length(roiids{i}), idstr=[idstr '-' num2str(roiids{i}(j))]; end
