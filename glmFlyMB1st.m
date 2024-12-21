@@ -8,8 +8,8 @@ function glmFlyMB1st
 
     % output time-series (smoothing, highpass filter, nuisance removal)
     hpfTh = 0; % high-pass filter threshold
-    smooth = 's40';
-    nuisance = '';
+    smooth = 's230';
+    nuisance = 'poltcomp';
 
     TR = 1 / 1.879714;
     tuM = 8; % tukey window size
@@ -34,9 +34,20 @@ function glmFlyMB1st
     maskinfo = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
     maskV = niftiread(maskinfo);
 
+    % for Nuisance Signal Regression
+    csfV = []; % fly doesn't have csf
+    wmF = 'template/jrc2018f_IBN_fiber_bundle_mirror_maskCal_invFDACal.nii.gz';
+    wminfo = niftiinfo(wmF);
+    wmV = niftiread(wminfo); % mask should have same transform with 4D nifti data
+    gsF = 'template/thresholded_FDACal_mask.nii.gz';
+    gsinfo = niftiinfo(gsF);
+    gsV = niftiread(gsinfo); % mask should have same transform with 4D nifti data
+    gsV(gsV>=1) = 1;
+    gsV(gsV<1) = 0;
+
     % set pool num. this calculation takes time. we need big pool num.
     delete(gcp('nocreate')); % shutdown pools
-    parpool(32);
+    parpool(18);
 
     % read calcium image nii files
     listing = dir(['registered/' preproc '*green_FD_Warped.nii.gz']);
@@ -59,7 +70,7 @@ function glmFlyMB1st
 
         if ~isempty(smooth) > 0 && strcmp(smooth(1),'s')
             % gaussian filter
-            sz = str2double(smooth(2:3));
+            sz = str2double(smooth(2:end));
             FWHM = [(sz/10)/(2.45/2.28) sz/10 (sz/10)/(3.715/2.28)]; % voxel size;
             sigma = FWHM / sqrt(8*log(2));
             filterSize = 2*ceil(2*sigma)+1;
@@ -85,16 +96,38 @@ function glmFlyMB1st
             Z = highpass(Z,hpfTh,1/TR);
         end
         % apply nuisance removal
-        Xn = [];
+        Xn = []; nuistr = '';
         if ~isempty(nuisance)
-%{
-            % get Nuisance time-series (CSF, WM, Global Signal, Global Mean)
-            Xn = getNuisanceMeanTimeSeries(V, csfV, wmV, gsV);
-            % get Nuisance time-series (Global Mean, CSF comps, WM comps)
-            Sd = getNuisanceMeanTimeSeries(V, [], [], []);
-            aComp = getNuisanceaCompCor(V, csfV, wmV, Sd);
-            Xn = [Sd, aComp];
-%}
+            hm = 0;
+            if length(nuisance) >= 3 && strcmp(nuisance(1:3), '6hm')
+                hm = 6;
+                nuistr = nuisance(4:end);
+            elseif length(nuisance) >= 4 && strcmp(nuisance(1:4), '24hm')
+                hm = 24;
+                nuistr = nuisance(5:end);
+            else
+                nuistr = nuisance;
+            end
+            if strcmp(nuistr, 'nui')
+                % get Nuisance time-series (Global Mean, Global Signal, WM)
+                Xn = getNuisanceMeanTimeSeries(V, csfV, wmV, gsV);
+            elseif strcmp(nuistr, 'gm')
+                % get Nuisance time-series (Global Mean)
+                Xn = getNuisanceMeanTimeSeries(V, [], [], []);
+            elseif strcmp(nuistr, 'gmgs')
+                % get Nuisance time-series (Global Mean, Global Signal)
+                Xn = getNuisanceMeanTimeSeries(V, [], [], gsV);
+            elseif strcmp(nuistr, 'poltcomp')
+                % get Nuisance time-series (polynomial, high tSTD comps)
+                Sd = getNuisancePolynomial(size(V,4));
+                tComp = getNuisancetCompCor(V, Sd);
+                Xn = [Sd, tComp];
+            end
+            if hm == 6
+                Xn = [Xn, M];
+            elseif hm == 24
+                Xn = [Xn, M, Md, M.^2, Md.^2];
+            end
         end
 
         % get design matrix
@@ -104,9 +137,13 @@ function glmFlyMB1st
         if hpfTh > 0
             X = highpass(X,hpfTh,1/TR);
         end
-        X = [X Xn]; % Nuisance should be raw
+        if length(nuistr)>=3 && strcmp(nuistr(1:3),'pol')
+            X = [X Xn]; % Nuisance should be raw
+        else
+            X = [X Xn ones(size(X,1),1)]; % Nuisance should be raw
+        end
 
-        figure; imagesc([X ones(size(X,1),1)], [-0.1, 1.1]); colorbar;
+        figure; imagesc(X, [-0.1, 1.1]); colorbar;
 
         % check Tukey range
         checkTukeyRange(Z, X, path, [smooth hpfstr nuisance preproc], maskV, backV, subject, tuM);
