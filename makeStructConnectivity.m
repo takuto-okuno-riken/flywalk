@@ -583,13 +583,12 @@ function makeStructConnectivity
     end
 %}
     % ---------------------------------------------------------------------
-    % make structural connectivity matrix from synapse list for fanshape body (FB) and others.
+    % make structural connectivity matrix for neuropil specific voxels.
     % extract voxel ids from fanshape-body (FB), eliptic-body (EB), and other atlas.
-%%{
+%{
     roiids = {[68 59 87 106 50 27 54]}; % a'L(R)-aL(R)-b'L(R)-bL(R)-gL(R)-CA(R)-PED(R)
 %    roiids = {[101],[57],[57,51],[51,62,20,111,100]}; % FB, EB, EB-bL(L), bL-b'L-aL-a'L-BU(L)
 %    roiids = {1	5	7	27	30	32	43	52	54	57	59	63	65	67	78	82	89	93	95	100	101	106	113};
-
     for k = 1:length(roiids)
         idstr = ['hemiRoi' num2str(roiids{k}(1))];
         for j=2:length(roiids{k}), idstr=[idstr '-' num2str(roiids{k}(j))]; end
@@ -632,6 +631,59 @@ function makeStructConnectivity
         CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
         figure; imagesc(log(CM)); colorbar; title(['hemiroi ' idstr ' neurons 2 matrix']);
         figure; imagesc(log(SM)); colorbar; title(['hemiroi ' idstr ' synapses matrix']);
+    end
+%}
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix for neuropil specific voxels & distance k-means ROI atlas
+    % extract voxel ids from mushroom body atlas.
+%%{
+    roiids = {[68 59 87 106 50 27 54]}; % a'L(R)-aL(R)-b'L(R)-bL(R)-gL(R)-CA(R)-PED(R)
+    for i = 1:length(roiids)
+        roiname = ['hemiRoi' num2str(roiids{i}(1))];
+        for j=2:length(roiids{i}), roiname=[roiname '-' num2str(roiids{i}(j))]; end
+
+        for k=[200 400 800 1600 3200]
+            idstr = [roiname 'DistKm' num2str(k)];
+            fname = ['data/' lower(idstr) '_connectlist.mat'];
+
+            clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
+            if exist(fname,'file')
+                load(fname);
+            else
+                atlV = niftiread(['atlas/' idstr 'atlasCal.nii.gz']);
+                roimax = max(atlV(:));
+                sz = size(atlV);
+        
+                roiIdxs = {};
+                for j=1:roimax
+                    roiIdxs{j} = find(atlV==j);
+                end
+        
+                primaryIds = 1:roimax;
+                roiNum = length(primaryIds);
+        
+                [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
+        
+                countMat = []; weightMat = []; syweightMat = [];  scver = 5;
+            end
+            if scver <= SCVER
+                % reorder by tree clustering
+                cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
+                eucD = pdist(cm2,'euclidean');
+                Z = linkage(eucD,'ward');
+                [H,T,outperm] = dendrogram(Z,roiNum);
+                primaryIds = outperm; % use default leaf order
+            end
+            if scver <= SCVER
+                scver = scver + 0.1;
+                save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+            end
+    
+            ids = primaryIds;
+            CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+            figure; imagesc(log(CM)); colorbar; title([idstr ' neurons 2 matrix']);
+            figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
+        end
     end
 %}
     % ---------------------------------------------------------------------
