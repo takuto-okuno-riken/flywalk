@@ -30,29 +30,29 @@ function plotFuncConnectivity
 
     % check smoothing result around 50 ROIs (s0 to s80)
     % roitype: FlyEM,FlyEMFw,Branson,BransonFw,Cm,CmFw,CmR1w1,Dist,Rand,Vrand
-    checkSmoothingResult50(vslabels);
+%    checkSmoothingResult50(vslabels);
 
     % check correlation result in each ROI num (s0 to s80, roi 20 to 1000)
     % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
-    checkSmoothingByRoinum(vslabels);
+%    checkSmoothingByRoinum(vslabels);
 
     % check nuisance result round 50 ROIs (all nuisance)
     % roitype: FlyEM,FlyEmFw,Branson,Cm,CmR1w1,Dist,Rand,Vrand
-    checkNuisanceResult50(vslabels);
+%    checkNuisanceResult50(vslabels);
 
     % check correlation result in each ROI num (all nuisance, roi 20 to 1000)
     % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
-    checkNuisanceByRoinum(vslabels);
+%    checkNuisanceByRoinum(vslabels);
 
     % check correlation result of large smoothing size (s0 to 300, roi 50 to 500, '' & poltcomp)
     % roitype: Cm,Dist
-    checkLargeSmoothingPoltcompByRoinum(vslabels);
+%    checkLargeSmoothingPoltcompByRoinum(vslabels);
 
     % check correlation result in each ROI num (roi 100 to 20000)
     % roitype: Cm,CmR1w1,Dist,Vand
-    checkNeuronVsSynapseByRoinum(vslabels);
+%    checkNeuronVsSynapseByRoinum(vslabels);
 
-    % check correlation result in each ROI num (s30,80,150,230,300, roi 50 to 10000, '' & poltcomp)
+    % check correlation result in each ROI num (s30,80,150,230,300, roi 50 to 20000, '' & poltcomp)
     % because LargeSmoothing showed better result around s230, this function extended range.
     % roitype: Cm,DistKm
     checkSmoothingNuisanceByRoinum(vslabels);
@@ -678,7 +678,7 @@ function checkSmoothingNuisanceByRoinum(vslabels)
     hpfTh = [0]; % high-pass filter threshold
     smooth = {'', 's30', 's80', 's150', 's230', 's300'};
     nuisance = {'', 'poltcomp'};
-    roinums = [50 100 500 1000 5000 10000];
+    roinums = [50 100 500 1000 5000 10000 20000];
     roitypes = {{'hemiCmkm',''},{'hemiDistKm',''}};
     roitypelabels = {'Cm','Dist'};
     
