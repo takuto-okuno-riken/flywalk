@@ -595,7 +595,7 @@ function makeStructConnectivity
         for j=2:length(roiids{k}), idstr=[idstr '-' num2str(roiids{k}(j))]; end
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
-        fname = ['data/hemiroi' lower(idstr) '_connectlist.mat'];
+        fname = ['data/' lower(idstr) '_connectlist.mat'];
         if exist(fname,'file')
             load(fname);
         else
@@ -613,9 +613,9 @@ function makeStructConnectivity
     
             [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
     
-            countMat = []; weightMat = []; scver = 5;
+            countMat = []; weightMat = []; syweightMat = [];  scver = 5;
         end
-        if true %scver <= SCVER
+        if scver <= SCVER
             % reorder by tree clustering
             cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
@@ -623,7 +623,7 @@ function makeStructConnectivity
             [H,T,outperm] = dendrogram(Z,roiNum);
             primaryIds = outperm; % use default leaf order
         end
-        if true %scver <= SCVER
+        if scver <= SCVER
             scver = scver + 0.1;
             save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
         end
