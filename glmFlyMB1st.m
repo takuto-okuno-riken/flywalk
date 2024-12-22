@@ -60,6 +60,7 @@ function glmFlyMB1st
         betaBmat = [path smooth hpfstr nuisance preproc subject '-Tukey' num2str(tuM) '.mat'];
         if exist(betaBmat,'file')
             disp(['file found : ' betaBmat]);
+            checkTukeyRange([], [], path, [smooth hpfstr nuisance preproc], maskV, backV, subject, tuM)
             continue;
         end
         
@@ -154,7 +155,7 @@ end
 function checkTukeyRange(Z, X, path, prefix, maskV, tempV, subject, tuM)
     % contrast image params
     contnames = {'movement'};
-    contrasts = {[1 0]'}; % no nuisanse
+    contrasts = {}; % no nuisanse
     Pth = 0.001; % pvalue threshold
 
     % ---------------------------------------------------------------------
@@ -165,8 +166,7 @@ function checkTukeyRange(Z, X, path, prefix, maskV, tempV, subject, tuM)
             % load beta volumes
             load(betaBmat);
         else
-            Xt = [X, ones(size(X,1),1)];
-            [B2, RSS, df, X2is, tRs, R] = calcGlmTukey(Z, Xt, tuM);
+            [B2, RSS, df, X2is, tRs, R] = calcGlmTukey(Z, X, tuM);
 
             [recel, FWHM] = estimateSmoothFWHM(R, RSS, df, maskV);
 
@@ -175,6 +175,7 @@ function checkTukeyRange(Z, X, path, prefix, maskV, tempV, subject, tuM)
         end
     
         % GLM contrast images
+        contrasts{1} = zeros(size(B2,2),1); contrasts{1}(1) = 1;
         Ts = calcGlmContrastImage(contrasts, B2, RSS, X2is, tRs);
 
         % plot contrast image
