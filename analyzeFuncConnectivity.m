@@ -95,6 +95,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
     issw = ~isempty(syweightMat);
     C2 = ncountMat(ids,ids,1); S = sycountMat(ids,ids,1); W2 = []; Wo = []; Sw = []; W3 = [];
     if isw2
+        outweightMat(isnan(outweightMat)) = 0;
         W3 = nweightMat(ids,ids,1); Wo = outweightMat(ids,ids,1);
         W2 = W3 .* S; % pure ROI-input neuron connection weight
     end
