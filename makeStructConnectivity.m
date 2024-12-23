@@ -356,7 +356,7 @@ function makeStructConnectivity
             cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            [H,T,outperm] = dendrogram(Z,k);
+            [H,T,outperm] = dendrogram(Z,roiNum);
             primaryIds = outperm; % use default leaf order
         end
         if scver <= SCVER
@@ -450,7 +450,7 @@ function makeStructConnectivity
             cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            [H,T,outperm] = dendrogram(Z,k);
+            [H,T,outperm] = dendrogram(Z,roiNum);
             primaryIds = outperm; % use default leaf order
         end
         if scver <= SCVER
@@ -497,7 +497,7 @@ function makeStructConnectivity
             cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            [H,T,outperm] = dendrogram(Z,k);
+            [H,T,outperm] = dendrogram(Z,roiNum);
             primaryIds = outperm; % use default leaf order
         end
         if scver <= SCVER
@@ -514,7 +514,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from synapse list for cube ROI.
     % extract ROI ids from hemicube4 mask
-%%{
+%{
     for k=4%[12 8 4]
         idstr = ['hemiCube' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
@@ -648,7 +648,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix for neuropil specific voxels & distance k-means ROI atlas
     % extract voxel ids from mushroom body atlas.
-%%{
+%{
     roiids = {[68 59 87 106 50 27 54]}; % a'L(R)-aL(R)-b'L(R)-bL(R)-gL(R)-CA(R)-PED(R)
     for i = 1:length(roiids)
         roiname = ['hemiRoi' num2str(roiids{i}(1))];
@@ -739,7 +739,7 @@ function makeStructConnectivity
     % make structural connectivity matrix from k-means atlas.
     %
 %{
-    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000 30000]
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiCmkm' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -773,7 +773,7 @@ function makeStructConnectivity
             cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            [H,T,outperm] = dendrogram(Z,k);
+            [H,T,outperm] = dendrogram(Z,roiNum);
             primaryIds = outperm; % use default leaf order
         end
         if scver <= SCVER
@@ -825,7 +825,7 @@ function makeStructConnectivity
             cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            [H,T,outperm] = dendrogram(Z,k);
+            [H,T,outperm] = dendrogram(Z,roiNum);
             primaryIds = outperm; % use default leaf order
         end
         if scver <= SCVER
@@ -894,7 +894,7 @@ function makeStructConnectivity
     % make structural connectivity matrix from distance based k-means atlas.
     %
 %{
-    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000 30000]
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiDistKm' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -928,7 +928,7 @@ function makeStructConnectivity
             cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            [H,T,outperm] = dendrogram(Z,k);
+            [H,T,outperm] = dendrogram(Z,roiNum);
             primaryIds = outperm; % use default leaf order
         end
         if scver <= SCVER
@@ -943,9 +943,63 @@ function makeStructConnectivity
     end
 %}
     % ---------------------------------------------------------------------
-    % make structural connectivity matrix from distance based k-means atlas by FlyWire EM data.
+    % make structural connectivity matrix from distance based k-means n voxels atlas.
     %
 %%{
+    for k=[1000]
+        for n=[1 2 4 8 16 32 64 128]
+            idstr = ['DistKm' num2str(k) 'vox' num2str(n)];
+            fname = ['data/' lower(idstr) '_connectlist.mat'];
+    
+            clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
+            if exist(fname,'file')
+                load(fname);
+            else
+                atlV = niftiread(['atlas/hemiDistKm' num2str(k) 'atlasCal.nii.gz']);
+                roimax = max(atlV(:));
+                sz = size(atlV);
+        
+                roiIdxs = {};
+                for i=1:roimax
+                    roiIdxs{i} = find(atlV==i);
+                end
+        
+                primaryIds = 1:roimax;
+                roiNum = length(primaryIds);
+    
+                if k <= 1000
+                    [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
+                else
+                    [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
+                    nweightMat = []; outweightMat = []; syweightMat = [];
+                end
+    
+                countMat = []; weightMat = []; scver = 5;
+            end
+            if scver <= SCVER
+                % reorder by tree clustering
+                cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
+                eucD = pdist(cm2,'euclidean');
+                Z = linkage(eucD,'ward');
+                [H,T,outperm] = dendrogram(Z,roiNum);
+                primaryIds = outperm; % use default leaf order
+            end
+            if scver <= SCVER
+                scver = scver + 0.1;
+                save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+            end
+    
+            ids = primaryIds;
+            CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+            figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
+            figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
+        end
+    end
+%}
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix from distance based k-means atlas by FlyWire EM data.
+    %
+%{
     for k=[20 30 50 100 200 300 500 1000 5000 10000]
         idstr = ['hemiDistKm' num2str(k) '_fw' num2str(synTh) 'sr' num2str(fwSth)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
@@ -1061,7 +1115,7 @@ function makeStructConnectivity
             cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            [H,T,outperm] = dendrogram(Z,k);
+            [H,T,outperm] = dendrogram(Z,roiNum);
             primaryIds = outperm; % use default leaf order
         end
         if scver <= SCVER
@@ -1113,7 +1167,7 @@ function makeStructConnectivity
             cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
             eucD = pdist(cm2,'euclidean');
             Z = linkage(eucD,'ward');
-            [H,T,outperm] = dendrogram(Z,k);
+            [H,T,outperm] = dendrogram(Z,roiNum);
             primaryIds = outperm; % use default leaf order
         end
         if scver <= SCVER

@@ -147,7 +147,7 @@ function makeVoxelROIatlas
 
     % ---------------------------------------------------------------------
     % make neuropil specific voxel type atlas
-%%{
+%{
     roiids = {[68 59 87 106 50 27 54]}; % a'L(R)-aL(R)-b'L(R)-bL(R)-gL(R)-CA(R)-PED(R)
 %    roiids = {[101],[57],[57,51],[51,62,20,111,100]}; % FB, EB, EB-bL(L),bL-b'L-aL-a'L-BU(L)
 %    roiids = {1	5	7	27	30	32	43	52	54	57	59	63	65	67	78	82	89	93	95	100	101	106	113};
@@ -190,6 +190,7 @@ function makeVoxelROIatlas
 %}
     % ---------------------------------------------------------------------
     % make neuropil specific voxel type & distance k-means ROI atlas
+%{
     roiids = {[68 59 87 106 50 27 54]}; % a'L(R)-aL(R)-b'L(R)-bL(R)-gL(R)-CA(R)-PED(R)
     for i=1:length(roiids)
         idstr = num2str(roiids{i}(1));
@@ -241,7 +242,7 @@ function makeVoxelROIatlas
             disp([atlas ' ROI count=' num2str(max(aV(:)))]);
         end
     end
-
+%}
     % ---------------------------------------------------------------------
     % make whole flyem ROI voxel atlas (except fibers)
 %{
@@ -286,7 +287,7 @@ function makeVoxelROIatlas
     % this requires hemibranson7065_connectlist.mat file. so need to run
     % makeStructConnectivity.m (Branson 7065) first.
     % this needs Statistics and Machine Learning Toolbox.
-%%{
+%{
     for k=[20 30 50 100 200 300 500 1000]
         atlas = ['atlas/' name 'Branson7065km' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
@@ -344,7 +345,7 @@ function makeVoxelROIatlas
     % this requires wirebranson7065_connectlist.mat file. so need to run
     % makeStructConnectivity.m (Branson 7065) first.
     % this needs Statistics and Machine Learning Toolbox.
-%%{
+%{
     for k=[20 30 50 100 200 300 500 1000]
         atlas = ['atlas/wireBranson7065km' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
@@ -388,8 +389,8 @@ function makeVoxelROIatlas
     % this requires hemiroiwhole_connectlist_cm.mat file. so need to run
     % makeStructConnectivity.m (whole flyem ROI) first.
     % this needs Statistics and Machine Learning Toolbox.
-%%{
-    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000 30000]
+%{
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         atlas = ['atlas/' name 'Cmkm' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
@@ -485,10 +486,11 @@ function makeVoxelROIatlas
     end
 %}
     % ---------------------------------------------------------------------
-    % make ROI atlas based on k-means clustering of flyEM voxel distances.
+    % make ROI atlas based on k-means clustering of hemibrain voxel distances.
     % thus, this ROI did not follow any anatomical result.
     % this needs Statistics and Machine Learning Toolbox.
-    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000 30000]
+%{
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         atlas = ['atlas/' name 'DistKm' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
             atlasinfo = niftiinfo([atlas '.gz']);
@@ -517,10 +519,57 @@ function makeVoxelROIatlas
         end
         disp([atlas ' ROI count=' num2str(max(aV(:)))]);
     end
+%}
+    % ---------------------------------------------------------------------
+    % make ROI atlas based on k-means clustering of hemibrain voxel distances and take piece of n voxels in the ROI.
+    % thus, this ROI did not follow any anatomical result.
+    % this needs Statistics and Machine Learning Toolbox.
+%{
+    for k=[1000 5000]
+        for n=[1 2 4 8 16 32 64 128]
+            atlas = ['atlas/' name 'DistKm' num2str(k) 'vox' num2str(n) 'atlasCal.nii' ];
+            if exist([atlas '.gz'],'file')
+                atlasinfo = niftiinfo([atlas '.gz']);
+                aV = niftiread(atlasinfo);
+            else
+                info = niftiinfo(['atlas/' name 'DistKm' num2str(k) 'atlasCal.nii.gz']);
+                aV = niftiread(info);
+                aidx = find(aV>0);
+                alen = length(aidx);
+                sz = size(aV);
+        
+                X = zeros(alen,3,'single');
+                cidx = zeros(alen,1,'int32');
+                for i=1:alen
+                    cidx(i) = aV(aidx(i));
+                    [X(i,1),X(i,2),X(i,3)]=ind2sub(sz,aidx(i));
+                end
+                X = X .* [2.452 2.28 3.715]; % by voxel size.
 
+                for i=1:k
+                    idx = find(cidx==i);
+                    Xi = X(idx,:); % ROI voxels
+                    Xm = mean(Xi,1); % center
+                    D = sqrt(sum((Xi - Xm).^2,2)); % distance from center
+                    [M,I] = sort(D,'ascend');
+                    cidx(idx(I(n+1:end))) = 0; % clear other voxel ROI id.
+                end
+
+                aV(aidx) = cidx;
+
+                % set info. info.raw is not necessary to set (niftiwrite() does it)
+                info.Description = 'k-means clustering n voxels based atlas';
+                % output nii file
+                niftiwrite(aV,atlas,info,'Compressed',true);
+            end
+            disp([atlas ' ROI count=' num2str(max(aV(:)))]);
+        end
+    end
+%}
     % ---------------------------------------------------------------------
     % make ROI atlas based on fully random based on flyEM 10000 clusters.
     % thus, this ROI did not follow any anatomical result.
+%{
     for k=[20 30 50 100 200 300 500 1000]
         atlas = ['atlas/' name 'Rand' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
@@ -544,10 +593,11 @@ function makeVoxelROIatlas
         end
         disp([atlas ' ROI count=' num2str(max(aV(:)))]);
     end
-
+%}
     % ---------------------------------------------------------------------
     % make ROI atlas based on fully random voxel based on flyEM voxels.
     % thus, this ROI did not follow any anatomical result.
+%{
     for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         atlas = ['atlas/' name 'Vrand' num2str(k) 'atlasCal.nii' ];
         if exist([atlas '.gz'],'file')
@@ -568,4 +618,5 @@ function makeVoxelROIatlas
         end
         disp([atlas ' ROI count=' num2str(max(aV(:)))]);
     end
+%}
 end
