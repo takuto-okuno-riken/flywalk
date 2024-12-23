@@ -12,7 +12,8 @@ function analyzeFuncConnectivity
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
 %    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
 %    smooth = {'s90', 's100', 's110', 's120', 's130', 's140', 's150', 's160', 's170', 's180', 's190', 's200', 's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
-    smooth = {'', 's30', 's80', 's150','s230','s300'};
+%    smooth = {'', 's30', 's80', 's150','s230','s300'};
+    smooth = {'', 's30', 's80', 's150'};
 %    smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
@@ -21,7 +22,8 @@ function analyzeFuncConnectivity
         'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
 %    nuisance = {'6hmtacomp'}; % good for bransonhemi, branson7065km50
-    nuisance = {'','poltcomp'}; % good for DistKm(synapse)
+%    nuisance = {'','poltcomp'}; % good for DistKm(synapse)
+    nuisance = {'','6hm','tcomp','pol','poltcomp'}; % good for hemiRoiXX
 %    nuisance = {''};
 
     % using subjects (flys). sbj 7 shows NaN row in FC matrix
@@ -44,7 +46,7 @@ function analyzeFuncConnectivity
 %        'hemiRand300','hemiRand500','hemiRand1000'};
 %    roitypes = {'hemiVrand20','hemiVrand30','hemiVrand50','hemiVrand100','hemiVrand200', ...
 %        'hemiVrand300','hemiVrand500','hemiVrand1000'};
-%    roitypes = {'hemiCube12','hemiCube8','hemiCube4'};
+%    roitypes = {'hemiCube4'};
 %    roitypes = {'hemiPiece12','hemiPiece8','hemiPiece4'};
 %    roitypes = {'hemiPiece3','hemiPiece2'};
     % neuropil FB, EB, EB-bL(L), bL-b'L-aL-a'L-BU(L)
@@ -66,9 +68,8 @@ function analyzeFuncConnectivity
 %    roitypes = {'hemiroi','hemiroi_fw0sr50','hemiDistKm50','hemiDistKm50_fw0sr50','hemiDistKm50_avg'}; % for all nuisanse & s30, s80 % for s0 to s80 (no nuisanse)
 %    roitypes = {'hemiroi_hb0sr50','hemiroi_hb0sr60','hemiroi_hb0sr70','hemiroi_hb0sr80','hemiroi_hb0sr90', ... % for s30 & s80, '' & poltcomp
 %            'hemiroi_fw0sr50','hemiroi_fw0sr70','hemiroi_fw0sr100','hemiroi_fw0sr130','hemiroi_fw0sr140','hemiroi_fw0sr150'};
-%    roitypes = {'hemiRoi68-59-87-106-50-27-54'};
+    roitypes = {'hemiRoi68-59-87-106-50-27-54'}; % s30,80,150, 6hm,pol,tcomp,poltcomp
 %    roitypes = {'hemiRoi68-59-87-106-50-27-54DistKm200'};
-    roitypes = {'hemiCube4'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
