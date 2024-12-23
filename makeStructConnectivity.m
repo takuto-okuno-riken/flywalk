@@ -514,8 +514,8 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from synapse list for cube ROI.
     % extract ROI ids from hemicube4 mask
-%{
-    for k=[12 8 4]
+%%{
+    for k=4%[12 8 4]
         idstr = ['hemiCube' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];
 
@@ -537,19 +537,31 @@ function makeStructConnectivity
     
             [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
     
-            countMat = []; weightMat = [];
-            save(fname,'countMat','weightMat','ncountMat','sycountMat','nweightMat','outweightMat','primaryIds','roiNum');
+            countMat = []; weightMat = []; syweightMat = [];
         end
-    
+        if scver <= SCVER
+            % reorder by tree clustering
+            cm2 = ncountMat(:,:,2); cm2(isnan(cm2)) = 0;
+            eucD = pdist(cm2,'euclidean');
+            Z = linkage(eucD,'ward');
+            [H,T,outperm] = dendrogram(Z,roiNum);
+            primaryIds = outperm; % use default leaf order
+        end
+        if scver <= SCVER
+            scver = scver + 0.1;
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+        end
+        
         ids = primaryIds;
         CM2 = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
         figure; imagesc(log(CM2)); colorbar; title([idstr ' neurons 2 matrix']);
         figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
     end
-
+%}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from synapse list for piece ROI.
     % extract ROI ids from hemipiece3 mask
+%{
     for k=[12 8 4 3 2]
         idstr = ['hemiPiece' num2str(k)];
         fname = ['data/' lower(idstr) '_connectlist.mat'];

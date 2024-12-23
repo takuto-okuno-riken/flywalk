@@ -12,8 +12,8 @@ function analyzeFuncConnectivity
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
 %    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
 %    smooth = {'s90', 's100', 's110', 's120', 's130', 's140', 's150', 's160', 's170', 's180', 's190', 's200', 's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
-%    smooth = {'', 's30', 's80', 's150','s230','s300'};
-    smooth = {''};
+    smooth = {'', 's30', 's80', 's150','s230','s300'};
+%    smooth = {''};
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
         '6hmacomp','6hmgmacomp','6hmgmgsacomp','6hmtcomp','6hmtacomp', ... %22
@@ -21,7 +21,7 @@ function analyzeFuncConnectivity
         'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
 %    nuisance = {'6hmtacomp'}; % good for bransonhemi, branson7065km50
-%    nuisance = {'','poltcomp'}; % good for DistKm(synapse)
+    nuisance = {'','poltcomp'}; % good for DistKm(synapse)
 %    nuisance = {''};
 
     % using subjects (flys). sbj 7 shows NaN row in FC matrix
@@ -68,6 +68,7 @@ function analyzeFuncConnectivity
 %            'hemiroi_fw0sr50','hemiroi_fw0sr70','hemiroi_fw0sr100','hemiroi_fw0sr130','hemiroi_fw0sr140','hemiroi_fw0sr150'};
 %    roitypes = {'hemiRoi68-59-87-106-50-27-54'};
 %    roitypes = {'hemiRoi68-59-87-106-50-27-54DistKm200'};
+    roitypes = {'hemiCube4'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
