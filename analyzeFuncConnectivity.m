@@ -295,8 +295,8 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                     thN = 100;
                     aths = cell(thN,1);
                     XY = cell(thN,1);
-                    for th = 1:thN
-%                    parfor th = 1:thN
+%                    for th = 1:thN
+                    parfor th = 1:thN
                         % include injection voxel in ground truth
                         c2th = prctile(C2(C2>0),th-1);
                         ct2 = C2; ct2(ct2<c2th) = 0; ct2(ct2>0) = 1;
