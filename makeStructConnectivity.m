@@ -947,8 +947,8 @@ function makeStructConnectivity
     %
 %%{
     for k=[1000]
-        for n=[1 2 4 8 16 32 64 128]
-            idstr = ['DistKm' num2str(k) 'vox' num2str(n)];
+        for n=[2 4 8 16 32 64 128]
+            idstr = ['hemiDistKm' num2str(k) 'vox' num2str(n)];
             fname = ['data/' lower(idstr) '_connectlist.mat'];
     
             clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
