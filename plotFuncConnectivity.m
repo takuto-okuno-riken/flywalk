@@ -32,7 +32,7 @@ function plotFuncConnectivity
     % roitype: FlyEM,FlyEMFw,Branson,BransonFw,Cm,CmFw,CmR1w1,Dist,Rand,Vrand
 %    checkSmoothingResult50(vslabels);
 
-    % check correlation result in each ROI num (s0 to s80, roi 20 to 1000)
+    % check smoothing result in several ROI nums (s0 to s80, roi 20 to 1000)
     % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
 %    checkSmoothingByRoinum(vslabels);
 
@@ -40,38 +40,46 @@ function plotFuncConnectivity
     % roitype: FlyEM,FlyEmFw,Branson,Cm,CmR1w1,Dist,Rand,Vrand
 %    checkNuisanceResult50(vslabels);
 
-    % check nuisance result in each hemi ROI (all nuisance)
-    % to check inside neuropil relation
-    % roitype: hemiRoi1-113
-%    checkNuisanceResultHemiROIs(vslabels);
-
-    % check correlation result in each ROI num (all nuisance, roi 20 to 1000)
+    % check nuisance result in several ROI nums (all nuisance, roi 20 to 1000)
     % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
 %    checkNuisanceByRoinum(vslabels);
 
-    % check correlation result of large smoothing size (s0 to 300, roi 50 to 500, '' & poltcomp)
+    % check nuisance result in each hemi ROI (all nuisance)
+    % to check inside neuropil FC-SC relation at 1 voxel resolution
+    % roitype: hemiRoi1 to 113
+%    checkNuisanceResultHemiROIs(vslabels);
+
+    % check nuisance and smoothing in mushroom body (s30,80,150, '',6hm,tcomp,pol,poltcomp)
+    % to check inside neuropil FC-SC relation at 1 voxel resolution based
+    % on checkNuisanceResultHemiROIs result (poltcomp may not be the best).
+    % roitype: hemiroi68-59-87-106-50-27-54 (mushroom body)
+    checkSmoothingNuisanceMushroomBody(vslabels);
+
+    % check large smoothing size in several ROI nums and poltcomp (s0 to 300, roi 50 to 500, '' & poltcomp)
     % roitype: Cm,Dist
 %    checkLargeSmoothingPoltcompByRoinum(vslabels);
 
-    % check correlation result in each ROI num (roi 100 to 20000)
+    % check large ROI num result (roi 100 to 20000)
     % roitype: Cm,CmR1w1,Dist,Vand
-%    checkNeuronVsSynapseByRoinum(vslabels);
+%    checkLargeRoinumResult(vslabels);
 
-    % check correlation result in each ROI num (s30,80,150,230,300, roi 50 to 20000, '' & poltcomp)
+    % check large smoothing size in several ROI nums and poltcomp (s30,80,150,230,300, roi 50 to 20000, '' & poltcomp)
     % because LargeSmoothing showed better result around s230, this function extended range.
     % roitype: Cm,DistKm,Cube4
-%    checkSmoothingNuisanceByRoinum(vslabels);
+    checkSmoothingPoltcompByLargeRoinum(vslabels);
 
-    % check correlation result of DistKm1000 in each voxel num (s30,80,150,230,300, roi 1000, '' & poltcomp)
-    % to check how smoothing and voxel size related, and inside or inter neuropil relation.
+    % check DistKm1000 in each voxel num and poltcomp (s30,80,150,230,300, roi 1000, '' & poltcomp)
+    % to check how smoothing and voxel size related, and inside or inter neuropil relation (1 voxel resolution).
+    % In 1 voxel resolution, DistKm1000vox1 (very sparce) with s230poltcomp shows still
+    % high correlation & detection result. Thus, high density neuropil needs different solution.
     % roitype: DistKm1000vox128,64,32,16,8,4,2,1
     checkSmoothingNuisanceByDistKm1000vox(vslabels);
 
     % check smoothing result of FlyEM vs. FlyWire around 50 ROIs (s0 to s80)
     % roitype: FlyEM,FlyEMFw,DistKm50,DistKm50Fw,DistKm50Avg
-    checkSmoothNuisanceFlyWireResult50(vslabels);
+    checkSmoothingFlyWireResult50(vslabels);
 
-    % check correlation result of FlyEM vs. FlyWire (s0 to s80, roi 20 to 1000)
+    % check smoothing and several ROI nums of FlyEM vs. FlyWire (s0 to s80, roi 20 to 1000)
     % roitype: Cm,CmFw,Branson,BransonFw,Dist,DistFw
     checkSmoothingFlyWireByRoinum(vslabels);
 
@@ -228,7 +236,7 @@ function checkSmoothingResult50(vslabels)
     figure; plot([0:8]',B(I,:)'); legend(ylabels(I)); title('FC-SC correlation & detection around 50 ROIs'); setlineColors(2);
 end
 
-function checkSmoothNuisanceFlyWireResult50(vslabels)
+function checkSmoothingFlyWireResult50(vslabels)
     % around 50 clusters
     preproc = 'ar'; % for move correct, slice time correct
     hpfTh = [0]; % high-pass filter threshold
@@ -596,6 +604,68 @@ function checkNuisanceResultHemiROIs(vslabels)
     hold on; boxplot(B(sI,:)); hold off;
 end
 
+function checkSmoothingNuisanceMushroomBody(vslabels)
+    preproc = 'ar'; % for move correct, slice time correct
+    hpfTh = [0]; % high-pass filter threshold
+    smooth = {'','s30','s80','s150'};
+    nuisance = {'','6hm','tcomp','pol','poltcomp' };
+    roitypes = {'hemiroi68-59-87-106-50-27-54'};
+    roitypelabels = {'MB'};
+
+    ylabels = {}; R3 = []; A3 = [];
+    for r = 1:length(roitypes)
+        Am = []; Rm = []; ii=1; xlabels = {};
+        for h=1:length(hpfTh)
+            hpfstr = '';
+            if hpfTh(h) > 0, hpfstr = ['hf' num2str(round(1/hpfTh(h)))]; end
+            for n=1:length(nuisance)
+                for k=1:length(smooth)
+                    pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}];
+                    xlabels{ii} = [smooth{k} nuisance{n}]; ii=ii+1;
+                    aucmat = ['results/auc/' pftype '-fcauc.mat'];
+                    if exist(aucmat,'file')
+                        load(aucmat);
+                    else
+                        A = nan(24,100);
+                        R = nan(24,1);
+                    end
+                    Am = [Am,nanmean(A,2)];
+                    Rm = [Rm,R(:)];
+                end
+            end
+        end
+
+        R3 = [R3;Rm]; A3 = [A3;Am]; ii=ii+1;
+        C = cell(24,1); C(1:24) = {[roitypelabels{r} ' ']};
+        ylabels = [ylabels(:); strcat(C(:),vslabels(:))];
+    end
+
+    % FC-SC correlation (all)
+    I = getR3idx([7 9 19 21],[0]);  % show only Traced neuron, synapse
+    figure; imagescLabel2(R3(I,:),xlabels,ylabels(I),[0.2 0.9]); colorbar; title(['FC-SC correlation (All) ']); colormap(hot);
+    
+    % FC-SC correlation Traced neuron vs synapse
+    I = getR3idx([7 9 19 21],[0]);
+    figure; plot(R3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % FC-SC detection (all)
+    I = getR3idx([7 9 19 21],[0]);  % show only Traced neuron, synapse
+    figure; imagescLabel2(A3(I,:),xlabels,ylabels(I),[0.5 1]); colorbar; title(['FC-SC detection (All) ']); colormap(hot);
+
+    % FC-SC detection Traced neuron vs synapse
+    I = getR3idx([7 9 19 21], [0]);
+    figure; plot(A3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % both FC-SC correlation & detection (all)
+    B = abs(R3) + abs(A3-0.5)*2;
+    I = getR3idx([7 9 19 21],[0]);  % show only Traced neuron, synapse
+    figure; imagescLabel2(B(I,:),xlabels,ylabels(I),[0 1.5]); colorbar; title('FC-SC correlation & detection'); colormap(hot);
+
+    % FC-SC correlation & detection Traced neuron vs synapse (which is best?)
+    I = getR3idx([7 9 19 21],[0]);
+    figure; plot(B(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
+end
+
 function checkLargeSmoothingPoltcompByRoinum(vslabels)
     preproc = 'ar'; % for move correct, slice time correct
     hpfTh = [0]; % high-pass filter threshold
@@ -689,7 +759,7 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
     figure; plot(X); legend(slabels); title(['FC-SC detection results by threshold in ' ylabels{i}]);
 end
 
-function checkNeuronVsSynapseByRoinum(vslabels)
+function checkLargeRoinumResult(vslabels)
     preproc = 'ar'; % for move correct, slice time correct
     hpfTh = [0]; % high-pass filter threshold
     smooth = {''};
@@ -759,7 +829,7 @@ function checkNeuronVsSynapseByRoinum(vslabels)
     figure; plot(B(I,:)'); legend(ylabels(I)); xticklabels(xlabels); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
 end
 
-function checkSmoothingNuisanceByRoinum(vslabels)
+function checkSmoothingPoltcompByLargeRoinum(vslabels)
     preproc = 'ar'; % for move correct, slice time correct
     hpfTh = [0]; % high-pass filter threshold
     smooth = {'', 's30', 's80', 's150', 's230', 's300'};
@@ -888,12 +958,12 @@ function checkSmoothingNuisanceByDistKm1000vox(vslabels)
     end
 
     % FC-SC correlation (all)
-    I = getR3idx([7 9],[0]);  % show only Traced neuron, synapse
+    I = getR3idx([7 9 19 21],[0]);  % show only Traced neuron, synapse
     figure; imagescLabel2(R3(I,:),xlabels,ylabels(I),[0.2 0.9]); colorbar; title(['FC-SC correlation (All) ']); colormap(hot);
  %   figure; plot(R3'); legend(ylabels); title(['FC-SC correlation (All)']); setlineColors(24);
     
     % FC-SC correlation Traced neuron vs synapse
-    I = getR3idx([7 9],[0]);
+    I = getR3idx([7 9 19 21],[0]);
  %   figure; imagescLabel2(R3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC correlation Full vs. Traced');
     figure; plot(R3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
 
@@ -903,7 +973,7 @@ function checkSmoothingNuisanceByDistKm1000vox(vslabels)
 %    figure; plot(A3'); legend(ylabels); title(['FC-SC detection (All)']); setlineColors(24);
 
     % FC-SC detection Traced neuron vs synapse
-    I = getR3idx([7 9], [0]);
+    I = getR3idx([7 9 19 21], [0]);
 %    figure; imagescLabel2(A3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC detection Full vs. Traced');
     figure; plot(A3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
 
@@ -929,7 +999,7 @@ function checkSmoothingNuisanceByDistKm1000vox(vslabels)
 %    figure; plot(B'); legend(ylabels); title('FC-SC correlation & detection'); setlineColors(24);
 
     % FC-SC correlation & detection Traced neuron vs synapse (which is best?)
-    I = getR3idx([7 9],[0]);
+    I = getR3idx([7 9 19 21],[0]);
     figure; plot(B(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
 end
 
