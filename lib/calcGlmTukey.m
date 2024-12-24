@@ -20,6 +20,7 @@ function [B, RSS, df, X2is, tRs, R] = calcGlmTukey(Y, X, tuM)
     if nargin < 3, tuM = floor(sqrt(size(X, 1))); end
 
     disp(['process GLM with Tukey-Taper(' num2str(tuM) ') estimation ...']);
+    X = double(X); % single might be bad. only change X. Y may be big.
     [~, ~, perm, RiQ, dR2i] = regressPrepare(X);
 
     roiNum = size(Y,2);
@@ -69,7 +70,7 @@ function [B, RSS, df, X2is, tRs, R] = calcGlmTukey(Y, X, tuM)
 %        Ki1 = tril(toeplitz([1 -br(1:end-1)']));
 
         % second time regression
-        Ya = Ki1 * Y(:,i);
+        Ya = Ki1 * double(Y(:,i));
         Xt = Ki1 * X;
         [b, r] = regressLinear(Ya, Xt);
 
