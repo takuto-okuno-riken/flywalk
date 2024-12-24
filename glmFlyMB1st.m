@@ -8,8 +8,8 @@ function glmFlyMB1st
 
     % output time-series (smoothing, highpass filter, nuisance removal)
     hpfTh = 0; % high-pass filter threshold
-    smooth = 's230';
-    nuisance = 'poltcomp';
+    smooth = 's40';
+    nuisance = ''; %poltcomp';
 
     TR = 1 / 1.879714;
     tuM = 8; % tukey window size
@@ -155,7 +155,7 @@ end
 function checkTukeyRange(Z, X, path, prefix, maskV, tempV, subject, tuM)
     % contrast image params
     contnames = {'movement'};
-    contrasts = {}; % no nuisanse
+    contrasts = {};
     Pth = 0.001; % pvalue threshold
 
     % ---------------------------------------------------------------------
@@ -175,7 +175,7 @@ function checkTukeyRange(Z, X, path, prefix, maskV, tempV, subject, tuM)
         end
     
         % GLM contrast images
-        contrasts{1} = zeros(size(B2,2),1); contrasts{1}(1) = 1;
+        contrasts{1} = zeros(size(B2,2),1); contrasts{1}(1) = 1; % no nuisanse
         Ts = calcGlmContrastImage(contrasts, B2, RSS, X2is, tRs);
 
         % plot contrast image

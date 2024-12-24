@@ -853,7 +853,7 @@ function checkSmoothingNuisanceByDistKm1000vox(vslabels)
     hpfTh = [0]; % high-pass filter threshold
     smooth = {'', 's30', 's80', 's150', 's230', 's300'};
     nuisance = {'', 'poltcomp'};
-    voxnums = [128 64 32 16 8 4 2];
+    voxnums = [128 64 32 16 8 4 2 1];
     roitypes = {{'hemiDistKm1000vox',''}};
     roitypelabels = {'Dist'};
 
