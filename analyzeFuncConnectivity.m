@@ -70,7 +70,7 @@ function analyzeFuncConnectivity
 %            'hemiroi_fw0sr50','hemiroi_fw0sr70','hemiroi_fw0sr100','hemiroi_fw0sr130','hemiroi_fw0sr140','hemiroi_fw0sr150'};
 %    roitypes = {'hemiRoi68-59-87-106-50-27-54'}; % s30,80,150, 6hm,pol,tcomp,poltcomp
 %    roitypes = {'hemiRoi68-59-87-106-50-27-54DistKm200'};
-    roitypes = {'hemiDistKm1000vox128','hemiDistKm1000vox64','hemiDistKm1000vox32','hemiDistKm1000vox16','hemiDistKm1000vox8','hemiDistKm1000vox4','hemiDistKm1000vox2'};
+    roitypes = {'hemiDistKm1000vox128','hemiDistKm1000vox64','hemiDistKm1000vox32','hemiDistKm1000vox16','hemiDistKm1000vox8','hemiDistKm1000vox4','hemiDistKm1000vox2','hemiDistKm1000vox1'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

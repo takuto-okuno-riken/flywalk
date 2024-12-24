@@ -64,7 +64,7 @@ function plotFuncConnectivity
 
     % check correlation result of DistKm1000 in each voxel num (s30,80,150,230,300, roi 1000, '' & poltcomp)
     % to check how smoothing and voxel size related, and inside or inter neuropil relation.
-    % roitype: DistKm1000vox128,64,32,16,8,4,2
+    % roitype: DistKm1000vox128,64,32,16,8,4,2,1
     checkSmoothingNuisanceByDistKm1000vox(vslabels);
 
     % check smoothing result of FlyEM vs. FlyWire around 50 ROIs (s0 to s80)
