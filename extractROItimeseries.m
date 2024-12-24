@@ -57,7 +57,7 @@ function extractROItimeseries
 %    roitypes = {'hemiCmkm5000','hemiDistKm5000','hemiCmkm10000','hemiDistKm10000','hemiCmkm20000','hemiDistKm20000'};
 %    roitypes = {'hemiCmkm50','hemiDistKm50','hemiCmkm100','hemiDistKm100','hemiCmkm500','hemiDistKm500'}; % for large smoothing size & no nuisanse, poltcomp
 %    roitypes = {'hemiRoi68-59-87-106-50-27-54'};
-    roitypes = {'hemiDistKm1000vox128','hemiDistKm1000vox64','hemiDistKm1000vox32','hemiDistKm1000vox16','hemiDistKm1000vox8','hemiDistKm1000vox4','hemiDistKm1000vox2'};
+    roitypes = {'hemiDistKm1000vox128','hemiDistKm1000vox64','hemiDistKm1000vox32','hemiDistKm1000vox16','hemiDistKm1000vox8','hemiDistKm1000vox4','hemiDistKm1000vox2','hemiDistKm1000vox1'};
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
