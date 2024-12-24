@@ -955,7 +955,7 @@ function makeStructConnectivity
             if exist(fname,'file')
                 load(fname);
             else
-                atlV = niftiread(['atlas/hemiDistKm' num2str(k) 'atlasCal.nii.gz']);
+                atlV = niftiread(['atlas/hemiDistKm' num2str(k) 'vox' num2str(n) 'atlasCal.nii.gz']);
                 roimax = max(atlV(:));
                 sz = size(atlV);
         
@@ -967,14 +967,9 @@ function makeStructConnectivity
                 primaryIds = 1:roimax;
                 roiNum = length(primaryIds);
     
-                if k <= 1000
-                    [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
-                else
-                    [ncountMat, sycountMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
-                    nweightMat = []; outweightMat = []; syweightMat = [];
-                end
+                [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr));
     
-                countMat = []; weightMat = []; scver = 5;
+                countMat = []; weightMat = []; syweightMat = []; scver = 5;
             end
             if scver <= SCVER
                 % reorder by tree clustering

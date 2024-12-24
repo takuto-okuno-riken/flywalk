@@ -236,7 +236,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
 
                 R(7) = corr(lC2b(:),abs(Dmz(:))); % Traced vs. m-FCz
                 disp(['prefix=' pftype ' : log10(neurons2b) vs. m-FCz = ' num2str(R(7))]);
-%                figure; scatter(lC2b(:),abs(Dmz(:))); xlabel('log10(neurons2b)'); ylabel('m-FCz'); title(pftype);
+%                figure; scatter(lC2b(:),abs(Dmz(:)),18,'x'); xlabel('log10(neurons2b)'); ylabel('m-FCz'); title(pftype); ylim([0 3]);
                 R(9) = corr(lSb(:),abs(Dmz(:)));
                 disp(['prefix=' pftype ' : log10(synapses b) vs. m-FCz = ' num2str(R(9))]);
                 if isw2
