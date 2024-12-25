@@ -18,6 +18,9 @@ function plotStructConnectivity
     % roitype: hemiroi primary
     checkNeuralTransmitter();
 
+    % check mushroom body huge GABA neuron (APL-R) FlyEM, FlyWire
+    checkAPLneuron();
+
     % check SC matrix connection count diff FlyEM 0sr80 vs. FlyWire 0sr50 (roi 20 to 1000)
     % but FlyWire 0sr50 will not be used, so this one was obsolete.
     % roitype: Branson,Cm,DistKm
@@ -504,6 +507,41 @@ function checkSCdiffConnectionCount()
     figure; plot([mN1oth' mN2oth']); legend(labels); setlineColors(3); title(['mean other connected neuron count between FlyEM and FlyWire.'])
     figure; plot([mS1oth' mS2oth']); legend(labels); setlineColors(3); title(['mean other connected synapse count between FlyEM and FlyWire.'])
 end
+
+function checkAPLneuron()
+    % load mushroom body ROIs.
+    aV = niftiread('atlas/hemiRoi68-59-87-106-50-27-54atlasCal.nii.gz');
+    idx = find(aV>0);
+
+    % load connected post-synapse counts from APL pre-synapses (output)
+    hV = niftiread('data/hemiAplOutputSynapses.nii.gz');
+    wV = niftiread('data/wireAplOutputSynapses.nii.gz');
+
+    smooth = [0 20 40 80];
+    for i=1:length(smooth)
+        sz = smooth(i);
+        if sz > 0
+           FWHM = [(sz/10)/(2.45/2.28) sz/10 (sz/10)/(3.715/2.28)]; % voxel size;
+            sigma = FWHM / sqrt(8*log(2));
+            filterSize = 2*ceil(2*sigma)+1;
+                
+            disp(['sz=' num2str(sz) ', sigma=' num2str(sigma(1)) ', flSz=' num2str(filterSize(1))]);
+            hVt = imgaussfilt3(hV, sigma, 'FilterSize', filterSize);
+            wVt = imgaussfilt3(wV, sigma, 'FilterSize', filterSize);
+        else
+            hVt = hV; wVt = wV;
+        end
+
+        hscnt = hVt(idx);
+        wscnt = wVt(idx);
+        mcnt = max([hscnt; wscnt]);
+        r = corr(hscnt,wscnt);    % corr between FlyEM vs. FlyWire post-synapses to connect APL-R neuron
+        figure; scatter(hscnt,wscnt); xlabel('FlyEM synapse count'); ylabel('FlyWire synapse count');
+        hold on; plot([0 mcnt], [0 mcnt],':','Color',[0.5 0.5 0.5]); hold off; daspect([1 1 1]);
+        title(['s' num2str(sz) ' corr between synapses FlyEM vs. FlyWire r=' num2str(r)]);
+    end
+end
+
 
 function I = getR3idx(A,B)
     I = repmat(A',[1 length(B)]) + repmat(B,[length(A) 1]); I=I(:);

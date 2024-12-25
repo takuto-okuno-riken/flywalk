@@ -1,14 +1,181 @@
 % analyze Struct Connectivity.
 
 function analyzeStructConnectivity
-    % check SC post synapse cloud
+    % check SC post synapse cloud FlyEM, FlyWire
     % roitype: hemiroi primary
     checkSCpostSynapse();
 
-    % check neural transmitter type in each neuron
+    % check neural transmitter type in each neuron (FlyWire)
     % roitype: hemiroi primary
-    checkNeuralTransmitter();
+    checkNeuralTransmitterFw();
 
+    % check mushroom body huge GABA neuron (APL-R) FlyEM, FlyWire
+%    checkAPLneuron();
+%    checkAPLneuronFw();
+end
+
+function checkAPLneuron()
+    hrateTh = 0.8; % FlyEM hemibrain synapse rate threshold
+
+    % FlyEM read neuron info (id, connection number, size)
+    load('data/hemibrain_v1_2_neurons.mat');
+    clear Nconn; clear Ncrop; clear Nsize; 
+
+    % FlyEM read synapse info
+    Sdir = []; StoN = []; Srate = []; StoS = [];
+    load('data/hemibrain_v1_2_synapses.mat');
+    clear Sloc;
+    Sid = uint32(1:length(StoN));
+    srate = (Srate >= hrateTh); % use only accurate synapse more than 'rate'
+    straced = ismember(StoN,Nid(Nstatus==1)); % Find synapses belong to Traced neuron.
+    s1rate = ismember(StoS(:,1),Sid(srate));
+    s2rate = ismember(StoS(:,2),Sid(srate));
+    ssrate = (s1rate & s2rate);
+    s1traced = ismember(StoS(:,1),Sid(straced));
+    s2traced = ismember(StoS(:,2),Sid(straced));
+    sstraced = (s1traced & s2traced);
+    clear straced; clear s1rate; clear s2rate; clear s1traced; clear s2traced;
+
+    Sdir(Srate < hrateTh) = 0;  % use only accurate synapse more than 'rate'
+    clear Srate;
+
+    % FlyEM read synapse location in FDA
+    load('data/synapseloc_fdacal.mat');
+
+    % count pre (to post) and post synapse count
+    APLnid = 425790257;
+    logi = ismember(StoN,APLnid); % find synapses which belong to APL neuron
+    presids = Sid(logi & Sdir==1);
+    postsids = Sid(logi & Sdir==2);
+    logi = ismember(StoS(:,1),presids); % get pre-synapse to connected post-synapse
+    cpostsids = StoS(logi & ssrate & sstraced,2);
+    [cpostsids, ia] = unique(cpostsids);
+
+    info = niftiinfo('template/thresholded_FDACal.nii.gz');
+    Vt = niftiread(info); Vt(:) = 0; V = Vt;
+    sz = size(Vt);
+
+    % get connected post-synapse counts from APL pre-synapses (output)
+    fname = 'data/hemiAplOutputSynapses.nii';
+    if ~exist([fname '.gz'],'file')
+        conSlocFc = SlocFc(cpostsids,:); % get 3D location in FDA Cal template.
+        for j=1:size(conSlocFc,1)
+            t = ceil(conSlocFc(j,:));
+            if t(1)>0 && t(2)>0 && t(3)>0 && t(1)<sz(1) && t(2)<sz(2) && t(3)<sz(3) 
+                V(t(1),t(2),t(3)) = V(t(1),t(2),t(3)) + 1;
+            else
+                disp(['out of bounds ) ' num2str(t)]);
+            end
+        end
+        niftiwrite(V,fname,info,'Compressed',true);
+    end
+
+    % get post-synapse count of APL neuron (input)
+    fname = 'data/hemiAplInputSynapses.nii';
+    if ~exist([fname '.gz'],'file')
+        conSlocFc = SlocFc(postsids,:); V = Vt; % get 3D location in FDA Cal template.
+        for j=1:size(conSlocFc,1)
+            t = ceil(conSlocFc(j,:));
+            if t(1)>0 && t(2)>0 && t(3)>0 && t(1)<sz(1) && t(2)<sz(2) && t(3)<sz(3) 
+                V(t(1),t(2),t(3)) = V(t(1),t(2),t(3)) + 1;
+            else
+                disp(['out of bounds ) ' num2str(t)]);
+            end
+        end
+        niftiwrite(V,fname,info,'Compressed',true);
+    end
+
+    % get connected post-synapse counts from all traced neurons
+    fname = 'data/hemiTracedNeuronOutputSynapses.nii';
+    if ~exist([fname '.gz'],'file')
+        logi = ismember(StoN,Nid(Nstatus==1)); % find synapses which belong to traced neuron
+        presids = Sid(logi & Sdir==1);
+        logi = ismember(StoS(:,1),presids); % get pre-synapse to connected post-synapse
+        cpostsids = StoS(logi & ssrate & sstraced,2);
+        [cpostsids, ia] = unique(cpostsids);
+    
+        conSlocFc = SlocFc(cpostsids,:); V = Vt; % get 3D location in FDA Cal template.
+        for j=1:size(conSlocFc,1)
+            t = ceil(conSlocFc(j,:));
+            if t(1)>0 && t(2)>0 && t(3)>0 && t(1)<sz(1) && t(2)<sz(2) && t(3)<sz(3) 
+                V(t(1),t(2),t(3)) = V(t(1),t(2),t(3)) + 1;
+            else
+                disp(['out of bounds ) ' num2str(t)]);
+            end
+        end
+        niftiwrite(V,fname,info,'Compressed',true);
+    end
+    clear SlocFc; clear Nid; clear Nstatus; clear Sdir; clear Sid;
+end
+
+function checkAPLneuronFw()
+    wrateTh = 130; % FlyWire synapse score threshold
+
+    % FlyWire read neuron info
+    load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+
+    % FlyWire read synapse info
+    load('data/flywire783_synapse.mat');
+    score = (cleftScore >= wrateTh);
+    Sidx = int32(1:length(Sid))';
+    valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
+
+    % read synapse location in FDA
+    load('data/flywire783i_sypostloc_fdacal.mat');
+
+    APLnid = int64(720575940613583001);
+    APLidx = find(Nid==APLnid);
+    logi = ismember(preNidx,APLidx); % find pre-synapses which belong to APL neurons
+    presidx = Sidx(logi & valid & score);
+    logi = ismember(postNidx,APLidx); % find post-synapses which belong to APL neurons
+    postsidx = Sidx(logi & valid & score);
+
+    % get connected post-synapse counts from APL pre-synapses (output)
+    fname = 'data/wireAplOutputSynapses.nii';
+    if ~exist([fname '.gz'],'file')
+        conSlocFc = SpostlocFc(presidx,:); V = Vt; % get (pre-post) 3D location in FDA Cal template.
+        for j=1:size(conSlocFc,1)
+            t = ceil(conSlocFc(j,:));
+            if t(1)>0 && t(2)>0 && t(3)>0 && t(1)<sz(1) && t(2)<sz(2) && t(3)<sz(3) 
+                V(t(1),t(2),t(3)) = V(t(1),t(2),t(3)) + 1;
+            else
+                disp(['out of bounds ) ' num2str(t)]);
+            end
+        end
+        niftiwrite(V,fname,info,'Compressed',true);
+    end
+
+    fname = 'data/wireAplInputSynapses.nii';
+    if ~exist([fname '.gz'],'file')
+        conSlocFc = SpostlocFc(postsidx,:); V = Vt; % get (pre-post) 3D location in FDA Cal template.
+        for j=1:size(conSlocFc,1)
+            t = ceil(conSlocFc(j,:));
+            if t(1)>0 && t(2)>0 && t(3)>0 && t(1)<sz(1) && t(2)<sz(2) && t(3)<sz(3) 
+                V(t(1),t(2),t(3)) = V(t(1),t(2),t(3)) + 1;
+            else
+                disp(['out of bounds ) ' num2str(t)]);
+            end
+        end
+        niftiwrite(V,fname,info,'Compressed',true);
+    end
+
+    % get connected post-synapse counts from all traced neurons
+    fname = 'data/wireTracedNeuronOutputSynapses.nii';
+    if ~exist([fname '.gz'],'file')
+        presidx = Sidx((preNidx>0) & valid & score);
+
+        conSlocFc = SpostlocFc(presidx,:); V = Vt; % get (pre-post) 3D location in FDA Cal template.
+        for j=1:size(conSlocFc,1)
+            t = ceil(conSlocFc(j,:));
+            if t(1)>0 && t(2)>0 && t(3)>0 && t(1)<sz(1) && t(2)<sz(2) && t(3)<sz(3) 
+                V(t(1),t(2),t(3)) = V(t(1),t(2),t(3)) + 1;
+            else
+                disp(['out of bounds ) ' num2str(t)]);
+            end
+        end
+        niftiwrite(V,fname,info,'Compressed',true);
+    end
+    clear SpostlocFc;
 end
 
 function checkSCpostSynapse()
@@ -158,7 +325,7 @@ function checkSCpostSynapse()
     end
 end
 
-function checkNeuralTransmitter()
+function checkNeuralTransmitterFw()
     % read neuron info (id, type)
     load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
 

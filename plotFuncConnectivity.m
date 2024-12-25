@@ -607,7 +607,7 @@ end
 function checkSmoothingNuisanceMushroomBody(vslabels)
     preproc = 'ar'; % for move correct, slice time correct
     hpfTh = [0]; % high-pass filter threshold
-    smooth = {'','s30','s80','s150'};
+    smooth = {'','s30','s40','s60','s80','s100','s150'};
     nuisance = {'','6hm','tcomp','pol','poltcomp' };
     roitypes = {'hemiroi68-59-87-106-50-27-54'};
     roitypelabels = {'MB'};
