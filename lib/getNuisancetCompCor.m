@@ -6,9 +6,11 @@
 %  Sd           detrend signal (time-series x node) before PCA (optional)
 %  vTh          threshold (voxel number) for high tSTD of tCompCor (default:1000)
 %  compNum      component number of tCompCor (default:6)
+%  isnormal     divided by standard div (normalized) (default:false)
 
-function Xn = getNuisancetCompCor(V, Sd, vTh, compNum)
-    if nargin < 6, compNum = 6; end
+function Xn = getNuisancetCompCor(V, Sd, vTh, compNum, isnormal)
+    if nargin < 5, isnormal = false; end
+    if nargin < 4, compNum = 6; end
     if nargin < 3, vTh = 1000; end
     if nargin < 2, Sd = []; end
     
@@ -34,4 +36,8 @@ function Xn = getNuisancetCompCor(V, Sd, vTh, compNum)
     Xn = nan(size(V,2),compNum);
     [coeff,score,~,~,explained,mu] = pca(hsX'); % relation : X' == score * coeff.' + repmat(mu,size(score,1),1);
     Xn(:,1:compNum) = score(:,1:compNum);
+    if isnormal
+        s = nanstd(Xn,1,'all');
+        Xn = Xn / s;
+    end
 end
