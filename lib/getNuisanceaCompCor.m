@@ -8,8 +8,10 @@
 %  Sd           detrend signal (time-series x node) before PCA (optional)
 %  maskTh       mask threshold (percentile) for ROI of aCompCor (default:99)
 %  compNum      component number of aCompCor (default:6)
+%  isnormal     divided by standard div (normalized) (default:false)
 
-function Xn = getNuisanceaCompCor(V, csfV, wmV, Sd, maskTh, compNum)
+function Xn = getNuisanceaCompCor(V, csfV, wmV, Sd, maskTh, compNum, isnormal)
+    if nargin < 7, isnormal = false; end
     if nargin < 6, compNum = 6; end
     if nargin < 5, maskTh = 99; end
     if nargin < 4, Sd = []; end
@@ -45,5 +47,9 @@ function Xn = getNuisanceaCompCor(V, csfV, wmV, Sd, maskTh, compNum)
     if ~isempty(wmX)
         [coeff,score,~,~,explained,mu] = pca(wmX'); % relation : X' == score * coeff.' + repmat(mu,size(score,1),1);
         Xn(:,st:ed) = score(:,1:compNum);
+    end
+    if isnormal
+        s = nanstd(Xn,1,'all');
+        Xn = Xn / s;
     end
 end
