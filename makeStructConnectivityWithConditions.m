@@ -1,5 +1,5 @@
 % make structural connectivity matrix with various conditions.
-% for FlyEM, synapse number threshold at a connection and synaptic accuracy rate are changed.
+% for FlyEM, synapse number threshold at a connection and synapse confidence (accuracy rate) are changed.
 % for FlyWire, synapse number threshold at a connection. 
 % this script should run after makeVoxelROIatlas.m
 
@@ -54,7 +54,7 @@ function makeStructConnectivityWithConditions
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix of hemibrain primary ROI atlas (flyem hemibrain) by FlyWire EM data.
-%{
+%%{
     rateThs = [50 70 100 130 140 150];
     synThs = [0]; % 5 10 20 30 50 100];
     for r=1:length(rateThs)
