@@ -67,7 +67,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             Nout{i}{2} = outnidx; % output traced neuron in ROI(i)
     
             if isweight
-                nidx = preNidx(sididx); 
+                nidx = preNidx(rsidx); 
                 numsyn = groupcounts(nidx); % number of synapse in each neuron
                 nidx = unique(nidx);
                 innidx = nidx(numsyn >= synTh); % get thresholded (pre-synapse) traced root-ids
