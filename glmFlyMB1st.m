@@ -9,7 +9,7 @@ function glmFlyMB1st
     % output time-series (smoothing, highpass filter, nuisance removal)
     hpfTh = 0; % high-pass filter threshold
     smooth = 's40';
-    nuisance = ''; %poltcomp';
+    nuisance = 'poltcomp';
 
     TR = 1 / 1.879714;
     tuM = 8; % tukey window size
@@ -121,7 +121,7 @@ function glmFlyMB1st
             elseif strcmp(nuistr, 'poltcomp')
                 % get Nuisance time-series (polynomial, high tSTD comps)
                 Sd = getNuisancePolynomial(size(V,4));
-                tComp = getNuisancetCompCor(V, Sd);
+                tComp = getNuisancetCompCor(V, Sd, 1000, 6, true);
                 Xn = [Sd, tComp];
             end
             if hm == 6
