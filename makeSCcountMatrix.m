@@ -11,7 +11,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     Sdir = []; StoN = []; Srate = []; StoS = [];
     load('data/hemibrain_v1_2_synapses.mat');
     clear Sloc;
-    Sid = uint32(1:length(StoN));
+    Sid = uint32(1:length(StoN))';
     srate = (Srate >= rateTh); % use only accurate synapse more than 'rate'
     straced = ismember(StoN,Nid(Nstatus==1)); % Find synapses belong to Traced neuron.
     s1rate = ismember(StoS(:,1),Sid(srate));
@@ -69,9 +69,9 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             for j=1:length(D)
                 sids = [sids, D{j}];
             end
-            sids = unique(sids);
-            idx = find(Sdir(sids)==2); % get valid post-synapse ids in this ROI
-            postsids = sids(idx);
+            slogi = ismember(Sid,sids);
+            postsids = Sid(slogi & Sdir==2); % get valid post-synapse ids in this ROI
+
             nids = StoN(postsids);
             numsyn = groupcounts(nids); % number of synapse in each neuron
             nids = unique(nids);
@@ -85,8 +85,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             Nout{i}{3} = outnids(~logis); % output orphan bodys
     
             if isweight
-                idx = find(Sdir(sids)==1); % get valid pre-synapse ids in this ROI
-                presids = sids(idx);
+                presids = Sid(slogi & Sdir==1);  % get valid pre-synapse ids in this ROI
                 nids = StoN(presids);
                 numsyn = groupcounts(nids); % number of synapse in each neuron
                 nids = unique(nids);
@@ -159,17 +158,15 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             outnids = Nout{i}{p};
 
             % ROI(i) output all cells to pre-synapses for other ROIs
-            logi = ismember(StoN,outnids); % find synapses which belong to ROI(i) output neurons
-            outsids = Sid(logi);
-            idx = find(Sdir(outsids)==1); % get pre-synapse ids of output neurons
-            presids = outsids(idx);
-            logi = ismember(StoS(:,1),presids); % get pre-synapse to connected post-synapse
+            slogi = ismember(StoN,outnids); % find synapses which belong to ROI(i) output neurons
+            presids = Sid(slogi & Sdir==1); % get pre-synapse ids of output neurons
+            sslogi = ismember(StoS(:,1),presids); % get pre-synapse to connected post-synapse
             if p==1
-                cpresids = StoS(logi & ssrate,1);
-                cpostsids = StoS(logi & ssrate,2);
+                cpresids = StoS(sslogi & ssrate,1);
+                cpostsids = StoS(sslogi & ssrate,2);
             else
-                cpresids = StoS(logi & ssrate & sstraced,1);
-                cpostsids = StoS(logi & ssrate & sstraced,2);
+                cpresids = StoS(sslogi & ssrate & sstraced,1);
+                cpostsids = StoS(sslogi & ssrate & sstraced,2);
             end
             [cpostsids, ia] = unique(cpostsids);
             cpresids = cpresids(ia);
