@@ -1,17 +1,37 @@
 % make neural Struct Connectivity data.
 
 function makeNeuralSC
+    % DBscan param
+    epsilon = 5; % micro meter. almost 2 voxels.
+    minpts = 3; % set 1, but isolated synapse will be ignored
+
     % check neural input & output voxels (FlyEM)
-    checkNeuralInputOutputVoxels();
+    scTh = 80; synTh = 0; % FlyEM synapse confidence & synapse count at one neuron threshold
+%    scTh = 60; synTh = 5; % almost flywire codex compatible setting
+%    scTh = 0; synTh = 0; % for cheking neuPRINT+ compatible
+    checkNeuralInputOutputVoxels(synTh, scTh/100);
+
+    checkNeuralInputOutputDistance('hemi', synTh, scTh);
+
+    checkNeuralDBScan('hemi', synTh, scTh, epsilon, minpts);
 
     % check neural input & output voxels (FlyWire)
-    checkNeuralInputOutputVoxelsFw();
+    scTh = 130; synTh = 0; % FlyWire synapse score & synapse count at one neuron threshold
+%    scTh = 50; synTh = 0;
+%    scTh = 50; synTh = 5; % for checking flywire codex compatible
+
+    checkNeuralInputOutputVoxelsFw(synTh, scTh);
+
+    checkNeuralInputOutputDistance('wire', synTh, scTh);
+
+    checkNeuralDBScan('wire', synTh, scTh, epsilon, minpts);
 end
 
-function checkNeuralInputOutputVoxels()
-    hrateTh = 0.8; % FlyEM hemibrain synapse rate threshold
+function checkNeuralInputOutputVoxels(synTh, confTh)
 
-    fname = 'results/hemi_neuralInOutVoxels.mat';
+    if ~exist('results/neuralsc','dir'), mkdir('results/neuralsc'); end
+
+    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralInOutVoxels.mat'];
     if exist(fname,'file'), return; end
 
     % FlyEM read neuron info (id, connection number, size)
@@ -22,8 +42,8 @@ function checkNeuralInputOutputVoxels()
     Sdir = []; StoN = []; Srate = []; StoS = [];
     load('data/hemibrain_v1_2_synapses.mat');
     clear Sloc;
-    Sid = uint32(1:length(StoN));
-    srate = (Srate >= hrateTh); % use only accurate synapse more than 'rate'
+    Sid = uint32(1:length(StoN))';
+    srate = (Srate >= confTh); % use only accurate synapse more than 'rate'
     straced = ismember(StoN,Nid(Nstatus==1)); % Find synapses belong to Traced neuron.
     s1rate = ismember(StoS(:,1),Sid(srate));
     s2rate = ismember(StoS(:,2),Sid(srate));
@@ -33,7 +53,7 @@ function checkNeuralInputOutputVoxels()
     sstraced = (s1traced & s2traced);
     clear straced; clear s1rate; clear s2rate; clear s1traced; clear s2traced;
 
-    Sdir(Srate < hrateTh) = 0;  % use only accurate synapse more than 'rate'
+    Sdir(Srate < confTh) = 0;  % use only accurate synapse more than 'rate'
     clear Srate;
 
     % FlyEM read synapse location in FDA
@@ -52,12 +72,32 @@ function checkNeuralInputOutputVoxels()
     inCount = cell(nlen,1);
     for i=1:length(tracedNids)
         logi = ismember(StoN,tracedNids(i)); % find synapses which belong to target neuron
-        presids = Sid(logi & Sdir==1);
-        postsids = Sid(logi & Sdir==2);
-        logi = ismember(StoS(:,1),presids); % get pre-synapse to connected post-synapse
-        cpostsids = StoS(logi & ssrate & sstraced,2);
-        [cpostsids, ia] = unique(cpostsids);
-        disp(['process i=' num2str(i) ' postsids=' num2str(length(postsids)) ' presids=' num2str(length(presids))]);
+        presids = Sid(logi & Sdir==1); % output of a neuron
+        sslogi = ismember(StoS(:,1),presids); % get pre-synapse to connected post-synapse
+        cpostsids = StoS(sslogi & ssrate & sstraced,2); % post-sid is unique
+        if synTh > 0 && ~isempty(cpostsids)
+            nids = StoN(cpostsids);
+            numsyn = groupcounts(nids); % number of synapse in each neuron
+            nids = unique(nids);
+            nids2 = nids(numsyn >= synTh); % get thresholded (post-synapse) neuron ids
+            logi2 = ismember(StoN,nids2);
+            slogi = ismember(Sid,cpostsids);
+            cpostsids = Sid(slogi & logi2);
+        end
+
+        postsids = Sid(logi & Sdir==2); % input of a neuron
+        if synTh > 0 && ~isempty(postsids)
+            sslogi = ismember(StoS(:,2),postsids); % get post-synapse to connected pre-synapse
+            cpresids = StoS(sslogi & ssrate & sstraced,1); % pre-sid is not unique, but need to keep post-synapse count for FlyWire compatibility
+            nids = StoN(cpresids);
+            numsyn = groupcounts(nids); % number of (connected post) synapse in each (pre-synapse) neuron
+            nids = unique(nids);
+            nids2 = nids(numsyn >= synTh); % get thresholded (pre-synapse)
+            logi2 = ismember(StoN,nids2);
+            slogi = ismember(Sid,cpresids);
+            postsids = Sid(slogi & logi2);
+        end
+        disp(['hemi' num2str(synTh) 'sr' num2str(confTh*100) ' : process(' num2str(i) ') nid=' num2str(tracedNids(i)) ' postsids=' num2str(length(postsids)) ' presids=' num2str(length(presids))]);
     
         % get connected post-synapse counts from APL pre-synapses (output)
         conSlocFc = SlocFc(cpostsids,:); V = Vt; % get 3D location in FDA Cal template.
@@ -90,10 +130,9 @@ function checkNeuralInputOutputVoxels()
     save(fname,'inCount','inIdx','outCount','outIdx','tracedNids','-v7.3');
 end
 
-function checkNeuralInputOutputVoxelsFw()
-    wrateTh = 130; % FlyWire synapse score threshold
+function checkNeuralInputOutputVoxelsFw(synTh, scoreTh)
 
-    fname = 'results/wire_neuralInOutVoxels.mat';
+    fname = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neuralInOutVoxels.mat'];
     if exist(fname,'file'), return; end
 
     % FlyWire read neuron info
@@ -101,7 +140,7 @@ function checkNeuralInputOutputVoxelsFw()
 
     % FlyWire read synapse info
     load('data/flywire783_synapse.mat');
-    score = (cleftScore >= wrateTh);
+    score = (cleftScore >= scoreTh);
     Sidx = int32(1:length(Sid))';
     valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
 
@@ -120,13 +159,31 @@ function checkNeuralInputOutputVoxelsFw()
     inIdx = cell(nlen,1);
     inCount = cell(nlen,1);
     for i=1:length(Nid)
-        nidx = i;
-        logi = ismember(preNidx,nidx); % find pre-synapses which belong to APL neurons
-        presidx = Sidx(logi & valid & score);
-        logi = ismember(postNidx,nidx); % find post-synapses which belong to APL neurons
-        postsidx = Sidx(logi & valid & score);
-        disp(['process i=' num2str(i) ' postsids=' num2str(length(postsidx)) ' presids=' num2str(length(presidx))]);
-    
+        logi = ismember(preNidx,i); % find pre-synapses which belong to target neurons
+        if synTh > 0
+            nidx=postNidx(logi);        % for checking flywire codex compatible
+            numsyn = groupcounts(nidx); % number of synapse in each neuron
+            nidx = unique(nidx);
+            outnidx = nidx(numsyn >= synTh); % get thresholded (post-synapse) traced root-ids
+            logi2 = ismember(postNidx,outnidx);
+            presidx = Sidx(logi & logi2 & valid & score);
+        else
+            presidx = Sidx(logi & valid & score);
+        end
+        logi = ismember(postNidx,i); % find post-synapses which belong to target neurons
+
+        if synTh > 0
+            nidx=preNidx(logi);         % for checking flywire codex compatible
+            numsyn = groupcounts(nidx); % number of synapse in each neuron
+            nidx = unique(nidx);
+            innidx = nidx(numsyn >= synTh); % get thresholded (post-synapse) traced root-ids
+            logi2 = ismember(preNidx,innidx);
+            postsidx = Sidx(logi & logi2 & valid & score);
+        else
+            postsidx = Sidx(logi & valid & score);
+        end
+        disp(['wire' num2str(synTh) 'sr' num2str(scoreTh) ' : process(' num2str(i) ') nid=' num2str(Nid(i)) ' postsids=' num2str(length(postsidx)) ' presids=' num2str(length(presidx))]);
+
         % get connected post-synapse counts from APL pre-synapses (output)
         conSlocFc = SpostlocFc(presidx,:); V = Vt; % get (pre-post) 3D location in FDA Cal template.
         for j=1:size(conSlocFc,1)
@@ -158,3 +215,132 @@ function checkNeuralInputOutputVoxelsFw()
     save(fname,'inCount','inIdx','outCount','outIdx','tracedNidx','-v7.3');
 end
 
+function checkNeuralInputOutputDistance(scname, synTh, confTh)
+    fname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(confTh) '_neuralInOutDistance.mat'];
+    if exist(fname,'file'), return; end
+
+    info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
+    V = niftiread(info);
+    sz = size(V);
+
+    % load input output voxel info
+    niofname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(confTh) '_neuralInOutVoxels.mat'];
+    load(niofname);
+
+    D = cell(length(inIdx),1);
+    Didx = cell(length(inIdx),2);
+    for i=1:length(inIdx)
+        if isempty(inIdx{i}) || isempty(outIdx{i}), continue; end
+
+        scinidx = inIdx{i};
+        scoutidx = outIdx{i};
+        vinidx = V(scinidx); scinidx(vinidx==0)=[];
+        voutidx = V(scoutidx); scoutidx(voutidx==0)=[];
+        if length(scinidx)==0 || length(scoutidx)==0, continue; end
+
+        scinlen = length(scinidx);
+        scoutlen = length(scoutidx);
+        disp(['dist ' scname num2str(synTh) 'sr' num2str(confTh) ' : process i=' num2str(i) ' invox=' num2str(scinlen) ' outvox=' num2str(scoutlen)]);
+
+        Sin = zeros(scinlen,1,3,'single');
+        for j=1:scinlen
+            [x,y,z] = ind2sub(sz,scinidx(j));
+            Sin(j,1,:) = [x y z] .* [2.45, 2.28, 3.715]; % * voxel size
+        end
+        Sin = repmat(Sin,[1 scoutlen 1]);
+        Sout = zeros(1,scoutlen,3,'single');
+        for j=1:scoutlen
+            [x,y,z] = ind2sub(sz,scoutidx(j));
+            Sout(1,j,:) = [x y z] .* [2.45, 2.28, 3.715]; % * voxel size
+        end
+        Sout = repmat(Sout,[scinlen 1 1]);
+        D{i} = sqrt(sum((Sin - Sout).^2,3));
+
+        if scinlen > 2
+            eucD = pdist(D{i},'euclidean');
+            Z = linkage(eucD,'single');
+            [T,ids1] = dendrogramNoplot(Z,scinlen);
+        else
+            ids1 = 1:scinlen;
+        end
+        if scoutlen > 2
+            eucD = pdist(D{i}(ids1,:)','euclidean');
+            Z = linkage(eucD,'single');
+            [T,ids2] = dendrogramNoplot(Z,scoutlen);
+        else
+            ids2 = 1:scoutlen;
+        end
+        Didx{i,1} = ids1;
+        Didx{i,2} = ids2;
+%        figure; imagesc(D{i}(ids1,ids2)); colorbar;
+    end
+    save(fname,'D','Didx','-v7.3');
+end
+
+function checkNeuralDBScan(scname, synTh, confTh, epsilon, minpts)
+    fname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(confTh) '_neuralDBScan' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
+    if exist(fname,'file'), return; end
+
+    info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
+    V = niftiread(info);
+    sz = size(V);
+
+    switch(scname)
+    case 'hemi'
+        % FlyEM read neuron info (id, connection number, size)
+        load('data/hemibrain_v1_2_neurons.mat');
+        clear Nconn; clear Ncrop; clear Nsize; 
+    case 'wire'
+        load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+    end
+
+    % load input output voxel info
+    niofname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(confTh) '_neuralInOutVoxels.mat'];
+    load(niofname);
+
+    DBidx = cell(length(inIdx),1);
+    inlen = cell(length(inIdx),1);
+    for i=1:length(inIdx)
+        if isempty(inIdx{i}) || isempty(outIdx{i}), continue; end
+
+        scinidx = inIdx{i};
+        scoutidx = outIdx{i};
+        vinidx = V(scinidx);
+        voutidx = V(scoutidx);
+        scinlen = length(scinidx);
+        scoutlen = length(scoutidx);
+
+        X = zeros(scinlen+scoutlen,3,'single');
+        for j=1:scinlen
+            [x,y,z] = ind2sub(sz,scinidx(j));
+            X(j,:) = [x y z] .* [2.45, 2.28, 3.715]; % * voxel size
+        end
+        for j=scinlen+1:scinlen+scoutlen
+            [x,y,z] = ind2sub(sz,scoutidx(j-scinlen));
+            X(j,:) = [x y z] .* [2.45, 2.28, 3.715]; % * voxel size
+        end
+        dbidx = int16(dbscan(X,epsilon,minpts));
+        inlen{i} = scinlen;
+
+        % remove out of mask voxels from cluster
+        dbidx([vinidx;voutidx]==0) = -2;
+
+        % reorder cluster number by Y axis
+        mcls = max(dbidx);
+        sdbidx = dbidx;
+        topYs = ones(mcls,1) * 1e3; % set dummy Y
+        for j=1:mcls
+            Yt = X(dbidx==j,2);
+            if ~isempty(Yt), topYs(j) = min(Yt); end % head top is zero direction
+        end
+        [ys,icls] = sort(topYs);
+        for j=1:mcls
+            sdbidx(dbidx==icls(j)) = j;
+        end
+        DBidx{i} = sdbidx;
+
+        cls = unique(sdbidx);
+        disp(['dbscan ' scname num2str(synTh) 'sr' num2str(confTh) ' : process (' num2str(i) ') nid=' num2str(Nid(i)) ' cls=' num2str(length(cls(cls>0))) ' invox=' num2str(scinlen) ' outvox=' num2str(scoutlen)]);
+    end
+    save(fname,'inlen','DBidx','-v7.3');
+end
