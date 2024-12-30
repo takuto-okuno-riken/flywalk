@@ -257,7 +257,8 @@ function checkSCFCmatrixSimilarity()
 
     % load SC & atlas
     roitypes = {'hemiroi_hb0sr50','hemiroi_hb0sr60','hemiroi_hb0sr70','hemiroi_hb0sr80','hemiroi_hb0sr90', ... % for s30 & s80, '' & poltcomp
-            'hemiroi_fw0sr50','hemiroi_fw0sr70','hemiroi_fw0sr100','hemiroi_fw0sr130','hemiroi_fw0sr140','hemiroi_fw0sr150'};
+            'hemiroi_fw0sr50','hemiroi_fw0sr70','hemiroi_fw0sr100','hemiroi_fw0sr130','hemiroi_fw0sr140','hemiroi_fw0sr150', ...
+            'hemiroi_hb5sr60','hemiroi_fw5sr50','hemiroi_fw5sr130'};
 
     ylabels = {}; rlabels = {}; R3 = []; A3 = []; roiR3 = [];
     for r = 1:length(roitypes)
@@ -286,7 +287,7 @@ function checkSCFCmatrixSimilarity()
         ylabels = [ylabels(:); strcat(C(:),vslabels(:))];
     end
     % FC-SC correlation (all)
-    T = [0 24 48 72 96 120 144 168 192 216 240];
+    T = [0:24:24*13];
     I = getR3idx([7 9],T);  % show only Traced neuron, synapse
     figure; imagescLabel2(R3(I,:),xlabels,ylabels(I),[0.2 0.9]); colorbar; title(['FC-SC correlation (All) ']); colormap(hot);
     
