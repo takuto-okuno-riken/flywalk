@@ -3,7 +3,7 @@
 function [weightMat] = makeSCweightMatrixLarge(sycountMat, type)
     roimax = size(sycountMat,1);
     Nout = {}; Nin = {};
-    nfile = ['results/cache-' type '_L_Nin_Nout.mat'];
+    nfile = ['results/cache/' type '_L_Nin_Nout.mat'];
     load(nfile);
 
     delete(gcp('nocreate')); % shutdown pools

@@ -347,7 +347,7 @@ function checkNeuralTransmitterFw()
                 idstr = [roitypes{n} '_fw' num2str(sth) 'sr' num2str(rth)];
                 fname = ['results/sc/' idstr '_transmitter.mat'];
                 if ~exist(fname,'file')
-                    nfile = ['results/cache-' idstr '_Nin_Nout.mat'];
+                    nfile = ['results/cache/' idstr '_Nin_Nout.mat'];
                     load(nfile);
     
                     roiNum = length(Nout);

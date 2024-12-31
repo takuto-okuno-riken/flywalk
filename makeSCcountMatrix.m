@@ -47,11 +47,13 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     Sdir(Srate < rateTh) = 0;  % use only accurate synapse more than 'rate'
     clear Srate;
 
+    if ~exist('results/cache','dir'), mkdir('results/cache'); end
+
     isweight = (nargout >= 3);
     isoutweight = (nargout >= 4);
     issyweight = (nargout >= 5);
     roimax = length(roiIdxs);
-    nfile = ['results/cache-' type '_Nin_Nout.mat'];
+    nfile = ['results/cache/' type '_Nin_Nout.mat'];
     if exist(nfile,'file')
         load(nfile);
     else

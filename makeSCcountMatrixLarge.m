@@ -40,7 +40,7 @@ function [countMat, sycountMat] = makeSCcountMatrixLarge(roiIdxs, sz, rateTh, sy
     clear Srate;
 
     roimax = length(roiIdxs);
-    nfile = ['results/cache-' type '_L_Nin_Nout.mat'];
+    nfile = ['results/cache/' type '_L_Nin_Nout.mat'];
     if exist(nfile,'file')
         load(nfile);
     else
