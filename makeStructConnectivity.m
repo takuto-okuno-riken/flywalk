@@ -468,7 +468,7 @@ function makeStructConnectivity
     % make structural connectivity matrix from branson 7065 k-means atlas (flyWire based clustering) by FlyWire EM data
     %
 %{
-    for k=[20 30 50 100 200 300 500 1000] % TODO
+    for k=[20 30 50 100 200 300 500 1000]
         idstr = ['wireBranson7065km' num2str(k) '_fw'  num2str(synTh) 'sr' num2str(fwSth)];
         fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
