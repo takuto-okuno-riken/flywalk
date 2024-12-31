@@ -32,7 +32,7 @@ function plotStructConnectivity
     ids = [107	16	59	68	65	78	4	49	106	87	100	27	43	5	57	89	101	97	50	58	113	10	32	66	30	67	19	76	31	82	93	54	52	8	7	42	1	63	95	112	98	33	18	103	15	20	111	34	51	62	47	24	38	22	75	41	2	45	80	102	56	28	91];
     labelNames = roiname(ids,1);
 
-    checkOtherPieceSynapse('data/neuprint_connectlist.mat', ids, labelNames); % hemibrain ROI
+    checkOtherPieceSynapse('results/sc/hemiroi_connectlist.mat', ids, labelNames); % hemibrain ROI
 %}
 end
 
@@ -46,7 +46,7 @@ function checkSCpostSynapse()
     for i = 1:length(roitypes)
         roitype = roitypes{i};
 
-        fname = ['data/' roitype '_postsyncount.mat'];
+        fname = ['results/sc/' roitype '_postsyncount.mat'];
         load(fname);
         ids = primaryIds;
             
@@ -112,7 +112,7 @@ function checkSCmatrixSimilarity()
     for i = 1:length(roitypes)
         roitype = roitypes{i};
 
-        fname = ['data/' roitype '_postsyncount.mat'];
+        fname = ['results/sc/' roitype '_postsyncount.mat'];
         load(fname);
         ids = primaryIds;
 
@@ -129,7 +129,7 @@ function checkSCmatrixSimilarity()
             sth = hbsynThs(c);
             for r=1:length(hbrateThs)
                 rth = hbrateThs(r);
-                fname = ['data/' roitype '_hb' num2str(sth) 'sr' num2str(rth) '_connectlist.mat'];
+                fname = ['results/sc/' roitype '_hb' num2str(sth) 'sr' num2str(rth) '_connectlist.mat'];
                 if exist(fname,'file')
                     t = load(fname);
                     ncountMat(:,:,ii) = t.ncountMat(ids,ids,2);
@@ -145,7 +145,7 @@ function checkSCmatrixSimilarity()
             sth = fwsynThs(c);
             for r=1:length(fwrateThs)
                 rth = fwrateThs(r);
-                fname = ['data/' roitype '_fw' num2str(sth) 'sr' num2str(rth) '_connectlist.mat'];
+                fname = ['results/sc/' roitype '_fw' num2str(sth) 'sr' num2str(rth) '_connectlist.mat'];
                 if exist(fname,'file')
                     t = load(fname);
                     ncountMat(:,:,ii) = t.ncountMat(ids,ids,2);
@@ -329,7 +329,7 @@ function checkSCFCmatrixSimilarity()
     % plot ROI SC vs. poltcomp m-FC(z) result
     switch(str{1})
     case 'hemiroi'
-        fname = ['data/' str{1} '_postsyncount.mat'];
+        fname = ['results/sc/' str{1} '_postsyncount.mat'];
         load(fname);
         ids = primaryIds;
         % primary, R/L, name order
@@ -363,10 +363,10 @@ function checkNeuralTransmitter()
             for j=1:length(synThs)
                 sth = synThs(j);
                 idstr = [roitype '_fw' num2str(sth) 'sr' num2str(rth)];
-                fname = ['data/' idstr '_transmitter.mat'];
+                fname = ['results/sc/' idstr '_transmitter.mat'];
                 load(fname);
 
-                fname = ['data/' idstr '_connectlist.mat'];
+                fname = ['results/sc/' idstr '_connectlist.mat'];
                 load(fname);
                 ids = primaryIds;
 
@@ -445,15 +445,15 @@ function checkSCdiffConnectionCount()
             % check atlas voxel size
             ii = j+(i-1)*length(roinums);
             axlabels{ii} = [roitypes{i} num2str(roinums(j))];
-            info = niftiinfo(['atlas\' axlabels{ii} 'atlasCal.nii.gz']);
+            info = niftiinfo(['atlas/' axlabels{ii} 'atlasCal.nii.gz']);
             V = niftiread(info);
             Vs(ii) = length(find(V>0));
 
             % check connection matrix
             xlabels{j} = ['roi' num2str(roinums(j))];
             roitype = [roitypes{i} num2str(roinums(j))];
-            confile = ['data/' lower(roitype) '_connectlist.mat'];
-            confilefw = ['data/' lower(roitype) '_fw_connectlist.mat'];
+            confile = ['results/sc/' lower(roitype) '_connectlist.mat'];
+            confilefw = ['results/sc/' lower(roitype) '_fw_connectlist.mat'];
             if exist(confile,'file') && exist(confilefw,'file')
                 t = load(confile);
                 ids = t.primaryIds;
@@ -515,8 +515,8 @@ function checkAPLneuron()
     idx = find(aV>0);
 
     % load connected post-synapse counts from APL pre-synapses (output)
-    hV = niftiread('data/hemiAplOutputSynapses.nii.gz');
-    wV = niftiread('data/wireAplOutputSynapses.nii.gz');
+    hV = niftiread('results/nifti/hemiAplOutputSynapses.nii.gz');
+    wV = niftiread('results/nifti/wireAplOutputSynapses.nii.gz');
 
     smooth = [0 20 40 80];
     for i=1:length(smooth)

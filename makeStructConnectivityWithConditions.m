@@ -23,7 +23,7 @@ function makeStructConnectivityWithConditions
         for j=1:length(synThs)
             synTh = synThs(j);
             idstr = ['hemiroi_hb' num2str(synTh) 'sr' num2str(rateTh)];
-            fname = ['data/' lower(idstr) '_connectlist.mat'];
+            fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
             clear ncountMat; clear sycountMat; clear nweightMat; scver = 1;
             if exist(fname,'file')
@@ -66,7 +66,7 @@ function makeStructConnectivityWithConditions
         for j=1:length(synThs)
             synTh = synThs(j);
             idstr = ['hemiroi_fw' num2str(synTh) 'sr' num2str(rateTh)];
-            fname = ['data/' lower(idstr) '_connectlist.mat'];
+            fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
             clear ncountMat; clear sycountMat; clear nweightMat; scver = 1;
             if exist(fname,'file')
@@ -104,13 +104,13 @@ function makeStructConnectivityWithConditions
     for j=1:length(synThs)
         synTh = synThs(j);
 
-        fname = ['data/hemiroi_avg' num2str(synTh) '_connectlist.mat'];
+        fname = ['results/sc/hemiroi_avg' num2str(synTh) '_connectlist.mat'];
         if exist(fname,'file')
             load(fname);
         else
-            t1name = ['data/hemiroi_hb' num2str(synTh) 'sr' num2str(rateTh) '_connectlist.mat'];
+            t1name = ['results/sc/hemiroi_hb' num2str(synTh) 'sr' num2str(rateTh) '_connectlist.mat'];
             t1 = load(t1name);
-            t2name = ['data/hemiroi_fw' num2str(synTh) '_connectlist.mat'];
+            t2name = ['results/sc/hemiroi_fw' num2str(synTh) '_connectlist.mat'];
             t2 = load(t2name);
             ncountMat = (t1.ncountMat + t2.ncountMat) / 2;
             nweightMat = (t1.nweightMat + t2.nweightMat) / 2;
@@ -142,7 +142,7 @@ function makeStructConnectivityWithConditions
         for j=1:length(synThs)
             synTh = synThs(j);
             idstr = ['hemiDistKm' num2str(k) '_hb' num2str(synTh) 'sr' num2str(rateTh)];
-            fname = ['data/' lower(idstr) '_connectlist.mat'];
+            fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
             clear ncountMat; clear sycountMat; clear nweightMat; scver = 1;
             if exist(fname,'file')
@@ -167,7 +167,7 @@ function makeStructConnectivityWithConditions
             if scver <= SCVER
                 % set same order of FlyEM hemibrain (sc0sr80)
                 str = split(idstr,'_');
-                flyemname = ['data/' lower(str{1}) '_connectlist.mat'];
+                flyemname = ['results/sc/' lower(str{1}) '_connectlist.mat'];
                 cl = load(flyemname);
                 primaryIds = cl.primaryIds;
                 clear cl;
@@ -195,7 +195,7 @@ function makeStructConnectivityWithConditions
         for j=1:length(synThs)
             synTh = synThs(j);
             idstr = ['hemiDistKm' num2str(k) '_fw' num2str(synTh) 'sr' num2str(rateTh)];
-            fname = ['data/' lower(idstr) '_connectlist.mat'];
+            fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
             clear ncountMat; clear sycountMat; clear nweightMat; scver = 1;
             if exist(fname,'file')
@@ -220,7 +220,7 @@ function makeStructConnectivityWithConditions
             if scver <= SCVER
                 % set same order of FlyEM hemibrain (sc0sr80)
                 str = split(idstr,'_');
-                flyemname = ['data/' lower(str{1}) '_connectlist.mat'];
+                flyemname = ['results/sc/' lower(str{1}) '_connectlist.mat'];
                 cl = load(flyemname);
                 primaryIds = cl.primaryIds;
                 clear cl;

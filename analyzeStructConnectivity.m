@@ -56,7 +56,7 @@ function checkAPLneuron()
     sz = size(Vt);
 
     % get connected post-synapse counts from APL pre-synapses (output)
-    fname = 'data/hemiAplOutputSynapses.nii';
+    fname = 'results/nifti/hemiAplOutputSynapses.nii';
     if ~exist([fname '.gz'],'file')
         conSlocFc = SlocFc(cpostsids,:); % get 3D location in FDA Cal template.
         for j=1:size(conSlocFc,1)
@@ -71,7 +71,7 @@ function checkAPLneuron()
     end
 
     % get post-synapse count of APL neuron (input)
-    fname = 'data/hemiAplInputSynapses.nii';
+    fname = 'results/nifti/hemiAplInputSynapses.nii';
     if ~exist([fname '.gz'],'file')
         conSlocFc = SlocFc(postsids,:); V = Vt; % get 3D location in FDA Cal template.
         for j=1:size(conSlocFc,1)
@@ -86,7 +86,7 @@ function checkAPLneuron()
     end
 
     % get connected post-synapse counts from all traced neurons
-    fname = 'data/hemiTracedNeuronOutputSynapses.nii';
+    fname = 'results/nifti/hemiTracedNeuronOutputSynapses.nii';
     if ~exist([fname '.gz'],'file')
         logi = ismember(StoN,Nid(Nstatus==1)); % find synapses which belong to traced neuron
         presids = Sid(logi & Sdir==1);
@@ -131,7 +131,7 @@ function checkAPLneuronFw()
     postsidx = Sidx(logi & valid & score);
 
     % get connected post-synapse counts from APL pre-synapses (output)
-    fname = 'data/wireAplOutputSynapses.nii';
+    fname = 'results/nifti/wireAplOutputSynapses.nii';
     if ~exist([fname '.gz'],'file')
         conSlocFc = SpostlocFc(presidx,:); V = Vt; % get (pre-post) 3D location in FDA Cal template.
         for j=1:size(conSlocFc,1)
@@ -145,7 +145,7 @@ function checkAPLneuronFw()
         niftiwrite(V,fname,info,'Compressed',true);
     end
 
-    fname = 'data/wireAplInputSynapses.nii';
+    fname = 'results/nifti/wireAplInputSynapses.nii';
     if ~exist([fname '.gz'],'file')
         conSlocFc = SpostlocFc(postsidx,:); V = Vt; % get (pre-post) 3D location in FDA Cal template.
         for j=1:size(conSlocFc,1)
@@ -160,7 +160,7 @@ function checkAPLneuronFw()
     end
 
     % get connected post-synapse counts from all traced neurons
-    fname = 'data/wireTracedNeuronOutputSynapses.nii';
+    fname = 'results/nifti/wireTracedNeuronOutputSynapses.nii';
     if ~exist([fname '.gz'],'file')
         presidx = Sidx((preNidx>0) & valid & score);
 
@@ -187,7 +187,7 @@ function checkSCpostSynapse()
         for j=1:length(synThs)
             synTh = synThs(j);
 
-            niifile = ['data/hemibrain_hb' num2str(synTh) 'sr' num2str(syconfTh) '_postsynFDACal.nii'];
+            niifile = ['results/nifti/hemibrain_hb' num2str(synTh) 'sr' num2str(syconfTh) '_postsynFDACal.nii'];
             if exist([niifile '.gz'],'file')
                 hbinfo = niftiinfo([niifile '.gz']);
                 hbV = niftiread(hbinfo);
@@ -234,7 +234,7 @@ function checkSCpostSynapse()
         for j=1:length(synThs)
             synTh = synThs(j);
 
-            niifile = ['data/hemibrain_fw' num2str(synTh) 'sr' num2str(syconfTh) '_postsynFDACal.nii'];
+            niifile = ['results/nifti/hemibrain_fw' num2str(synTh) 'sr' num2str(syconfTh) '_postsynFDACal.nii'];
             if exist([niifile '.gz'],'file')
                 fwinfo = niftiinfo([niifile '.gz']);
                 fwV = niftiread(fwinfo);
@@ -278,7 +278,7 @@ function checkSCpostSynapse()
     for i = 1:length(roitypes)
         roitype = roitypes{i};
 
-        fname = ['data/' roitype '_postsyncount.mat'];
+        fname = ['results/sc/' roitype '_postsyncount.mat'];
         if exist(fname,'file')
             load(fname);
         else
@@ -305,7 +305,7 @@ function checkSCpostSynapse()
                     syconfTh = hbrateThs(r);
                     for c=1:length(hbsynThs)
                         synTh = hbsynThs(c);
-                        hbV = niftiread(['data/hemibrain_hb' num2str(synTh) 'sr' num2str(syconfTh) '_postsynFDACal.nii.gz']);
+                        hbV = niftiread(['results/nifti/hemibrain_hb' num2str(synTh) 'sr' num2str(syconfTh) '_postsynFDACal.nii.gz']);
                         hbSc = hbV(roiIdxs{k});
                         hbS(k,r,c) = sum(hbSc);
                     end
@@ -314,7 +314,7 @@ function checkSCpostSynapse()
                     syconfTh = fwrateThs(r);
                     for c=1:length(fwsynThs)
                         synTh = fwsynThs(c);
-                        fwV = niftiread(['data/hemibrain_fw' num2str(synTh) 'sr' num2str(syconfTh) '_postsynFDACal.nii.gz']);
+                        fwV = niftiread(['results/nifti/hemibrain_fw' num2str(synTh) 'sr' num2str(syconfTh) '_postsynFDACal.nii.gz']);
                         fwSc = fwV(roiIdxs{k});
                         fwS(k,r,c) = sum(fwSc);
                     end
@@ -343,7 +343,7 @@ function checkNeuralTransmitterFw()
             for j=1:length(synThs)
                 sth = synThs(j);
                 idstr = [roitypes{n} '_fw' num2str(sth) 'sr' num2str(rth)];
-                fname = ['data/' idstr '_transmitter.mat'];
+                fname = ['results/sc/' idstr '_transmitter.mat'];
                 if ~exist(fname,'file')
                     nfile = ['results/cache-' idstr '_Nin_Nout.mat'];
                     load(nfile);

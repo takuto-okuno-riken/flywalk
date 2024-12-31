@@ -87,11 +87,11 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
     % load structural connectivity matrix (from makeStructConnectivity.m)
     switch(roitype)
     case 'hemiroif'
-        load('data/hemiroi_connectlist.mat');
+        load('results/sc/hemiroi_connectlist.mat');
         ids = 1:roiNum;
     otherwise
         roitype = lower(roitype);
-        load(['data/' roitype '_connectlist.mat']);
+        load(['results/sc/' roitype '_connectlist.mat']);
         ids = primaryIds;
     end
 

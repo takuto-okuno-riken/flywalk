@@ -19,7 +19,7 @@ function makeStructConnectivity
 
     % load matfile
     idstr = 'hemiroi';
-    fname = ['data/' lower(idstr) '_connectlist.mat']; scver = 1;
+    fname = ['results/sc/' lower(idstr) '_connectlist.mat']; scver = 1;
     load(fname);
 
     %
@@ -139,7 +139,7 @@ function makeStructConnectivity
 %{
     clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
     idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth)];
-    fname = ['data/' lower(idstr) '_connectlist.mat'];
+    fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
     if exist(fname,'file')
         load(fname);
     else
@@ -164,7 +164,7 @@ function makeStructConnectivity
     end
     if scver <= SCVER
         % set same order of FlyEM hemibrain.
-        flyemname = ['data/hemiroi_connectlist.mat'];
+        flyemname = ['results/sc/hemiroi_connectlist.mat'];
         cl = load(flyemname);
         primaryIds = cl.primaryIds;
         clear cl;
@@ -184,7 +184,7 @@ function makeStructConnectivity
 %{
     clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
     idstr = 'bransonhemi';
-    fname = ['data/' lower(idstr) '_connectlist.mat'];
+    fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
     if exist(fname,'file')
         load(fname);
     else
@@ -256,7 +256,7 @@ function makeStructConnectivity
     %
 %{
     idstr = 'hemibranson7065';
-    fname = ['data/' lower(idstr) '_connectlist.mat'];
+    fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
     clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
     if exist(fname,'file')
         load(fname);
@@ -292,7 +292,7 @@ function makeStructConnectivity
     %
 %{
     idstr = 'wirebranson7065';
-    fname = ['data/' idstr '_connectlist.mat'];
+    fname = ['results/sc/' idstr '_connectlist.mat'];
     clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
     if exist(fname,'file')
         load(fname);
@@ -329,7 +329,7 @@ function makeStructConnectivity
 %{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiBranson7065km' num2str(k)];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         if exist(fname,'file')
@@ -376,7 +376,7 @@ function makeStructConnectivity
 %{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiBranson7065km' num2str(k) '_fw'  num2str(synTh) 'sr' num2str(fwSth)];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         if exist(fname,'file')
@@ -401,7 +401,7 @@ function makeStructConnectivity
         if scver <= SCVER
             % set same order of FlyEM hemibrain.
             str = split(idstr,'_');
-            flyemname = ['data/' lower(str{1}) '_connectlist.mat'];
+            flyemname = ['results/sc/' lower(str{1}) '_connectlist.mat'];
             cl = load(flyemname);
             primaryIds = cl.primaryIds;
             clear cl;
@@ -423,7 +423,7 @@ function makeStructConnectivity
 %{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['wireBranson7065km' num2str(k)];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         if exist(fname,'file')
@@ -470,7 +470,7 @@ function makeStructConnectivity
 %{
     for k=[20 30 50 100 200 300 500 1000] % TODO
         idstr = ['wireBranson7065km' num2str(k) '_fw'  num2str(synTh) 'sr' num2str(fwSth)];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         if exist(fname,'file')
@@ -517,7 +517,7 @@ function makeStructConnectivity
 %{
     for k=4%[12 8 4]
         idstr = ['hemiCube' num2str(k)];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         if exist(fname,'file')
@@ -564,7 +564,7 @@ function makeStructConnectivity
 %{
     for k=[12 8 4 3 2]
         idstr = ['hemiPiece' num2str(k)];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         if exist(fname,'file')
@@ -606,7 +606,7 @@ function makeStructConnectivity
         for j=2:length(roiids{k}), idstr=[idstr '-' num2str(roiids{k}(j))]; end
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
         if exist(fname,'file')
             load(fname);
         else
@@ -656,7 +656,7 @@ function makeStructConnectivity
 
         for k=[200 400 800 1600 3200]
             idstr = [roiname 'DistKm' num2str(k)];
-            fname = ['data/' lower(idstr) '_connectlist.mat'];
+            fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
             clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
             if exist(fname,'file')
@@ -703,7 +703,7 @@ function makeStructConnectivity
 %{
     clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
     idstr = 'hemiRoiWhole';
-    fname = ['data/' idstr '_connectlist.mat'];
+    fname = ['results/sc/' idstr '_connectlist.mat'];
     if exist([fname(1:end-4) '_cm.mat'],'file')
         load([fname(1:end-4) '_cm.mat']);
         load([fname(1:end-4) '_sm.mat']);
@@ -741,7 +741,7 @@ function makeStructConnectivity
 %{
     for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiCmkm' num2str(k)];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         if exist(fname,'file')
@@ -793,7 +793,7 @@ function makeStructConnectivity
 %{
     for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiCmkm' num2str(k) 'r1w1'];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         if exist(fname,'file')
@@ -845,7 +845,7 @@ function makeStructConnectivity
 %{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiCmkm' num2str(k) '_fw'  num2str(synTh) 'sr' num2str(fwSth)];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         if exist(fname,'file')
@@ -874,7 +874,7 @@ function makeStructConnectivity
         end
         if scver <= SCVER
             % set same order of FlyEM hemibrain.
-            flyemname = ['data/' lower(idstr(1:end-3)) '_connectlist.mat'];
+            flyemname = ['results/sc/' lower(idstr(1:end-3)) '_connectlist.mat'];
             cl = load(flyemname);
             primaryIds = cl.primaryIds;
             clear cl;
@@ -896,7 +896,7 @@ function makeStructConnectivity
 %{
     for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiDistKm' num2str(k)];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         if exist(fname,'file')
@@ -949,7 +949,7 @@ function makeStructConnectivity
     for k=[1000]
         for n=[1 2 4 8 16 32 64 128]
             idstr = ['hemiDistKm' num2str(k) 'vox' num2str(n)];
-            fname = ['data/' lower(idstr) '_connectlist.mat'];
+            fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
     
             clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
             if exist(fname,'file')
@@ -997,7 +997,7 @@ function makeStructConnectivity
 %{
     for k=[20 30 50 100 200 300 500 1000 5000 10000]
         idstr = ['hemiDistKm' num2str(k) '_fw' num2str(synTh) 'sr' num2str(fwSth)];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         if exist(fname,'file')
@@ -1027,7 +1027,7 @@ function makeStructConnectivity
         if scver <= SCVER
             % set same order of FlyEM hemibrain.
             str = split(idstr,'_');
-            flyemname = ['data/' lower(str{1}) '_connectlist.mat'];
+            flyemname = ['results/sc/' lower(str{1}) '_connectlist.mat'];
             cl = load(flyemname);
             primaryIds = cl.primaryIds;
             clear cl;
@@ -1049,13 +1049,13 @@ function makeStructConnectivity
 %{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiDistKm' num2str(k)];
-        fname = ['data/' lower(idstr) '_avg_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_avg_connectlist.mat'];
         if exist(fname,'file')
             load(fname);
         else
-            t1name = ['data/' lower(idstr) '_connectlist.mat'];
+            t1name = ['results/sc/' lower(idstr) '_connectlist.mat'];
             t1 = load(t1name);
-            t2name = ['data/' lower(idstr) '_fw'  num2str(synTh) 'sr' num2str(fwSth) '_connectlist.mat'];
+            t2name = ['results/sc/' lower(idstr) '_fw'  num2str(synTh) 'sr' num2str(fwSth) '_connectlist.mat'];
             t2 = load(t2name);
             ncountMat = (t1.ncountMat + t2.ncountMat) / 2;
             nweightMat = (t1.nweightMat + t2.nweightMat) / 2;
@@ -1083,7 +1083,7 @@ function makeStructConnectivity
 %{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiRand' num2str(k)];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         if exist(fname,'file')
@@ -1130,7 +1130,7 @@ function makeStructConnectivity
 %{
     for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiVrand' num2str(k)];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         if exist(fname,'file')

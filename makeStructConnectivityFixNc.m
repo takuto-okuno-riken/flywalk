@@ -14,7 +14,7 @@ function makeStructConnectivityFixNc
     turnerIds = [103	107	20	111	59	68	65	78  49	51	62	106	87	47 100 24	27	43	38	5	57	22	89	101	97	75	50	58	41	113	10	2	32	66	45	30	67	19	76	31	82	93	54	52	8	7	80	1	102	63	95	56];
 
     % load matfile
-    fname = 'data/hemiroi_connectlist.mat'; scver = 1;
+    fname = 'results/sc/hemiroi_connectlist.mat'; scver = 1;
     load(fname);
 
     if scver <= SCVER
@@ -64,7 +64,7 @@ function makeStructConnectivityFixNc
     % extract ROI ids from hemibrain mask
     % branson matrix csv was acquired from Turner et al. (2021).
 %%{
-    fname = 'data/bransonhemi_connectlist.mat';
+    fname = 'results/sc/bransonhemi_connectlist.mat';
     load(fname);
 
     if scver <= SCVER % recount sycountMat to make compatibility with FlyWire
@@ -94,7 +94,7 @@ function makeStructConnectivityFixNc
     % make structural connectivity matrix from branson 7065 atlas.
     % extract ROI ids from hemibrain mask
 %%{
-    fname = 'data/hemibranson7065_connectlist.mat';
+    fname = 'results/sc/hemibranson7065_connectlist.mat';
     load(fname);
 
     if scver <= SCVER % recount sycountMat to make compatibility with FlyWire
@@ -130,7 +130,7 @@ function makeStructConnectivityFixNc
 %%{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiBranson7065km' num2str(k)];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
         load(fname);
 
         if scver <= SCVER % recount sycountMat to make compatibility with FlyWire
@@ -175,7 +175,7 @@ function makeStructConnectivityFixNc
 %%{
     for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000 30000]
         idstr = ['hemiCmkm' num2str(k)];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
         load(fname);
 
         if scver <= SCVER 
@@ -220,7 +220,7 @@ function makeStructConnectivityFixNc
 %%{
     for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiCmkm' num2str(k) 'r1w1'];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
         load(fname);
 
         if scver <= SCVER 
@@ -266,7 +266,7 @@ function makeStructConnectivityFixNc
 %%{
     for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000 30000]
         idstr = ['hemiDistKm' num2str(k)];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
         load(fname);
 
         if scver <= SCVER 
@@ -311,7 +311,7 @@ function makeStructConnectivityFixNc
 %%{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiRand' num2str(k)];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
         load(fname);
 
         if scver <= SCVER 
@@ -356,7 +356,7 @@ function makeStructConnectivityFixNc
 
     for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiVrand' num2str(k)];
-        fname = ['data/' lower(idstr) '_connectlist.mat'];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
         load(fname);
 
         if scver <= SCVER 

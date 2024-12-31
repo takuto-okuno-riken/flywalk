@@ -294,7 +294,7 @@ function makeVoxelROIatlas
             atlasinfo = niftiinfo([atlas '.gz']);
             aV = niftiread(atlasinfo);
         else
-            load('data/hemibranson7065_connectlist.mat');
+            load('results/sc/hemibranson7065_connectlist.mat');
             lcm2 = log10(ncountMat(:,:,2));
             lcm2(lcm2<0) = 0;
             % to avoid zero for k-means
@@ -352,7 +352,7 @@ function makeVoxelROIatlas
             atlasinfo = niftiinfo([atlas '.gz']);
             aV = niftiread(atlasinfo);
         else
-            load('data/wirebranson7065_connectlist.mat');
+            load('results/sc/wirebranson7065_connectlist.mat');
             lcm2 = log10(ncountMat(:,:,2));
             lcm2(lcm2<0) = 0;
             % to avoid zero for k-means
@@ -396,7 +396,7 @@ function makeVoxelROIatlas
             atlasinfo = niftiinfo([atlas '.gz']);
             aV = niftiread(atlasinfo);
         else
-            load('data/hemiroiwhole_connectlist_cm.mat');
+            load('results/sc/hemiroiwhole_connectlist_cm.mat');
             cm = single(full(countMat));
             cm = log10(cm);
             cm(cm<0) = 0;
