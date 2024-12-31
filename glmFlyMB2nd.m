@@ -9,7 +9,7 @@ function glmFlyMB2nd
     % output time-series (smoothing, highpass filter, nuisance removal)
     hpfTh = 0; % high-pass filter threshold
     smooth = 's40';
-    nuisance = '';
+    nuisance = 'poltcomp';
 
     tuM = 8; % tukey window size
     %%%%%%%%%%%%%% set parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -32,7 +32,7 @@ function glmFlyMB2nd
 
     % contrast image params
     contnames = {'movement'};
-    contrasts = {[1 0]'};
+    contrasts = {};
     Pth = 0.01; % pvalue threshold
     rangePlus = [nan 10];
     rangeMinus = [nan 10];
@@ -56,13 +56,14 @@ function glmFlyMB2nd
         % load beta volumes
         f = load(betaBmat);
         % 2nd-level Y vector
-        B2 = f.B2(:,[1,2]); % include design and intercept (we need more than 8 length for tukey taper)
+        B2 = f.B2; % include design and intercept (we need more than 8 length for tukey taper)
         B1 = [B1; B2'];
         FWHMs = [FWHMs; f.FWHM];
 
         % 2nd-level design matrix
         X2 = [X2; eye(size(B2,2))];
     end
+    contrasts{1} = zeros(size(B2,2),1); contrasts{1}(1) = 1; % no nuisanse
     B1(isnan(B1)) = 0; % there might be nan
     FWHMs = mean(FWHMs,1); % let's take the mean of FWHM.
 
