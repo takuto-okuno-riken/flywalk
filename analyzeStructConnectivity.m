@@ -179,6 +179,8 @@ function checkAPLneuronFw()
 end
 
 function checkSCpostSynapse()
+    if ~exist('results/nifti','dir'), mkdir('results/nifti'); end
+
     % make post-synapse could of FlyEM hemibrain
     syconfThs = [50 60 70 80 90];
     synThs = [0]; % 5 10 20 30 50 100];
