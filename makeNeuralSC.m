@@ -15,6 +15,8 @@ function makeNeuralSC
 
     checkNeuralDBScan('hemi', synTh, scTh, epsilon, minpts);
 
+    checkNeuralReciprocalConnections(synTh, scTh/100);
+
     % check neural input & output voxels (FlyWire)
     scTh = 130; synTh = 0; % FlyWire synapse score & synapse count at one neuron threshold
 %    scTh = 50; synTh = 0;
@@ -25,6 +27,8 @@ function makeNeuralSC
     checkNeuralInputOutputDistance('wire', synTh, scTh);
 
     checkNeuralDBScan('wire', synTh, scTh, epsilon, minpts);
+
+    checkNeuralReciprocalConnectionsFw(synTh, scTh);
 end
 
 function checkNeuralInputOutputVoxels(synTh, confTh)
@@ -70,7 +74,7 @@ function checkNeuralInputOutputVoxels(synTh, confTh)
     outCount = cell(nlen,1);
     inIdx = cell(nlen,1);
     inCount = cell(nlen,1);
-    for i=1:length(tracedNids)
+    for i=1:nlen
         logi = ismember(StoN,tracedNids(i)); % find synapses which belong to target neuron
         presids = Sid(logi & Sdir==1); % output of a neuron
         sslogi = ismember(StoS(:,1),presids); % get pre-synapse to connected post-synapse
@@ -92,14 +96,18 @@ function checkNeuralInputOutputVoxels(synTh, confTh)
             nids = StoN(cpresids);
             numsyn = groupcounts(nids); % number of (connected post) synapse in each (pre-synapse) neuron
             nids = unique(nids);
-            nids2 = nids(numsyn >= synTh); % get thresholded (pre-synapse)
+            nids2 = nids(numsyn >= synTh); % get thresholded (pre-synapse) neuron ids
             logi2 = ismember(StoN,nids2);
             slogi = ismember(Sid,cpresids);
-            postsids = Sid(slogi & logi2);
+            cpresids = Sid(slogi & logi2);
+            sslogi2 = ismember(StoS(:,1),cpresids);
+            postsids2 = StoS(sslogi2,2);  % get post-synapses to connect cpresids (including other neuron's post-synapses)
+            plogi = ismember(postsids,postsids2);
+            postsids = postsids(plogi);
         end
         disp(['hemi' num2str(synTh) 'sr' num2str(confTh*100) ' : process(' num2str(i) ') nid=' num2str(tracedNids(i)) ' postsids=' num2str(length(postsids)) ' presids=' num2str(length(presids))]);
     
-        % get connected post-synapse counts from APL pre-synapses (output)
+        % get connected post-synapse counts from pre-synapses (output)
         conSlocFc = SlocFc(cpostsids,:); V = Vt; % get 3D location in FDA Cal template.
         for j=1:size(conSlocFc,1)
             t = ceil(conSlocFc(j,:));
@@ -113,7 +121,7 @@ function checkNeuralInputOutputVoxels(synTh, confTh)
         outIdx{i} = idx;
         outCount{i} = V(idx);
 
-        % get post-synapse count of APL neuron (input)
+        % get post-synapse count of neuron (input)
         conSlocFc = SlocFc(postsids,:); V = Vt; % get 3D location in FDA Cal template.
         for j=1:size(conSlocFc,1)
             t = ceil(conSlocFc(j,:));
@@ -158,25 +166,25 @@ function checkNeuralInputOutputVoxelsFw(synTh, scoreTh)
     outCount = cell(nlen,1);
     inIdx = cell(nlen,1);
     inCount = cell(nlen,1);
-    for i=1:length(Nid)
+    for i=1:nlen
         logi = ismember(preNidx,i); % find pre-synapses which belong to target neurons
-        if synTh > 0
-            nidx=postNidx(logi);        % for checking flywire codex compatible
+        if synTh > 0                % for checking flywire codex compatible
+            nidx=postNidx(logi);        % get connected post-synapse neurons
             numsyn = groupcounts(nidx); % number of synapse in each neuron
             nidx = unique(nidx);
-            outnidx = nidx(numsyn >= synTh); % get thresholded (post-synapse) traced root-ids
+            outnidx = nidx(numsyn >= synTh); % get thresholded (post-synapse) neuron index
             logi2 = ismember(postNidx,outnidx);
             presidx = Sidx(logi & logi2 & valid & score);
         else
             presidx = Sidx(logi & valid & score);
         end
-        logi = ismember(postNidx,i); % find post-synapses which belong to target neurons
 
-        if synTh > 0
-            nidx=preNidx(logi);         % for checking flywire codex compatible
+        logi = ismember(postNidx,i); % find post-synapses which belong to target neurons
+        if synTh > 0                 % for checking flywire codex compatible
+            nidx=preNidx(logi);         % get connected pre-synapse neurons
             numsyn = groupcounts(nidx); % number of synapse in each neuron
             nidx = unique(nidx);
-            innidx = nidx(numsyn >= synTh); % get thresholded (post-synapse) traced root-ids
+            innidx = nidx(numsyn >= synTh); % get thresholded (post-synapse) neuron index
             logi2 = ismember(preNidx,innidx);
             postsidx = Sidx(logi & logi2 & valid & score);
         else
@@ -343,4 +351,140 @@ function checkNeuralDBScan(scname, synTh, confTh, epsilon, minpts)
         disp(['dbscan ' scname num2str(synTh) 'sr' num2str(confTh) ' : process (' num2str(i) ') nid=' num2str(Nid(i)) ' cls=' num2str(length(cls(cls>0))) ' invox=' num2str(scinlen) ' outvox=' num2str(scoutlen)]);
     end
     save(fname,'inlen','DBidx','-v7.3');
+end
+
+function checkNeuralReciprocalConnections(synTh, confTh)
+
+    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralReciprocalConnections.mat'];
+    if exist(fname,'file'), return; end
+    fnameNin = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neural_Nin_Nout.mat'];
+
+    % FlyEM read neuron info (id, connection number, size)
+    load('data/hemibrain_v1_2_neurons.mat');
+    clear Nconn; clear Ncrop; clear Nsize; 
+
+    % FlyEM read synapse info
+    Sdir = []; StoN = []; Srate = []; StoS = [];
+    load('data/hemibrain_v1_2_synapses.mat');
+    clear Sloc;
+    Sid = uint32(1:length(StoN))';
+    srate = (Srate >= confTh); % use only accurate synapse more than 'rate'
+    straced = ismember(StoN,Nid(Nstatus==1)); % Find synapses belong to Traced neuron.
+    s1rate = ismember(StoS(:,1),Sid(srate));
+    s2rate = ismember(StoS(:,2),Sid(srate));
+    ssrate = (s1rate & s2rate);
+    s1traced = ismember(StoS(:,1),Sid(straced));
+    s2traced = ismember(StoS(:,2),Sid(straced));
+    sstraced = (s1traced & s2traced);
+    clear straced; clear s1rate; clear s2rate; clear s1traced; clear s2traced;
+
+    Sdir(Srate < confTh) = 0;  % use only accurate synapse more than 'rate'
+    clear Srate;
+
+    % count pre (to post) and post synapse count
+    tracedNids = Nid(Nstatus==1);
+    nlen = length(tracedNids);
+    inNids = cell(nlen,1);
+    outNids = cell(nlen,1);
+    rcNids = cell(nlen,1);
+    for i=1:nlen
+        logi = ismember(StoN,tracedNids(i)); % find synapses which belong to target neuron
+        presids = Sid(logi & Sdir==1); % output of a neuron
+        sslogi = ismember(StoS(:,1),presids); % get pre-synapse to connected post-synapse
+        cpostsids = StoS(sslogi & ssrate & sstraced,2); % post-sid is unique
+        if synTh > 0 && ~isempty(cpostsids)
+            nids = StoN(cpostsids);
+            numsyn = groupcounts(nids); % number of synapse in each neuron
+            nids = unique(nids);
+            nids2 = nids(numsyn >= synTh); % get thresholded (post-synapse) neuron ids
+            logi2 = ismember(StoN,nids2);
+            slogi = ismember(Sid,cpostsids);
+            cpostsids = Sid(slogi & logi2);
+        end
+        outnids = StoN(cpostsids);
+        outnids = unique(outnids);
+
+        postsids = Sid(logi & Sdir==2); % input of a neuron
+        sslogi = ismember(StoS(:,2),postsids); % get post-synapse to connected pre-synapse
+        cpresids = StoS(sslogi & ssrate & sstraced,1); % pre-sid is not unique, but need to keep post-synapse count for FlyWire compatibility
+        if synTh > 0 && ~isempty(postsids)
+            nids = StoN(cpresids);
+            numsyn = groupcounts(nids); % number of (connected post) synapse in each (pre-synapse) neuron
+            nids = unique(nids);
+            nids2 = nids(numsyn >= synTh); % get thresholded (pre-synapse) neuron ids
+            logi2 = ismember(StoN,nids2);
+            slogi = ismember(Sid,cpresids);
+            cpresids = Sid(slogi & logi2);
+        end
+        innids = StoN(cpresids);
+        innids = unique(innids);
+
+        logis = ismember(outnids,innids);
+        rcNids{i} = outnids(logis); % reciprocally connected neurons.
+        outNids{i} = outnids;
+        inNids{i} = innids;
+
+        disp(['hemi' num2str(synTh) 'sr' num2str(confTh*100) ' : reciprocal process(' num2str(i) ') nid=' num2str(tracedNids(i)) ' in/out/reci=' num2str(length(inNids{i})) '/' num2str(length(outNids{i})) '/' num2str(length(rcNids{i})) ...
+            ' postsids=' num2str(length(postsids)) ' presids=' num2str(length(presids))]);
+    end
+    save(fname,'rcNids','-v7.3');
+    save(fnameNin,'inNids','outNids','-v7.3');
+end
+
+function checkNeuralReciprocalConnectionsFw(synTh, scoreTh)
+
+    fname = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
+    if exist(fname,'file'), return; end
+    fnameNin = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
+
+    % FlyWire read neuron info
+    load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+
+    % FlyWire read synapse info
+    load('data/flywire783_synapse.mat');
+    score = (cleftScore >= scoreTh);
+    Sidx = int32(1:length(Sid))';
+    valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
+
+    % count pre (to post) and post synapse count
+    nlen = length(Nid);
+    inNidx = cell(nlen,1);
+    outNidx = cell(nlen,1);
+    rcNidx = cell(nlen,1);
+    for i=1:nlen
+        logi = ismember(preNidx,i); % find pre-synapses which belong to target neurons
+        if synTh > 0                % for checking flywire codex compatible
+            nidx=postNidx(logi);        % get connected post-synapse neurons    
+            numsyn = groupcounts(nidx); % number of synapse in each neuron
+            nidx = unique(nidx);
+            outnidx = nidx(numsyn >= synTh); % get thresholded (post-synapse) neuron index
+            logi2 = ismember(postNidx,outnidx);
+            outnidx = postNidx(logi & logi2 & valid & score);
+        else
+            outnidx = postNidx(logi & valid & score); % get connected neuron index
+        end
+        outnidx = unique(outnidx);
+
+        logi = ismember(postNidx,i); % find post-synapses which belong to target neurons
+        if synTh > 0                 % for checking flywire codex compatible
+            nidx=preNidx(logi);         % get connected pre-synapse neurons
+            numsyn = groupcounts(nidx); % number of synapse in each neuron
+            nidx = unique(nidx);
+            innidx = nidx(numsyn >= synTh); % get thresholded (post-synapse) neuron index
+            logi2 = ismember(preNidx,innidx);
+            innidx = preNidx(logi & logi2 & valid & score);
+        else
+            innidx = preNidx(logi & valid & score);
+        end
+        innidx = unique(innidx);
+
+        logis = ismember(outnidx,innidx);
+        rcNidx{i} = outnidx(logis); % reciprocally connected neurons.
+        outNidx{i} = outnidx;
+        inNidx{i} = innidx;
+
+        disp(['wire' num2str(synTh) 'sr' num2str(scoreTh) ' : reciprocal process(' num2str(i) ') nid=' num2str(Nid(i)) ' in/out/reci=' num2str(length(inNidx{i})) '/' num2str(length(outNidx{i})) '/' num2str(length(rcNidx{i}))]);
+    end
+    save(fname,'rcNidx','-v7.3');
+    save(fnameNin,'inNidx','outNidx','-v7.3');
 end
