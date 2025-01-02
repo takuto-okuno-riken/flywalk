@@ -54,8 +54,8 @@ function checkSCpostSynapse()
         labels = {}; X = []; Y = [];
         for c=1:length(hbsynThs)
             sth = hbsynThs(c);
-            for r=1:length(hbrateThs)
-                rth = hbrateThs(r);
+            for r=1:length(confThs)
+                rth = confThs(r);
                 labels{end+1} = ['FlyEM' num2str(sth) 'sr' num2str(rth)];
                 X(end+1) = sum(hbS(ids,r,c),'all');
                 Y = [Y, hbS(ids,r,c)];
@@ -63,8 +63,8 @@ function checkSCpostSynapse()
         end
         for c=1:length(fwsynThs)
             sth = fwsynThs(c);
-            for r=1:length(fwrateThs)
-                rth = fwrateThs(r);
+            for r=1:length(scoreThs)
+                rth = scoreThs(r);
                 labels{end+1} = ['FlyWire' num2str(sth) 'sr' num2str(rth)];
                 X(end+1) = sum(fwS(ids,r,c),'all');
                 Y = [Y, fwS(ids,r,c)];

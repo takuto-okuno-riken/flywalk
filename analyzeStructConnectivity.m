@@ -15,7 +15,7 @@ function analyzeStructConnectivity
 end
 
 function checkAPLneuron()
-    syconfTh = 0.8; % FlyEM hemibrain synapse confidence threshold
+    confTh = 0.8; % FlyEM hemibrain synapse confidence threshold
 
     % FlyEM read neuron info (id, connection number, size)
     load('data/hemibrain_v1_2_neurons.mat');
@@ -26,7 +26,7 @@ function checkAPLneuron()
     load('data/hemibrain_v1_2_synapses.mat');
     clear Sloc;
     Sid = uint32(1:length(StoN));
-    srate = (Srate >= syconfTh); % use only accurate synapse more than confidence threshold
+    srate = (Srate >= confTh); % use only accurate synapse more than confidence threshold
     straced = ismember(StoN,Nid(Nstatus==1)); % Find synapses belong to Traced neuron.
     s1rate = ismember(StoS(:,1),Sid(srate));
     s2rate = ismember(StoS(:,2),Sid(srate));
@@ -36,7 +36,7 @@ function checkAPLneuron()
     sstraced = (s1traced & s2traced);
     clear straced; clear s1rate; clear s2rate; clear s1traced; clear s2traced;
 
-    Sdir(Srate < syconfTh) = 0;  % use only accurate synapse more than confidence threshold
+    Sdir(Srate < confTh) = 0;  % use only accurate synapse more than confidence threshold
     clear Srate;
 
     % FlyEM read synapse location in FDA
@@ -109,14 +109,14 @@ function checkAPLneuron()
 end
 
 function checkAPLneuronFw()
-    wrateTh = 130; % FlyWire synapse score threshold
+    scoreTh = 130; % FlyWire synapse score threshold
 
     % FlyWire read neuron info
     load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
 
     % FlyWire read synapse info
     load('data/flywire783_synapse.mat');
-    score = (cleftScore >= wrateTh);
+    score = (cleftScore >= scoreTh);
     Sidx = int32(1:length(Sid))';
     valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
 
@@ -182,14 +182,14 @@ function checkSCpostSynapse()
     if ~exist('results/nifti','dir'), mkdir('results/nifti'); end
 
     % make post-synapse could of FlyEM hemibrain
-    syconfThs = [50 60 70 80 90];
+    confThs = [50 60 70 80 90];
     synThs = [0]; % 5 10 20 30 50 100];
-    for r=1:length(syconfThs)
-        syconfTh = syconfThs(r);
+    for r=1:length(confThs)
+        confTh = confThs(r);
         for j=1:length(synThs)
             synTh = synThs(j);
 
-            niifile = ['results/nifti/hemibrain_hb' num2str(synTh) 'sr' num2str(syconfTh) '_postsynFDACal.nii'];
+            niifile = ['results/nifti/hemibrain_hb' num2str(synTh) 'sr' num2str(confTh) '_postsynFDACal.nii'];
             if exist([niifile '.gz'],'file')
                 hbinfo = niftiinfo([niifile '.gz']);
                 hbV = niftiread(hbinfo);
@@ -200,7 +200,7 @@ function checkSCpostSynapse()
         
                 load('data/hemibrain_v1_2_synapses.mat');
                 clear Sloc; clear StoS;
-                srate = (Srate >= (syconfTh / 100)); % use only accurate synapse more than confidence threshold
+                srate = (Srate >= (confTh / 100)); % use only accurate synapse more than confidence threshold
                 straced = ismember(StoN,Nid(Nstatus==1)); % Find synapses belong to Traced neuron.
                 spost = (Sdir == 2); % Find post synapse
         
@@ -229,21 +229,21 @@ function checkSCpostSynapse()
     end
 
     % make post-synapse could of FlyWire (hemibrain)
-    syconfThs = [50 70 100 130 140 150];
+    scoreThs = [50 70 100 130 140 150];
     synThs = [0]; % 5 10 20 30 50 100];
-    for r=1:length(syconfThs)
-        syconfTh = syconfThs(r);
+    for r=1:length(scoreThs)
+        scoreTh = scoreThs(r);
         for j=1:length(synThs)
             synTh = synThs(j);
 
-            niifile = ['results/nifti/hemibrain_fw' num2str(synTh) 'sr' num2str(syconfTh) '_postsynFDACal.nii'];
+            niifile = ['results/nifti/hemibrain_fw' num2str(synTh) 'sr' num2str(scoreTh) '_postsynFDACal.nii'];
             if exist([niifile '.gz'],'file')
                 fwinfo = niftiinfo([niifile '.gz']);
                 fwV = niftiread(fwinfo);
             else
                 % read synapse info
                 load('data/flywire783_synapse.mat');
-                score = (cleftScore >= syconfTh);
+                score = (cleftScore >= scoreTh);
                 valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
             
                 % read synapse location in FDA
@@ -295,34 +295,34 @@ function checkSCpostSynapse()
                 end
             end
 
-            hbrateThs = [50 60 70 80 90];
+            confThs = [50 60 70 80 90];
             hbsynThs = [0];
-            fwrateThs = [50 70 100 130 140 150];
+            scoreThs = [50 70 100 130 140 150];
             fwsynThs = [0];
-            hbS = nan(length(roiIdxs),length(hbrateThs),length(hbsynThs),'single');
-            fwS = nan(length(roiIdxs),length(fwrateThs),length(fwsynThs),'single');
+            hbS = nan(length(roiIdxs),length(confThs),length(hbsynThs),'single');
+            fwS = nan(length(roiIdxs),length(scoreThs),length(fwsynThs),'single');
 
             for k=1:length(roiIdxs)
-                for r=1:length(hbrateThs)
-                    syconfTh = hbrateThs(r);
+                for r=1:length(confThs)
+                    confTh = confThs(r);
                     for c=1:length(hbsynThs)
                         synTh = hbsynThs(c);
-                        hbV = niftiread(['results/nifti/hemibrain_hb' num2str(synTh) 'sr' num2str(syconfTh) '_postsynFDACal.nii.gz']);
+                        hbV = niftiread(['results/nifti/hemibrain_hb' num2str(synTh) 'sr' num2str(confTh) '_postsynFDACal.nii.gz']);
                         hbSc = hbV(roiIdxs{k});
                         hbS(k,r,c) = sum(hbSc);
                     end
                 end
-                for r=1:length(fwrateThs)
-                    syconfTh = fwrateThs(r);
+                for r=1:length(scoreThs)
+                    scoreTh = scoreThs(r);
                     for c=1:length(fwsynThs)
                         synTh = fwsynThs(c);
-                        fwV = niftiread(['results/nifti/hemibrain_fw' num2str(synTh) 'sr' num2str(syconfTh) '_postsynFDACal.nii.gz']);
+                        fwV = niftiread(['results/nifti/hemibrain_fw' num2str(synTh) 'sr' num2str(scoreTh) '_postsynFDACal.nii.gz']);
                         fwSc = fwV(roiIdxs{k});
                         fwS(k,r,c) = sum(fwSc);
                     end
                 end
             end
-            save(fname,'hbrateThs','hbsynThs','fwrateThs','fwsynThs','hbS','fwS','primaryIds','-v7.3');
+            save(fname,'confThs','hbsynThs','scoreThs','fwsynThs','hbS','fwS','primaryIds','-v7.3');
         end
     end
 end
