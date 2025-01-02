@@ -134,6 +134,46 @@ function makeStructConnectivity
 %    WM3b = WM2b ./ SMb; WM3b(SMb==0) = 0; % pure ROI-input neuron connection weight
 %}
     % ---------------------------------------------------------------------
+    % calc ROI distance matrix based on distance based k-means atlas.
+    %
+%%{
+    fname = ['results/sc/' lower(idstr) '_dist.mat'];
+
+    clfname = ['results/sc/' lower(idstr) '_connectlist.mat'];
+    load(clfname);
+
+    if exist(fname,'file')
+        load(fname);
+    else
+        listing = dir(['atlas/hemiroi/*.nii.gz']);
+        roimax = length(listing);
+        P1 = zeros(roimax,1,3);
+        P2 = zeros(1,roimax,3);
+        for i=1:roimax
+            V = niftiread(['atlas/hemiroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+            sz = size(V);
+            idx = find(V>0);
+            X = zeros(length(idx),3);
+            for j=1:length(idx)
+                [x,y,z] = ind2sub(sz,idx(j));
+                X(j,:) = [x y z] .* [2.45, 2.28, 3.715]; % * voxel size
+            end
+            P1(i,1,:) = mean(X,1);
+            P2(1,i,:) = mean(X,1);
+        end
+        P1 = repmat(P1,[1 roimax 1]);
+        P2 = repmat(P2,[roimax 1 1]);
+        distMat = single(sqrt(sum((P1 - P2).^2,3)));
+        save(fname,'distMat','primaryIds','roiNum','scver','-v7.3');
+    end
+
+    ids = primaryIds;
+    CM = ncountMat(ids,ids,2); DM = distMat(ids,ids);
+    figure; imagesc(DM); colorbar; title([idstr ' distance matrix']);
+    r = corr(CM(:),DM(:));
+    figure; scatter(CM(:),DM(:)); title([idstr ' sc vs. dist r=' num2str(r)]); xlabel('neuron SC matrix'); ylabel('distance matrix');
+%}
+    % ---------------------------------------------------------------------
     % make structural connectivity matrix from neuprint connectivity list (flyem hemibrain) by FlyWire EM data.
     %
 %{
@@ -943,9 +983,53 @@ function makeStructConnectivity
     end
 %}
     % ---------------------------------------------------------------------
+    % calc ROI distance matrix based on distance based k-means atlas.
+    %
+%{
+    for k=[20 30 50 100 200 300 500 1000 5000 10000]
+        idstr = ['hemiDistKm' num2str(k)];
+        fname = ['results/sc/' lower(idstr) '_dist.mat'];
+
+        clfname = ['results/sc/' lower(idstr) '_connectlist.mat'];
+        load(clfname);
+
+        if exist(fname,'file')
+            load(fname);
+        else
+            atlV = niftiread(['atlas/hemiDistKm' num2str(k) 'atlasCal.nii.gz']);
+            roimax = max(atlV(:));
+            sz = size(atlV);
+
+            P1 = zeros(roimax,1,3);
+            P2 = zeros(1,roimax,3);
+            for i=1:roimax
+                idx = find(atlV==i);
+                X = zeros(length(idx),3);
+                for j=1:length(idx)
+                    [x,y,z] = ind2sub(sz,idx(j));
+                    X(j,:) = [x y z] .* [2.45, 2.28, 3.715]; % * voxel size
+                end
+                P1(i,1,:) = mean(X,1);
+                P2(1,i,:) = mean(X,1);
+            end
+            P1 = repmat(P1,[1 roimax 1]);
+            P2 = repmat(P2,[roimax 1 1]);
+            distMat = single(sqrt(sum((P1 - P2).^2,3)));
+            save(fname,'distMat','primaryIds','roiNum','scver','-v7.3');
+        end
+
+        ids = primaryIds;
+        CM = ncountMat(ids,ids,2);
+        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
+        figure; imagesc(distMat(ids,ids)); colorbar; title([idstr ' distance matrix']);
+        r = corr(CM(:),distMat(:));
+        figure; scatter(CM(:),distMat(:)); title([idstr ' sc vs. dist r=' num2str(r)]); xlabel('neuron SC matrix'); ylabel('distance matrix');
+    end
+%}
+    % ---------------------------------------------------------------------
     % make structural connectivity matrix from distance based k-means n voxels atlas.
     %
-%%{
+%{
     for k=[1000]
         for n=[1 2 4 8 16 32 64 128]
             idstr = ['hemiDistKm' num2str(k) 'vox' num2str(n)];
