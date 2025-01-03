@@ -17,6 +17,14 @@ function makeNeuralSC
 
     checkNeuralReciprocalConnections(synTh, scTh/100);
 
+    checkNeuralAutoConnections(synTh, scTh/100);
+    
+    checkNeuralTriFeedforward(synTh, scTh/100);
+
+    checkNeuralTriUnicycle(synTh, scTh/100);
+
+%    checkNeuralQuadFeedforward(synTh, scTh/100);
+
     % check neural input & output voxels (FlyWire)
     scTh = 130; synTh = 0; % FlyWire synapse score & synapse count at one neuron threshold
 %    scTh = 50; synTh = 0;
@@ -29,6 +37,12 @@ function makeNeuralSC
     checkNeuralDBScan('wire', synTh, scTh, epsilon, minpts);
 
     checkNeuralReciprocalConnectionsFw(synTh, scTh);
+
+    checkNeuralAutoConnectionsFw(synTh, scTh);
+    
+    checkNeuralTriFeedforwardFw(synTh, scTh);
+
+    checkNeuralTriUnicycleFw(synTh, scTh);
 end
 
 function checkNeuralInputOutputVoxels(synTh, confTh)
@@ -45,7 +59,6 @@ function checkNeuralInputOutputVoxels(synTh, confTh)
     % FlyEM read synapse info
     Sdir = []; StoN = []; Srate = []; StoS = [];
     load('data/hemibrain_v1_2_synapses.mat');
-    clear Sloc;
     Sid = uint32(1:length(StoN))';
     srate = (Srate >= confTh); % use only accurate synapse more than 'rate'
     straced = ismember(StoN,Nid(Nstatus==1)); % Find synapses belong to Traced neuron.
@@ -487,4 +500,367 @@ function checkNeuralReciprocalConnectionsFw(synTh, scoreTh)
     end
     save(fname,'rcNidx','-v7.3');
     save(fnameNin,'inNidx','outNidx','-v7.3');
+end
+
+function checkNeuralAutoConnections(synTh, confTh)
+
+    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralReciprocalConnections.mat'];
+    if ~exist(fname,'file'), return; end
+    load(fname);
+    if exist('rcNids','var'), return; end
+
+    fnameNin = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neural_Nin_Nout.mat'];
+    load(fnameNin);
+
+    % FlyEM read neuron info (id, connection number, size)
+    load('data/hemibrain_v1_2_neurons.mat');
+    clear Nconn; clear Ncrop; clear Nsize; 
+
+    % count pre (to post) and post synapse count
+    tracedNids = Nid(Nstatus==1);
+    nlen = length(tracedNids);
+    autoNids = [];
+    for i=1:nlen
+        outnids = outNids{i};
+        if ~isempty(outnids)
+            if any(outnids==tracedNids(i))
+                autoNids = [autoNids tracedNids(i)];
+            end
+        end
+    end
+    save(fname,'rcNids','autoNids','-v7.3');
+end
+
+function checkNeuralAutoConnectionsFw(synTh, scoreTh)
+
+    fname = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
+    if ~exist(fname,'file'), return; end
+    load(fname);
+    if exist('rcNidx','var'), return; end
+
+    fnameNin = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
+    load(fnameNin);
+
+    % FlyWire read neuron info
+    load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+
+    % count pre (to post) and post synapse count
+    nlen = length(Nid);
+    autoNidx = [];
+    for i=1:nlen
+        outnidx = outNidx{i};
+        if ~isempty(outnidx)
+            if any(outnidx==i)
+                autoNidx = [autoNidx i];
+            end
+        end
+    end
+    save(fname,'rcNidx','autoNidx','-v7.3');
+end
+
+function checkNeuralTriFeedforward(synTh, confTh)
+
+    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralTriFeedforward.mat'];
+    if exist(fname,'file'), return; end
+    fnameReci = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralReciprocalConnections.mat'];
+    fnameNin = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neural_Nin_Nout.mat'];
+    load(fnameReci);
+    load(fnameNin);
+
+    % FlyEM read neuron info (id, connection number, size)
+    load('data/hemibrain_v1_2_neurons.mat');
+    clear Nconn; clear Ncrop; clear Nsize; 
+
+    % extract pure output neurons (no reciprocal)
+    tracedNids = Nid(Nstatus==1);
+    nlen = length(tracedNids);
+    poutNids = cell(nlen,1);
+    for i=1:nlen
+        rcnids = rcNids{i};
+        outnids = outNids{i};
+        if ~isempty(outnids)
+            logis = ismember(outnids,rcnids);
+            poutNids{i} = outnids(~logis); % pure out Nids
+        end
+    end
+
+    % extract triangle feed forward neurons
+    tripffNids = cell(nlen,1); % pure output
+    trieffNids = cell(nlen,1); % extra (including reciprocal)
+    for i=1:nlen
+        poutnids = poutNids{i}; % pure output
+        if isempty(poutnids), continue; end
+
+        tlogi = zeros(length(poutnids),1,'logical'); % init zero logis
+        tlogi2 = zeros(length(poutnids),1,'logical'); % init zero logis
+        for j=1:length(poutnids)
+            logis = ismember(tracedNids,poutnids(j));
+            poutnids2 = poutNids(logis); % pure output. this should extract one cell
+            outnids2 = outNids(logis);   % all output (including reciprocal)
+%            idx = find(tracedNids==poutnids(j)); % find version.
+%            poutnids2 = {poutNids{idx}};
+            if ~isempty(outnids2)
+                plogi = ismember(poutnids,poutnids2{1});
+                alogi = ismember(poutnids,outnids2{1});
+                tlogi = tlogi | plogi;
+                tlogi2 = tlogi2 | alogi;
+            end
+        end
+        tripffNids{i} = poutnids(tlogi);
+        trieffNids{i} = poutnids(tlogi2 & ~tlogi);
+
+        disp(['hemi' num2str(synTh) 'sr' num2str(confTh*100) ' : tri feedforward process(' num2str(i) ') nid=' num2str(tracedNids(i)) ...
+            ' out/pout/pff/eff=' num2str(length(outNids{i})) '/' num2str(length(poutNids{i})) '/' num2str(length(tripffNids{i})) '/' num2str(length(trieffNids{i}))]);
+    end
+    save(fname,'tripffNids','trieffNids','-v7.3');
+end
+
+function checkNeuralTriFeedforwardFw(synTh, scoreTh)
+
+    fname = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neuralTriFeedforward.mat'];
+    if exist(fname,'file'), return; end
+    fnameReci = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
+    fnameNin = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
+    load(fnameReci);
+    load(fnameNin);
+
+    % FlyWire read neuron info
+    load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+
+    % extract pure output neurons (no reciprocal)
+    nlen = length(Nid);
+    Nidx = (1:nlen)';
+    poutNidx = cell(nlen,1);
+    for i=1:nlen
+        rcnidx = rcNidx{i};
+        outnidx = outNidx{i};
+        if ~isempty(outnidx)
+            logis = ismember(outnidx,rcnidx);
+            poutNidx{i} = outnidx(~logis); % pure out Nidx
+        end
+    end
+
+    % extract triangle feed forward neurons
+    tripffNidx = cell(nlen,1); % pure output
+    trieffNidx = cell(nlen,1); % extra (including reciprocal)
+    for i=1:nlen
+        poutnidx = poutNidx{i};
+        if isempty(poutnidx), continue; end
+
+        tlogi = zeros(length(poutnidx),1,'logical'); % init zero logis
+        tlogi2 = zeros(length(poutnidx),1,'logical'); % init zero logis
+        for j=1:length(poutnidx)
+            logis = ismember(Nidx,poutnidx(j));
+            poutnidx2 = poutNidx(logis); % pure output. this should extract one cell
+            outnidx2 = outNidx(logis);   % all output (including reciprocal)
+            if ~isempty(outnidx2)
+                plogi = ismember(poutnidx,poutnidx2{1});
+                alogi = ismember(poutnidx,outnidx2{1});
+                tlogi = tlogi | plogi;
+                tlogi2 = tlogi2 | alogi;
+            end
+        end
+        tripffNidx{i} = poutnidx(tlogi);
+        trieffNidx{i} = poutnidx(tlogi2 & ~tlogi);
+
+        disp(['wire' num2str(synTh) 'sr' num2str(scoreTh) ' : tri feedforward process(' num2str(i) ') nid=' num2str(Nid(i)) ...
+            ' out/pout/pff/eff=' num2str(length(outNidx{i})) '/' num2str(length(poutNidx{i})) '/' num2str(length(tripffNidx{i})) '/' num2str(length(trieffNidx{i}))]);
+    end
+    save(fname,'tripffNidx','trieffNidx','-v7.3');
+end
+
+function checkNeuralTriUnicycle(synTh, confTh)
+
+    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralTriUnicycle.mat'];
+    if exist(fname,'file'), return; end
+    fnameReci = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralReciprocalConnections.mat'];
+    fnameNin = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neural_Nin_Nout.mat'];
+    load(fnameReci);
+    load(fnameNin);
+
+    % FlyEM read neuron info (id, connection number, size)
+    load('data/hemibrain_v1_2_neurons.mat');
+    clear Nconn; clear Ncrop; clear Nsize; 
+
+    % extract pure output neurons (no reciprocal)
+    tracedNids = Nid(Nstatus==1);
+    nlen = length(tracedNids);
+    poutNids = cell(nlen,1);
+    pinNids = cell(nlen,1);
+    for i=1:nlen
+        rcnids = rcNids{i};
+        outnids = outNids{i};
+        innids = inNids{i};
+        if ~isempty(outnids)
+            logis = ismember(outnids,rcnids);
+            poutNids{i} = outnids(~logis); % pure output Nids
+        end
+        if ~isempty(innids)
+            logis = ismember(innids,rcnids);
+            pinNids{i} = innids(~logis); % pure input Nids
+        end
+    end
+
+    % extract triangle unicicle neurons
+    tripucNids = cell(nlen,1);
+    trieucNids = cell(nlen,1);
+    for i=1:nlen
+        poutnids = poutNids{i};
+        if isempty(poutnids), continue; end
+        pinnids = pinNids{i};
+        if isempty(pinnids), continue; end
+
+        tlogi = zeros(length(pinnids),1,'logical'); % init zero logis
+        tlogi2 = zeros(length(pinnids),1,'logical'); % init zero logis
+        for j=1:length(poutnids)
+            logis = ismember(tracedNids,poutnids(j));
+            poutnids2 = poutNids(logis); % pure output. this should extract one cell
+            outnids2 = outNids(logis);   % all output (including reciprocal)
+            if ~isempty(outnids2)
+                plogi = ismember(pinnids,poutnids2{1});
+                alogi = ismember(pinnids,outnids2{1});
+                tlogi = tlogi | plogi;
+                tlogi2 = tlogi2 | alogi;
+            end
+        end
+        tripucNids{i} = pinnids(tlogi);
+        trieucNids{i} = pinnids(tlogi2 & ~tlogi);
+
+        disp(['hemi' num2str(synTh) 'sr' num2str(confTh*100) ' : tri unicycle process(' num2str(i) ') nid=' num2str(tracedNids(i)) ...
+            ' in/pin/puc/euc=' num2str(length(inNids{i})) '/' num2str(length(pinNids{i})) '/' num2str(length(tripucNids{i})) '/' num2str(length(trieucNids{i}))]);
+    end
+    save(fname,'tripucNids','trieucNids','-v7.3');
+end
+
+function checkNeuralTriUnicycleFw(synTh, scoreTh)
+
+    fname = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neuralTriUnicycle.mat'];
+    if exist(fname,'file'), return; end
+    fnameReci = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
+    fnameNin = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
+    load(fnameReci);
+    load(fnameNin);
+
+    % FlyWire read neuron info
+    load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+
+    % extract pure output neurons (no reciprocal)
+    nlen = length(Nid);
+    Nidx = (1:nlen)';
+    poutNidx = cell(nlen,1);
+    pinNidx = cell(nlen,1);
+    for i=1:nlen
+        rcnidx = rcNidx{i};
+        outnidx = outNidx{i};
+        innidx = inNidx{i};
+        if ~isempty(outnidx)
+            logis = ismember(outnidx,rcnidx);
+            poutNidx{i} = outnidx(~logis); % pure output Nids
+        end
+        if ~isempty(innidx)
+            logis = ismember(innidx,rcnidx);
+            pinNidx{i} = innidx(~logis); % pure input Nids
+        end
+    end
+
+    % extract triangle feed forward neurons
+    tripucNidx = cell(nlen,1);
+    trieucNidx = cell(nlen,1);
+    for i=1:nlen
+        poutnidx = poutNidx{i};
+        if isempty(poutnidx), continue; end
+        pinnidx = pinNidx{i};
+        if isempty(pinnidx), continue; end
+
+        tlogi = zeros(length(pinnidx),1,'logical'); % init zero logis
+        tlogi2 = zeros(length(pinnidx),1,'logical'); % init zero logis
+        for j=1:length(poutnidx)
+            logis = ismember(Nidx,poutnidx(j));
+            poutnidx2 = poutNidx(logis); % pure output. this should extract one cell
+            outnidx2 = outNidx(logis);   % all output (including reciprocal)
+            if ~isempty(outnidx2)
+                plogi = ismember(pinnidx,poutnidx2{1});
+                alogi = ismember(pinnidx,outnidx2{1});
+                tlogi = tlogi | plogi;
+                tlogi2 = tlogi2 | alogi;
+            end
+        end
+        tripucNidx{i} = pinnidx(tlogi);
+        trieucNidx{i} = pinnidx(tlogi2 & ~tlogi);
+
+        disp(['wire' num2str(synTh) 'sr' num2str(scoreTh) ' : tri unicycle process(' num2str(i) ') nid=' num2str(Nid(i)) ...
+            ' in/pin/puc/euc=' num2str(length(inNidx{i})) '/' num2str(length(pinNidx{i})) '/' num2str(length(tripucNidx{i})) '/' num2str(length(trieucNidx{i}))]);
+    end
+    save(fname,'tripucNidx','trieucNidx','-v7.3');
+end
+
+function checkNeuralQuadFeedforward(synTh, confTh)
+
+    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralQuadFeedforward.mat'];
+    if exist(fname,'file'), return; end
+    outNids = {}; rcNids = {};
+    fnameReci = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralReciprocalConnections.mat'];
+    fnameNin = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neural_Nin_Nout.mat'];
+    load(fnameReci);
+    load(fnameNin);
+
+    % FlyEM read neuron info (id, connection number, size)
+    load('data/hemibrain_v1_2_neurons.mat');
+    clear Nconn; clear Ncrop; clear Nsize; 
+
+    % extract pure output neurons (no reciprocal)
+    tracedNids = Nid(Nstatus==1);
+    nlen = length(tracedNids);
+    poutNids = cell(nlen,1);
+    for i=1:nlen
+        rcnids = rcNids{i};
+        outnids = outNids{i};
+        if ~isempty(outnids)
+            logis = ismember(outnids,rcnids);
+            poutNids{i} = outnids(~logis); % pure out Nids
+        end
+    end
+
+    % set pool num. this calculation takes time. we need big pool num.
+    delete(gcp('nocreate')); % shutdown pools
+    parpool(24);
+
+    % extract quad feed forward neurons
+    quadpffNids = cell(nlen,1); % pure output
+    quadeffNids = cell(nlen,1); % extra (including reciprocal)
+    parfor i=1:nlen
+        poutnids = poutNids{i}; % pure output
+        if isempty(poutnids), continue; end
+        outnids = outNids{i}; 
+        outlogi = ismember(tracedNids,outnids);
+
+        tlogi = zeros(length(tracedNids),1,'logical'); % init zero logis
+        tlogi2 = zeros(length(tracedNids),1,'logical'); % init zero logis
+        for j=1:length(poutnids)
+            logis = ismember(tracedNids,poutnids(j));
+            poutnids2 = poutNids(logis); % pure output. this should extract one cell
+            outnids2 = outNids(logis);   % all output (including reciprocal)
+            if isempty(outnids2), continue; end
+            plogi2 = ismember(tracedNids,poutnids2{1});
+            alogi2 = ismember(tracedNids,outnids2{1});
+
+            for k=j+1:length(poutnids)
+                logis = ismember(tracedNids,poutnids(k));
+                poutnids3 = poutNids(logis); % pure output. this should extract one cell
+                outnids3 = outNids(logis);   % all output (including reciprocal)
+                if isempty(outnids3), continue; end
+                % find common target nids of poutnids(j) and (k)
+                plogi3 = ismember(tracedNids,poutnids3{1});
+                alogi3 = ismember(tracedNids,outnids3{1});
+                tlogi = tlogi | (plogi2 & plogi3);
+                tlogi2 = tlogi2 | (alogi2 & alogi3);
+            end
+        end
+        quadpffNids{i} = tracedNids(tlogi & ~outlogi);
+        quadeffNids{i} = tracedNids(tlogi2 & ~tlogi & ~outlogi);
+
+        disp(['hemi' num2str(synTh) 'sr' num2str(confTh*100) ' : quad feedforward process(' num2str(i) ') nid=' num2str(tracedNids(i)) ...
+            ' out/pout/pff/eff=' num2str(length(outNids{i})) '/' num2str(length(poutNids{i})) '/' num2str(length(quadpffNids{i})) '/' num2str(length(quadeffNids{i}))]);
+    end
+    save(fname,'quadpffNids','quadeffNids','-v7.3');
 end
