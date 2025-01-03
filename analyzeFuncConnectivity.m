@@ -175,19 +175,18 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                     save(outfile,'T2','-v7.3');
                 end
 
-                D3 = []; D3z = [];
+                F3 = []; F3z = [];
                 for i=1:cmlen
-                    D = CM{i}(ids,ids);
-                    D3 = cat(3,D3,D);
+                    F = CM{i}(ids,ids);
+                    F3 = cat(3,F3,F);
                 end
-                D3z = atanh(D3); % z transformed (better FC-SC corr).
+                F3z = atanh(F3); % z transformed (better FC-SC corr).
                 clear CM;
 
                 % mean group data
-                Dm = nanmean(D3,3);
-                Dmz = nanmean(D3z,3);
-                Dmz(isinf(Dmz)) = max(Dmz(~isinf(Dmz)));
-%                figure; imagesc(abs(Dmz)); colorbar; title([pftype ' m-FCz matrix']);
+                mFz = nanmean(F3z,3);
+                mFz(isinf(mFz)) = max(mFz(~isinf(mFz)));
+%                figure; imagesc(abs(mFz)); colorbar; title([pftype ' m-FCz matrix']);
 
                 T3 = T2(ids,ids);
                 T3(isinf(T3)) = max(T3(~isinf(T3)));
@@ -196,7 +195,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
 
                 % each flys [log10(neurons) vs. m-FCz]
                 for i=1:cmlen
-                    Dz = D3z(:,:,i);
+                    Dz = F3z(:,:,i);
                     Dz(isinf(Dz)) = max(Dz(~isinf(Dz)));
                     sbjR(k,i) = corr(lC2(:),abs(Dz(:)));
                 end
@@ -204,53 +203,53 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 % each ROIs (Traced vs. m-FCz and only)
                 roiR = nan(size(lC2,1),24,'single');
                 for i=1:size(lC2,1)
-                    roiDmz = abs([Dmz(i,:)';Dmz(:,i)]);
-                    roiR(i,7) = corr([lC2b(i,:)';lC2b(:,i)],roiDmz);
-                    roiR(i,9) = corr([lSb(i,:)';lSb(:,i)],roiDmz);
+                    roimFz = abs([mFz(i,:)';mFz(:,i)]);
+                    roiR(i,7) = corr([lC2b(i,:)';lC2b(:,i)],roimFz);
+                    roiR(i,9) = corr([lSb(i,:)';lSb(:,i)],roimFz);
                     if isw2
-                        roiR(i,8) = corr([lW2b(i,:)';lW2b(:,i)],roiDmz);
-                        roiR(i,10) = corr([W3b(i,:)';W3b(:,i)],roiDmz);
-                        roiR(i,12) = corr([Wob(i,:)';Wob(:,i)],roiDmz);
+                        roiR(i,8) = corr([lW2b(i,:)';lW2b(:,i)],roimFz);
+                        roiR(i,10) = corr([W3b(i,:)';W3b(:,i)],roimFz);
+                        roiR(i,12) = corr([Wob(i,:)';Wob(:,i)],roimFz);
                     end
                     if issw
-                        roiR(i,11) = corr([Swb(i,:)';Swb(:,i)],roiDmz);
+                        roiR(i,11) = corr([Swb(i,:)';Swb(:,i)],roimFz);
                     end
                 end
 
                 % full ROIs (vs. mean group data)
                 R = nan(1,24,'single');
-                R(1) = corr(lC2(:),abs(Dmz(:))); % whole vs. m-FCz
+                R(1) = corr(lC2(:),abs(mFz(:))); % whole vs. m-FCz
                 disp(['prefix=' pftype ' : log10(neurons2) vs. m-FCz = ' num2str(R(1))]);
-                R(3) = corr(lS(:),abs(Dmz(:)));
+                R(3) = corr(lS(:),abs(mFz(:)));
                 disp(['prefix=' pftype ' : log10(synapses) vs. m-FCz = ' num2str(R(3))]);
                 if isw2
-                    R(2) = corr(lW2(:),abs(Dmz(:)));
+                    R(2) = corr(lW2(:),abs(mFz(:)));
                     disp(['prefix=' pftype ' : log10(synapse weight2) vs. m-FCz = ' num2str(R(2))]);
-                    R(4) = corr(W3(:),abs(Dmz(:)));
+                    R(4) = corr(W3(:),abs(mFz(:)));
                     disp(['prefix=' pftype ' : ROI in-neuron weight vs. m-FCz = ' num2str(R(4))]);
                     if issw 
-                        R(5) = corr(Sw(:),abs(Dmz(:)));
+                        R(5) = corr(Sw(:),abs(mFz(:)));
                         disp(['prefix=' pftype ' : ROI in-synapse weight vs. m-FCz = ' num2str(R(5))]);
                     end
-                    R(6) = corr(Wo(:),abs(Dmz(:)));
+                    R(6) = corr(Wo(:),abs(mFz(:)));
                     disp(['prefix=' pftype ' : ROI out-neuron weight vs. m-FCz = ' num2str(R(6))]);
                 end
 
-                R(7) = corr(lC2b(:),abs(Dmz(:))); % Traced vs. m-FCz
+                R(7) = corr(lC2b(:),abs(mFz(:))); % Traced vs. m-FCz
                 disp(['prefix=' pftype ' : log10(neurons2b) vs. m-FCz = ' num2str(R(7))]);
-%                figure; scatter(lC2b(:),abs(Dmz(:)),18,'x'); xlabel('log10(neurons2b)'); ylabel('m-FCz'); title(pftype); ylim([0 3]);
-                R(9) = corr(lSb(:),abs(Dmz(:)));
+%                figure; scatter(lC2b(:),abs(mFz(:)),18,'x'); xlabel('log10(neurons2b)'); ylabel('m-FCz'); title(pftype); ylim([0 3]);
+                R(9) = corr(lSb(:),abs(mFz(:)));
                 disp(['prefix=' pftype ' : log10(synapses b) vs. m-FCz = ' num2str(R(9))]);
                 if isw2
-                    R(8) = corr(lW2b(:),abs(Dmz(:)));
+                    R(8) = corr(lW2b(:),abs(mFz(:)));
                     disp(['prefix=' pftype ' : log10(synapse weight2b) vs. m-FCz = ' num2str(R(8))]);
-                    R(10) = corr(W3b(:),abs(Dmz(:)));
+                    R(10) = corr(W3b(:),abs(mFz(:)));
                     disp(['prefix=' pftype ' : ROI in-neuron weight b vs. m-FCz = ' num2str(R(10))]);
                     if issw 
-                        R(11) = corr(Swb(:),abs(Dmz(:)));
+                        R(11) = corr(Swb(:),abs(mFz(:)));
                         disp(['prefix=' pftype ' : ROI in-synapse weight b vs. m-FCz = ' num2str(R(11))]);
                     end
-                    R(12) = corr(Wob(:),abs(Dmz(:)));
+                    R(12) = corr(Wob(:),abs(mFz(:)));
                     disp(['prefix=' pftype ' : ROI out-neuron weight b vs. m-FCz = ' num2str(R(12))]);
                 end
 
@@ -329,38 +328,38 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                         wotb = Wob; wotb(wotb<wobth) = 0; wotb(wotb>0) = 1;
 
                         aucs = cell(24,1);
-                        [~, ~, auc] = calcShowGroupROCcurve(ct2(:)', abs(Dmz(:)'), ['m-FCz vs. neurons2 th=' num2str(th-1)], false);
-%                        figure; imagesc(ct2); colorbar; figure; imagesc(abs(Dmz)); colorbar; % to check matrix
+                        [~, ~, auc] = calcShowGroupROCcurve(ct2(:)', abs(mFz(:)'), ['m-FCz vs. neurons2 th=' num2str(th-1)], false);
+%                        figure; imagesc(ct2); colorbar; figure; imagesc(abs(mFz)); colorbar; % to check matrix
                         aucs{1} = single(auc);
-                        [~, ~, auc] = calcShowGroupROCcurve(st(:)', abs(Dmz(:)'), ['m-FCz vs. synapses th=' num2str(th-1)], false);
+                        [~, ~, auc] = calcShowGroupROCcurve(st(:)', abs(mFz(:)'), ['m-FCz vs. synapses th=' num2str(th-1)], false);
                         aucs{3} = single(auc);
                         if isw2
-                            [~, ~, auc] = calcShowGroupROCcurve(wt2(:)', abs(Dmz(:)'), ['m-FCz vs. synapse weight2 th=' num2str(th-1)], false);
+                            [~, ~, auc] = calcShowGroupROCcurve(wt2(:)', abs(mFz(:)'), ['m-FCz vs. synapse weight2 th=' num2str(th-1)], false);
                             aucs{2} = single(auc);
-                            [~, ~, auc] = calcShowGroupROCcurve(wt3(:)', abs(Dmz(:)'), ['m-FCz vs. ROI in-neuron weight th=' num2str(th-1)], false);
+                            [~, ~, auc] = calcShowGroupROCcurve(wt3(:)', abs(mFz(:)'), ['m-FCz vs. ROI in-neuron weight th=' num2str(th-1)], false);
                             aucs{4} = single(auc);
                             if issw 
-                                [~, ~, auc] = calcShowGroupROCcurve(swt(:)', abs(Dmz(:)'), ['m-FCz vs. ROI in-synapse weight th=' num2str(th-1)], false);
+                                [~, ~, auc] = calcShowGroupROCcurve(swt(:)', abs(mFz(:)'), ['m-FCz vs. ROI in-synapse weight th=' num2str(th-1)], false);
                                 aucs{5} = single(auc);
                             end
-                            [~, ~, auc] = calcShowGroupROCcurve(wot(:)', abs(Dmz(:)'), ['m-FCz vs. ROI out-neuron weight th=' num2str(th-1)], false);
+                            [~, ~, auc] = calcShowGroupROCcurve(wot(:)', abs(mFz(:)'), ['m-FCz vs. ROI out-neuron weight th=' num2str(th-1)], false);
                             aucs{6} = single(auc);
                         end
 
-                        [X, Y, auc] = calcShowGroupROCcurve(ct2b(:)', abs(Dmz(:)'), ['m-FCz vs. neurons2b th=' num2str(th-1)], false);
+                        [X, Y, auc] = calcShowGroupROCcurve(ct2b(:)', abs(mFz(:)'), ['m-FCz vs. neurons2b th=' num2str(th-1)], false);
                         aucs{7} = single(auc); % input node is one, so it is not vector.
-                        [~, ~, auc] = calcShowGroupROCcurve(stb(:)', abs(Dmz(:)'), ['m-FCz vs. synapses b th=' num2str(th-1)], false);
+                        [~, ~, auc] = calcShowGroupROCcurve(stb(:)', abs(mFz(:)'), ['m-FCz vs. synapses b th=' num2str(th-1)], false);
                         aucs{9} = single(auc);
                         if isw2
-                            [~, ~, auc] = calcShowGroupROCcurve(wt2b(:)', abs(Dmz(:)'), ['m-FCz vs. synapse weight2b th=' num2str(th-1)], false);
+                            [~, ~, auc] = calcShowGroupROCcurve(wt2b(:)', abs(mFz(:)'), ['m-FCz vs. synapse weight2b th=' num2str(th-1)], false);
                             aucs{8} = single(auc);
-                            [~, ~, auc] = calcShowGroupROCcurve(wt3b(:)', abs(Dmz(:)'), ['m-FCz vs. ROI in-neuron weight b th=' num2str(th-1)], false);
+                            [~, ~, auc] = calcShowGroupROCcurve(wt3b(:)', abs(mFz(:)'), ['m-FCz vs. ROI in-neuron weight b th=' num2str(th-1)], false);
                             aucs{10} = single(auc);
                             if issw 
-                                [~, ~, auc] = calcShowGroupROCcurve(swtb(:)', abs(Dmz(:)'), ['m-FCz vs. ROI in-synapse weight b th=' num2str(th-1)], false);
+                                [~, ~, auc] = calcShowGroupROCcurve(swtb(:)', abs(mFz(:)'), ['m-FCz vs. ROI in-synapse weight b th=' num2str(th-1)], false);
                                 aucs{11} = single(auc);
                             end
-                            [~, ~, auc] = calcShowGroupROCcurve(wotb(:)', abs(Dmz(:)'), ['m-FCz vs. ROI out-neuron weight b th=' num2str(th-1)], false);
+                            [~, ~, auc] = calcShowGroupROCcurve(wotb(:)', abs(mFz(:)'), ['m-FCz vs. ROI out-neuron weight b th=' num2str(th-1)], false);
                             aucs{12} = single(auc);
                         end
 

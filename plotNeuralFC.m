@@ -48,13 +48,13 @@ function checkNeuralFC(synTh, confTh, epsilon, minpts)
                 load(fcname);
 
                 for i=1:200
-                    if ~isempty(Dmz{i})
+                    if ~isempty(mFz{i})
                         type = ''; % neuro transmitter type is unknown
-                        F = Dmz{i}(:); idx = find(~isinf(F)); F = F(idx);
+                        F = mFz{i}(:); idx = find(~isinf(F)); F = F(idx);
                         Dt = D{i}(:); Dt = sqrt(Dt(idx));
                         r = corr(F,Dt);
-                        disp([num2str(synTh) 'sr' num2str(confTh) ' (' num2str(i) ') nid=' num2str(tNid(i)) ' ' type ' in=' num2str(sum(inCount{i})) ' (' num2str(size(Dmz{i},1)) ...
-                            ')  out=' num2str(sum(outCount{i})) ' ('  num2str(size(Dmz{i},2)) ')']);
+                        disp([num2str(synTh) 'sr' num2str(confTh) ' (' num2str(i) ') nid=' num2str(tNid(i)) ' ' type ' in=' num2str(sum(inCount{i})) ' (' num2str(size(mFz{i},1)) ...
+                            ')  out=' num2str(sum(outCount{i})) ' ('  num2str(size(mFz{i},2)) ')']);
 
                         % scatter correlation between FC vs. Distance
 %                        figure; scatter(F,Dt);
@@ -71,12 +71,12 @@ function checkNeuralFC(synTh, confTh, epsilon, minpts)
                         [s,si2]=sort(Cidx2); si2(s<0)=[]; % remove out of cluster voxels
 
                         % FC matrix and SC matrix
-                        figure; imagesc(Dmz{i}(si1,si2)); colorbar; title(['Sy FC '  num2str(synTh) 'sr' num2str(confTh) ' (' num2str(i) ') nid=' num2str(tNid(i)) ' ' type]);
+                        figure; imagesc(mFz{i}(si1,si2)); colorbar; title(['Sy FC '  num2str(synTh) 'sr' num2str(confTh) ' (' num2str(i) ') nid=' num2str(tNid(i)) ' ' type]);
                         xlabel('Synaptic cluster (output)'); ylabel('Synaptic cluster (input)');
 %                        figure; imagesc(D{i}(si1,si2)); colorbar; title(['Sy Dist ' num2str(synTh) 'sr' num2str(confTh) ' (' num2str(i) ') nid=' num2str(tNid(i)) ' ' type]);
 
                         % calc DBscan synaptic cluster
-                        CF = calcDBscanSycluster(Dmz{i}, maxcls, Cidx1, Cidx2);
+                        CF = calcDBscanSycluster(mFz{i}, maxcls, Cidx1, Cidx2);
                         figure; imagesc(CF,[0 4]); colorbar; title(['Sy FC '  num2str(synTh) 'sr' num2str(confTh) ' (' num2str(i) ') nid=' num2str(tNid(i)) ' ' type]);
                         xlabel('Synaptic cluster (output)'); ylabel('Synaptic cluster (input)');
                         if maxcls>1, xticks([1:maxcls]); yticks([1:maxcls]); end
@@ -120,14 +120,14 @@ function checkNeuralFCFw(synTh, scoreTh, epsilon, minpts)
                 load(fcname);
 
                 for i=1:200
-                    if ~isempty(Dmz{i})
+                    if ~isempty(mFz{i})
                         t = Ntype(i)+1;
                         type = tlabels{t};
-                        F = Dmz{i}(:); idx = find(~isinf(F)); F = F(idx);
+                        F = mFz{i}(:); idx = find(~isinf(F)); F = F(idx);
                         Dt = D{i}(:); Dt = sqrt(Dt(idx));
                         r = corr(F,Dt);
-                        disp([num2str(synTh) 'sr' num2str(scoreTh) ' (' num2str(i) ') nid=' num2str(Nid(i)) ' ' type ' in=' num2str(sum(inCount{i})) ' (' num2str(size(Dmz{i},1)) ...
-                            ')  out=' num2str(sum(outCount{i})) ' ('  num2str(size(Dmz{i},2)) ')']);
+                        disp([num2str(synTh) 'sr' num2str(scoreTh) ' (' num2str(i) ') nid=' num2str(Nid(i)) ' ' type ' in=' num2str(sum(inCount{i})) ' (' num2str(size(mFz{i},1)) ...
+                            ')  out=' num2str(sum(outCount{i})) ' ('  num2str(size(mFz{i},2)) ')']);
 
                         % scatter correlation between FC vs. Distance
 %                        figure; scatter(F,Dt);
@@ -144,12 +144,12 @@ function checkNeuralFCFw(synTh, scoreTh, epsilon, minpts)
                         [s,si2]=sort(Cidx2); si2(s<0)=[]; % remove out of cluster voxels
 
                         % FC matrix and SC matrix
-                        figure; imagesc(Dmz{i}(si1,si2)); colorbar; title(['Sy FC '  num2str(synTh) 'sr' num2str(scoreTh) ' (' num2str(i) ') nid=' num2str(Nid(i)) ' ' type]);
+                        figure; imagesc(mFz{i}(si1,si2)); colorbar; title(['Sy FC '  num2str(synTh) 'sr' num2str(scoreTh) ' (' num2str(i) ') nid=' num2str(Nid(i)) ' ' type]);
                         xlabel('Synaptic cluster (output)'); ylabel('Synaptic cluster (input)');
 %                        figure; imagesc(D{i}(si1,si2)); colorbar; title(['Sy Dist ' num2str(synTh) 'sr' num2str(scoreTh) ' (' num2str(i) ') nid=' num2str(Nid(i)) ' ' type]);
 
                         % calc DBscan synaptic cluster
-                        CF = calcDBscanSycluster(Dmz{i}, maxcls, Cidx1, Cidx2);
+                        CF = calcDBscanSycluster(mFz{i}, maxcls, Cidx1, Cidx2);
                         figure; imagesc(CF,[0 4]); colorbar; title(['Sy FC '  num2str(synTh) 'sr' num2str(scoreTh) ' (' num2str(i) ') nid=' num2str(Nid(i)) ' ' type]);
                         xlabel('Synaptic cluster (output)'); ylabel('Synaptic cluster (input)');
                         if maxcls>1, xticks([1:maxcls]); yticks([1:maxcls]); end

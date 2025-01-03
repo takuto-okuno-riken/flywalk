@@ -118,17 +118,17 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 outfile = ['results/fc/' pftype '-func.mat'];
                 load(outfile);
 
-                D3 = [];
+                F3 = [];
                 for i=1:cmlen
-                    D = CM{i}(ids,ids);
-                    D3 = cat(3,D3,D);
+                    F = CM{i}(ids,ids);
+                    F3 = cat(3,F3,F);
                 end
-                D3z = atanh(D3); % z transformed (better FC-SC corr).
+                F3z = atanh(F3); % z transformed (better FC-SC corr).
                 clear CM;
 
                 % mean group data
-                Dmz = nanmean(D3z,3);
-                Dmz(isinf(Dmz)) = max(Dmz(~isinf(Dmz)));
+                mFz = nanmean(F3z,3);
+                mFz(isinf(mFz)) = max(mFz(~isinf(mFz)));
 
                 T3 = T2(ids,ids);
                 T3(isinf(T3)) = max(T3(~isinf(T3)));
@@ -138,13 +138,13 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 load(aucmat);
 
                 % full ROIs (vs. mean group data)
-                R(1) = corr(lC2(:),abs(Dmz(:))); % whole vs. m-FCz
+                R(1) = corr(lC2(:),abs(mFz(:))); % whole vs. m-FCz
                 disp(['prefix=' pftype ' : log10(neurons2) vs. m-FCz = ' num2str(R(1))]);
-                R(3) = corr(lS(:),abs(Dmz(:)));
+                R(3) = corr(lS(:),abs(mFz(:)));
                 disp(['prefix=' pftype ' : log10(synapses) vs. m-FCz = ' num2str(R(3))]);
-                R(7) = corr(lC2b(:),abs(Dmz(:))); % Traced vs. m-FCz
+                R(7) = corr(lC2b(:),abs(mFz(:))); % Traced vs. m-FCz
                 disp(['prefix=' pftype ' : log10(neurons2b) vs. m-FCz = ' num2str(R(7))]);
-                R(9) = corr(lSb(:),abs(Dmz(:)));
+                R(9) = corr(lSb(:),abs(mFz(:)));
                 disp(['prefix=' pftype ' : log10(synapses b) vs. m-FCz = ' num2str(R(9))]);
                 R(13) = corr(lC2(:),abs(T3(:)));
                 disp(['prefix=' pftype ' : log10(neurons2) vs. FC-Tval = ' num2str(R(13))]);
@@ -178,13 +178,13 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                     stb = Sb; stb(stb<sbth) = 0; stb(stb>0) = 1;
 
                     aucs = aths{th};
-                    [~, ~, auc] = calcShowGroupROCcurve(ct2(:)', abs(Dmz(:)'), ['m-FCz vs. neurons2 th=' num2str(th-1)], false);
+                    [~, ~, auc] = calcShowGroupROCcurve(ct2(:)', abs(mFz(:)'), ['m-FCz vs. neurons2 th=' num2str(th-1)], false);
                     aucs{1} = single(auc);
-                    [~, ~, auc] = calcShowGroupROCcurve(st(:)', abs(Dmz(:)'), ['m-FCz vs. synapses th=' num2str(th-1)], false);
+                    [~, ~, auc] = calcShowGroupROCcurve(st(:)', abs(mFz(:)'), ['m-FCz vs. synapses th=' num2str(th-1)], false);
                     aucs{3} = single(auc);
-                    [X, Y, auc] = calcShowGroupROCcurve(ct2b(:)', abs(Dmz(:)'), ['m-FCz vs. neurons2b th=' num2str(th-1)], false);
+                    [X, Y, auc] = calcShowGroupROCcurve(ct2b(:)', abs(mFz(:)'), ['m-FCz vs. neurons2b th=' num2str(th-1)], false);
                     aucs{7} = single(auc); % input node is one, so it is not vector.
-                    [~, ~, auc] = calcShowGroupROCcurve(stb(:)', abs(Dmz(:)'), ['m-FCz vs. synapses b th=' num2str(th-1)], false);
+                    [~, ~, auc] = calcShowGroupROCcurve(stb(:)', abs(mFz(:)'), ['m-FCz vs. synapses b th=' num2str(th-1)], false);
                     aucs{9} = single(auc);
                     [~, ~, auc] = calcShowGroupROCcurve(ct2(:)', abs(T3(:)'), ['FC-Tval vs. neurons2 th=' num2str(th-1)], false);
                     aucs{13} = single(auc);
