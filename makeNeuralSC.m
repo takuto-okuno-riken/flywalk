@@ -8,6 +8,7 @@ function makeNeuralSC
     % check neural input & output voxels (FlyEM)
     scTh = 80; synTh = 0; % FlyEM synapse confidence & synapse count at one neuron threshold
 %    scTh = 60; synTh = 5; % almost flywire codex compatible setting
+%    scTh = 80; synTh = 5; % high confidence & connection setting.
 %    scTh = 0; synTh = 0; % for cheking neuPRINT+ compatible
     checkNeuralInputOutputVoxels(synTh, scTh/100);
 
@@ -16,7 +17,11 @@ function makeNeuralSC
     checkNeuralDBScan('hemi', synTh, scTh, epsilon, minpts);
 
     checkNeuralReciprocalConnections(synTh, scTh/100);
-
+%{
+    Cnames = {'SMP352'};
+    Cnids = {[266187532, 266528078, 266528086, 296194535, 328593903, 5813009926]};
+    checkNeuralNamedReciprocalConnections(Cnames, Cnids, synTh, scTh/100)
+%}
     checkNeuralAutoConnections(synTh, scTh/100);
     
     checkNeuralTriFeedforward(synTh, scTh/100);
@@ -29,6 +34,7 @@ function makeNeuralSC
     scTh = 130; synTh = 0; % FlyWire synapse score & synapse count at one neuron threshold
 %    scTh = 50; synTh = 0;
 %    scTh = 50; synTh = 5; % for checking flywire codex compatible
+%    scTh = 130; synTh = 5; % high confidence & connection setting.
 
     checkNeuralInputOutputVoxelsFw(synTh, scTh);
 
@@ -74,7 +80,7 @@ function checkNeuralInputOutputVoxels(synTh, confTh)
     clear Srate;
 
     % FlyEM read synapse location in FDA
-    load('data/synapseloc_fdacal.mat');
+    load('data/hemibrain_v1_2_synapseloc_fdacal.mat');
 
     info = niftiinfo('template/thresholded_FDACal.nii.gz');
     Vt = niftiread(info); Vt(:) = 0;
@@ -400,6 +406,8 @@ function checkNeuralReciprocalConnections(synTh, confTh)
     inNids = cell(nlen,1);
     outNids = cell(nlen,1);
     rcNids = cell(nlen,1);
+    rcpreSids = cell(nlen,1);
+    rcpostSids = cell(nlen,1);
     for i=1:nlen
         logi = ismember(StoN,tracedNids(i)); % find synapses which belong to target neuron
         presids = Sid(logi & Sdir==1); % output of a neuron
@@ -437,12 +445,55 @@ function checkNeuralReciprocalConnections(synTh, confTh)
         outNids{i} = outnids;
         inNids{i} = innids;
 
+        % find reciprocal synapses of neuron(i)
+        if ~isempty(rcNids{i})
+            rclogi = ismember(StoN,rcNids{i}); % pre & post synapses of reciprocal neurons
+            sslogi1 = ismember(StoS(:,1),Sid(rclogi)); % get pre-synapse
+            cpostsids1 = StoS(sslogi1 & ssrate & sstraced,2); % post-sid is unique
+            sslogi2 = ismember(StoS(:,2),Sid(rclogi)); % get post-synapse
+            cpresids2 = StoS(sslogi2 & ssrate & sstraced,1); % pre-sid is not unique
+            logis = ismember(postsids,cpostsids1);
+            rcpostSids{i} = postsids(logis);
+            logis = ismember(presids,cpresids2);
+            rcpreSids{i} = presids(logis);
+        end
+
         disp(['hemi' num2str(synTh) 'sr' num2str(confTh*100) ' : reciprocal process(' num2str(i) ') nid=' num2str(tracedNids(i)) ' in/out/reci=' num2str(length(inNids{i})) '/' num2str(length(outNids{i})) '/' num2str(length(rcNids{i})) ...
-            ' postsids=' num2str(length(postsids)) ' presids=' num2str(length(presids))]);
+            ' post/pre=' num2str(length(postsids)) '/' num2str(length(presids)) ' rcpost/rcpre=' num2str(length(rcpostSids{i})) '/' num2str(length(rcpreSids{i}))]);
     end
-    save(fname,'rcNids','-v7.3');
+    save(fname,'rcNids','rcpostSids','rcpreSids','-v7.3');
     save(fnameNin,'inNids','outNids','-v7.3');
 end
+
+function checkNeuralNamedReciprocalConnections(Cnames, Cnids, synTh, confTh)
+    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralReciprocalConnections.mat'];
+    load(fname);
+
+    % FlyEM read neuron info (id, connection number, size)
+    load('data/hemibrain_v1_2_neurons.mat');
+    clear Nconn; clear Ncrop; clear Nsize;
+    tracedNids = Nid(Nstatus==1);
+    Nidx = 1:length(tracedNids);
+
+    for i=1:length(Cnids)
+        logis = ismember(tracedNids,Cnids{i});
+        idxs = Nidx(logis);
+        rcnids = [];
+        for j=1:length(idxs)
+            nid = tracedNids(idxs(j));
+            rcn = rcNids{idxs(j)};
+            disp([Cnames{i} ' ' num2str(nid) ' has reciprocal neurons : ' num2str(rcn')]);
+            rcnids = [rcnids; rcn];
+        end
+        numnid = groupcounts(rcnids);
+        rcnids = unique(rcnids);
+        rcnids = rcnids(numnid>1); nnid = numnid(numnid>1);
+        str = [];
+        for j=1:length(rcnids), str=[str num2str(rcnids(j)) ' (' num2str(nnid(j)) '), ']; end
+        disp([Cnames{i} ' multiple reciprocal neurons : ' str]);
+    end
+end
+
 
 function checkNeuralReciprocalConnectionsFw(synTh, scoreTh)
 
@@ -464,30 +515,32 @@ function checkNeuralReciprocalConnectionsFw(synTh, scoreTh)
     inNidx = cell(nlen,1);
     outNidx = cell(nlen,1);
     rcNidx = cell(nlen,1);
+    rcpreSidx = cell(nlen,1);
+    rcpostSidx = cell(nlen,1);
     for i=1:nlen
-        logi = ismember(preNidx,i); % find pre-synapses which belong to target neurons
+        prlogi = ismember(preNidx,i); % find pre-synapses which belong to target neurons
         if synTh > 0                % for checking flywire codex compatible
-            nidx=postNidx(logi);        % get connected post-synapse neurons    
+            nidx=postNidx(prlogi);        % get connected post-synapse neurons    
             numsyn = groupcounts(nidx); % number of synapse in each neuron
             nidx = unique(nidx);
             outnidx = nidx(numsyn >= synTh); % get thresholded (post-synapse) neuron index
             logi2 = ismember(postNidx,outnidx);
-            outnidx = postNidx(logi & logi2 & valid & score);
+            outnidx = postNidx(prlogi & logi2 & valid & score);
         else
-            outnidx = postNidx(logi & valid & score); % get connected neuron index
+            outnidx = postNidx(prlogi & valid & score); % get connected neuron index
         end
         outnidx = unique(outnidx);
 
-        logi = ismember(postNidx,i); % find post-synapses which belong to target neurons
+        pologi = ismember(postNidx,i); % find post-synapses which belong to target neurons
         if synTh > 0                 % for checking flywire codex compatible
-            nidx=preNidx(logi);         % get connected pre-synapse neurons
+            nidx=preNidx(pologi);         % get connected pre-synapse neurons
             numsyn = groupcounts(nidx); % number of synapse in each neuron
             nidx = unique(nidx);
             innidx = nidx(numsyn >= synTh); % get thresholded (post-synapse) neuron index
             logi2 = ismember(preNidx,innidx);
-            innidx = preNidx(logi & logi2 & valid & score);
+            innidx = preNidx(pologi & logi2 & valid & score);
         else
-            innidx = preNidx(logi & valid & score);
+            innidx = preNidx(pologi & valid & score);
         end
         innidx = unique(innidx);
 
@@ -496,9 +549,18 @@ function checkNeuralReciprocalConnectionsFw(synTh, scoreTh)
         outNidx{i} = outnidx;
         inNidx{i} = innidx;
 
-        disp(['wire' num2str(synTh) 'sr' num2str(scoreTh) ' : reciprocal process(' num2str(i) ') nid=' num2str(Nid(i)) ' in/out/reci=' num2str(length(inNidx{i})) '/' num2str(length(outNidx{i})) '/' num2str(length(rcNidx{i}))]);
+        % find reciprocal synapses
+        if ~isempty(rcNidx{i})
+            rclogi1 = ismember(preNidx,rcNidx{i}); % pre-synapse of reciprocal neurons
+            rclogi2 = ismember(postNidx,rcNidx{i}); % post-synapse of reciprocal neurons
+            rcpostSidx{i} = Sidx(prlogi & rclogi2 & valid & score);
+            rcpreSidx{i} = Sidx(pologi & rclogi1 & valid & score); 
+        end
+
+        disp(['wire' num2str(synTh) 'sr' num2str(scoreTh) ' : reciprocal process(' num2str(i) ') nid=' num2str(Nid(i)) ' in/out/reci=' num2str(length(inNidx{i})) '/' num2str(length(outNidx{i})) '/' num2str(length(rcNidx{i})) ...
+            'rcpost/rcpre=' num2str(length(rcpostSidx{i})) '/' num2str(length(rcpreSidx{i}))]);
     end
-    save(fname,'rcNidx','-v7.3');
+    save(fname,'rcNidx','rcpostSidx','rcpreSidx','-v7.3');
     save(fnameNin,'inNidx','outNidx','-v7.3');
 end
 

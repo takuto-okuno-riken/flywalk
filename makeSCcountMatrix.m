@@ -24,7 +24,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
 
     % read synapse location in FDA
     SlocFc = [];
-    load('data/synapseloc_fdacal.mat');
+    load('data/hemibrain_v1_2_synapseloc_fdacal.mat');
 
     % make presynapse index
     cfile = 'results/hemibrain_v1_2_synapseCell.mat';

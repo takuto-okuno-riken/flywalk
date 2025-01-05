@@ -40,7 +40,7 @@ function checkAPLneuron()
     clear Srate;
 
     % FlyEM read synapse location in FDA
-    load('data/synapseloc_fdacal.mat');
+    load('data/hemibrain_v1_2_synapseloc_fdacal.mat');
 
     % count pre (to post) and post synapse count
     APLnid = 425790257;
@@ -204,7 +204,7 @@ function checkSCpostSynapse()
                 straced = ismember(StoN,Nid(Nstatus==1)); % Find synapses belong to Traced neuron.
                 spost = (Sdir == 2); % Find post synapse
         
-                load('data/synapseloc_fdacal.mat');
+                load('data/hemibrain_v1_2_synapseloc_fdacal.mat');
                 SpostlocFc = SlocFc(srate & straced & spost,:);
                 clear SlocFc;
         
