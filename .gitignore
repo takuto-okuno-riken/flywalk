@@ -9,6 +9,7 @@
 *.nrrd
 *.png
 *.jpg
+*.swc
 hemi*.m
 nrrd_*.m
 nhdr_*.m
