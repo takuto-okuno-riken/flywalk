@@ -8,7 +8,7 @@ function glmFlyMB2nd
 
     % output time-series (smoothing, highpass filter, nuisance removal)
     hpfTh = 0; % high-pass filter threshold
-    smooth = 's40';
+    smooth = 's80';
     nuisance = 'poltcomp'; % ''; %
 
     tuM = 8; % tukey window size
@@ -99,7 +99,7 @@ function glmFlyMB2nd
         % GLM contrast image
         fname = betaBmat(13:end-8);
         thParam = {df, Pth};
-        clParam = {41, FWHMs}; % clustering parameter for GLM contrast
+        clParam = {41*(1.6^3), FWHMs}; % clustering parameter for GLM contrast
         [Tth, Vts, Vfs, Tmaxs, Tcnts] = plotGlmContrastImage(contnames, Ts, thParam, clParam, maskV, true, false, backV, ...
             fname, rangePlus, rangeMinus, [], [], []);
 
