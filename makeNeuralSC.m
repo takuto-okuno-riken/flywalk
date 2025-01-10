@@ -668,7 +668,7 @@ function checkDistanceReciprocalConnectionsFw(conf)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
     fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalSynapseDistances.mat'];
-%    if exist(fname,'file'), return; end
+    if exist(fname,'file'), return; end
     rcfname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
     rcpreSidx = {}; rcpostSidx = {}; rcNidx = {};
     load(rcfname);
