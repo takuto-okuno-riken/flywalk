@@ -58,33 +58,6 @@ function makeNeuralSC
     checkNeuralTriUnicycleFw(synTh, scTh);
 end
 
-function conf = getSCconfig(scname, synTh, scoreTh)
-    conf.scname = scname;
-    conf.synTh = synTh;        % connected synapse number at one neuron threshold
-    conf.scoreTh = scoreTh;    % score threshold
-    switch(scname)
-    case 'hemi'
-        conf.neuronFile = 'data/hemibrain1_2fw_neuron.mat';
-        conf.synapseFile = 'data/hemibrain1_2fw_synapse.mat';
-        conf.syprelocFile = 'data/hemibrain1_2fw_sypreloc.mat';
-        conf.sypostlocFile = 'data/hemibrain1_2fw_sypostloc.mat';
-        conf.syprelocFdaFile = 'data/hemibrain1_2fw_sypreloc_fdacal.mat';
-        conf.sypostlocFdaFile = 'data/hemibrain1_2fw_sypostloc_fdacal.mat';
-        conf.voxelSize = [8 8 8]; % nano meter
-    case 'wire'
-        conf.neuronFile = 'data/flywire783_neuron.mat';
-        conf.synapseFile = 'data/flywire783_synapse.mat';
-        conf.syprelocFile = 'data/flywire783_sypreloc.mat';
-        conf.sypostlocFile = 'data/flywire783_sypostloc.mat';
-        conf.syprelocFdaFile = 'data/flywire783i_sypostloc_fdacal.mat';
-        conf.sypostlocFdaFile = 'data/flywire783i_sypostloc_fdacal.mat';
-        conf.voxelSize = [4 4 40]; % nano meter
-    end
-    conf.voxelUnit = 'nm';
-    conf.voxelSizeFda = [2.45, 2.28, 3.715]; % micro meter
-    conf.voxelUnitFda = 'um';
-end
-
 function checkNeuralInputOutputVoxels(synTh, confTh)
 
     if ~exist('results/neuralsc','dir'), mkdir('results/neuralsc'); end
@@ -559,8 +532,8 @@ function checkDistanceReciprocalConnections(synTh, confTh)
         nids = rcNids{i};
         if isempty(nids), continue; end
 
-        prelocs = double(Sloc(rcpreSids{i},:)); % hemibrain original space
-        postlocs = double(Sloc(rcpostSids{i},:));
+        prelocs = single(Sloc(rcpreSids{i},:)); % hemibrain original space
+        postlocs = single(Sloc(rcpostSids{i},:));
         preP = reshape(prelocs,[size(prelocs,1) 1 3]);
         postP = reshape(postlocs,[1 size(postlocs,1) 3]);
         preP = repmat(preP,[1 size(postP,2) 1]);
@@ -695,7 +668,7 @@ function checkDistanceReciprocalConnectionsFw(conf)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
     fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalSynapseDistances.mat'];
-    if exist(fname,'file'), return; end
+%    if exist(fname,'file'), return; end
     rcfname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
     rcpreSidx = {}; rcpostSidx = {}; rcNidx = {};
     load(rcfname);
@@ -723,19 +696,21 @@ function checkDistanceReciprocalConnectionsFw(conf)
         nids = rcNidx{i};
         if isempty(nids), continue; end
 
-        prelocs = Spreloc(rcpreSidx{i},:);    % reciprocal pre-synapse on Nid(i); FlyWire original space (unit is nano meter) (int32)
-        postlocs = Spostloc(rcpostSidx{i},:); % reciprocal post-synapse on Nid(i); 
-        preP = reshape(double(prelocs),[size(prelocs,1) 1 3]);
-        postP = reshape(double(postlocs),[1 size(postlocs,1) 3]);
+        prelocs = single(Spreloc(rcpreSidx{i},:)) ./ conf.swcSize .* conf.voxelSize;    % reciprocal pre-synapse on Nid(i); FlyWire original space (unit is nano meter) (int32)
+        postlocs = single(Spostloc(rcpostSidx{i},:)) ./ conf.swcSize .* conf.voxelSize; % reciprocal post-synapse on Nid(i); 
+        preP = reshape(prelocs,[size(prelocs,1) 1 3]);
+        postP = reshape(postlocs,[1 size(postlocs,1) 3]);
         preP = repmat(preP,[1 size(postP,2) 1]);
         postP = repmat(postP,[size(preP,1) 1 1]);
         D = sqrt(sum((preP-postP).^2,3));
+        clear preP; clear postP;
 
         rcNidx1 = postNidx(rcpreSidx{i});
         rcNidx2 = preNidx(rcpostSidx{i})';
         rcNidx1 = repmat(rcNidx1,[1 size(rcNidx2,2)]);
         rcNidx2 = repmat(rcNidx2,[size(rcNidx1,1) 1]);
         D(rcNidx1~=rcNidx2) = nan; % rcpre/rcpost synapse pair should be same reciprocal neurons.
+        clear rcNidx1; clear rcNidx2;
 
         % find minimum distance of pre and post (should be same reciprocal target neuron)
         [minD, idxD] = min(D,[],2,'omitnan');
@@ -750,9 +725,9 @@ function checkDistanceReciprocalConnectionsFw(conf)
         for j=1:length(idx)
             if j>3, break; end
             k = idx(j);
-            pt1 = double(prelocs(k,:)) ./ [4 4 40];
-            pt2 = double(postlocs(idxD(k),:)) ./ [4 4 40];
-            d = sqrt(sum(((pt1-pt2).*[4 4 40]).^2,2)); % this should equal md(j)
+            pt1 = single(prelocs(k,:)) ./ conf.swcSize;
+            pt2 = single(postlocs(idxD(k),:)) ./ conf.swcSize;
+            d = sqrt(sum(((pt1-pt2).*conf.voxelSize).^2,2)); % this should equal md(j)
             postsid = rcpreCloseSidx{i}(k); % pre-post sid
             disp(['      rcnid=' num2str(Nid(postNidx(postsid))) ' preloc=' num2str(pt1(1)) ',' num2str(pt1(2)) ',' num2str(pt1(3)) ...
                 ' postloc=' num2str(pt2(1)) ',' num2str(pt2(2)) ',' num2str(pt2(3)) ' dist=' num2str(md(j)) 'nm  cf' num2str(d-md(j))])

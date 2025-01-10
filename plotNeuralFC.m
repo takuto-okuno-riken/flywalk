@@ -12,7 +12,7 @@ function plotNeuralFC
     conf = getSCconfig('hemi',synTh,scTh);
 %    checkNeuralFCFw(conf, epsilon, minpts);
 
-%    checkReciprocalConnectionFw(conf)
+    checkReciprocalConnectionFw(conf)
 
     % check NeuralFC of FlyWire
     scTh = 130; synTh = 0; % FlyWire synapse score & synapse count at one neuron threshold
