@@ -10,24 +10,25 @@ function makeNeuralSC
 %    scTh = 60; synTh = 5; % almost flywire codex compatible setting
 %    scTh = 80; synTh = 5; % high confidence & connection setting.
 %    scTh = 0; synTh = 0; % for cheking neuPRINT+ compatible
+    conf = getSCconfig('hemi', synTh, scTh);
 
-    checkNeuralInputOutputVoxels(synTh, scTh/100);
+    checkNeuralInputOutputVoxelsFw(conf);
 
-    checkNeuralInputOutputDistance('hemi', synTh, scTh);
+%    checkNeuralInputOutputDistance(conf);
 
-    checkNeuralDBScan('hemi', synTh, scTh, epsilon, minpts);
+%    checkNeuralDBScan(conf, epsilon, minpts);
 
-    checkNeuralReciprocalConnections(synTh, scTh/100);
+    checkNeuralReciprocalConnectionsFw(conf);
 
-    checkDistanceReciprocalConnections(synTh, scTh/100);
+    checkDistanceReciprocalConnectionsFw(conf);
 %{
     Cnames = {'SMP352'};
     Cnids = {[266187532, 266528078, 266528086, 296194535, 328593903, 5813009926]};
     checkNeuralNamedReciprocalConnections(Cnames, Cnids, synTh, scTh/100)
 %}
-    checkNeuralAutoConnections(synTh, scTh/100);
+    checkNeuralAutoConnectionsFw(conf);
     
-    checkNeuralTriFeedforward(synTh, scTh/100);
+    checkNeuralTriFeedforwardFw(conf);
 
     checkNeuralTriUnicycle(synTh, scTh/100);
 
@@ -38,22 +39,50 @@ function makeNeuralSC
 %    scTh = 50; synTh = 0;
 %    scTh = 50; synTh = 5; % for checking flywire codex compatible
 %    scTh = 130; synTh = 5; % high confidence & connection setting.
+    conf = getSCconfig('wire', synTh, scTh);
 
-    checkNeuralInputOutputVoxelsFw(synTh, scTh);
+    checkNeuralInputOutputVoxelsFw(conf);
 
-    checkNeuralInputOutputDistance('wire', synTh, scTh);
+%    checkNeuralInputOutputDistance(conf);
 
-    checkNeuralDBScan('wire', synTh, scTh, epsilon, minpts);
+%    checkNeuralDBScan(conf, epsilon, minpts);
 
-    checkNeuralReciprocalConnectionsFw(synTh, scTh);
+    checkNeuralReciprocalConnectionsFw(conf);
 
-    checkDistanceReciprocalConnectionsFw(synTh, scTh);
+    checkDistanceReciprocalConnectionsFw(conf);
 
-    checkNeuralAutoConnectionsFw(synTh, scTh);
+    checkNeuralAutoConnectionsFw(conf);
     
-    checkNeuralTriFeedforwardFw(synTh, scTh);
+    checkNeuralTriFeedforwardFw(conf);
 
     checkNeuralTriUnicycleFw(synTh, scTh);
+end
+
+function conf = getSCconfig(scname, synTh, scoreTh)
+    conf.scname = scname;
+    conf.synTh = synTh;        % connected synapse number at one neuron threshold
+    conf.scoreTh = scoreTh;    % score threshold
+    switch(scname)
+    case 'hemi'
+        conf.neuronFile = 'data/hemibrain1_2fw_neuron.mat';
+        conf.synapseFile = 'data/hemibrain1_2fw_synapse.mat';
+        conf.syprelocFile = 'data/hemibrain1_2fw_sypreloc.mat';
+        conf.sypostlocFile = 'data/hemibrain1_2fw_sypostloc.mat';
+        conf.syprelocFdaFile = 'data/hemibrain1_2fw_sypreloc_fdacal.mat';
+        conf.sypostlocFdaFile = 'data/hemibrain1_2fw_sypostloc_fdacal.mat';
+        conf.voxelSize = [8 8 8]; % nano meter
+    case 'wire'
+        conf.neuronFile = 'data/flywire783_neuron.mat';
+        conf.synapseFile = 'data/flywire783_synapse.mat';
+        conf.syprelocFile = 'data/flywire783_sypreloc.mat';
+        conf.sypostlocFile = 'data/flywire783_sypostloc.mat';
+        conf.syprelocFdaFile = 'data/flywire783i_sypostloc_fdacal.mat';
+        conf.sypostlocFdaFile = 'data/flywire783i_sypostloc_fdacal.mat';
+        conf.voxelSize = [4 4 40]; % nano meter
+    end
+    conf.voxelUnit = 'nm';
+    conf.voxelSizeFda = [2.45, 2.28, 3.715]; % micro meter
+    conf.voxelUnitFda = 'um';
 end
 
 function checkNeuralInputOutputVoxels(synTh, confTh)
@@ -162,21 +191,23 @@ function checkNeuralInputOutputVoxels(synTh, confTh)
     save(fname,'inCount','inIdx','outCount','outIdx','tracedNids','-v7.3');
 end
 
-function checkNeuralInputOutputVoxelsFw(synTh, scoreTh)
-    fname = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neuralInOutVoxels.mat'];
+function checkNeuralInputOutputVoxelsFw(conf)
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralInOutVoxels.mat'];
     if exist(fname,'file'), return; end
 
     % FlyWire read neuron info
-    load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
 
     % FlyWire read synapse info
-    load('data/flywire783_synapse.mat');
+    load(conf.synapseFile);
     score = (cleftScore >= scoreTh);
     Sidx = int32(1:length(Sid))';
     valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
 
     % read synapse location in FDA
-    load('data/flywire783i_sypostloc_fdacal.mat');
+    load(conf.sypostlocFdaFile);
 
     info = niftiinfo('template/thresholded_FDACal.nii.gz');
     Vt = niftiread(info); Vt(:) = 0;
@@ -213,7 +244,7 @@ function checkNeuralInputOutputVoxelsFw(synTh, scoreTh)
         else
             postsidx = Sidx(logi & valid & score);
         end
-        disp(['wire' num2str(synTh) 'sr' num2str(scoreTh) ' : process(' num2str(i) ') nid=' num2str(Nid(i)) ' postsids=' num2str(length(postsidx)) ' presids=' num2str(length(presidx))]);
+        disp([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : process(' num2str(i) ') nid=' num2str(Nid(i)) ' postsids=' num2str(length(postsidx)) ' presids=' num2str(length(presidx))]);
 
         % get connected post-synapse counts from APL pre-synapses (output)
         conSlocFc = SpostlocFc(presidx,:); V = Vt; % get (pre-post) 3D location in FDA Cal template.
@@ -246,8 +277,10 @@ function checkNeuralInputOutputVoxelsFw(synTh, scoreTh)
     save(fname,'inCount','inIdx','outCount','outIdx','tracedNidx','-v7.3');
 end
 
-function checkNeuralInputOutputDistance(scname, synTh, confTh)
-    fname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(confTh) '_neuralInOutDistance.mat'];
+function checkNeuralInputOutputDistance(conf)
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralInOutDistance.mat'];
     if exist(fname,'file'), return; end
 
     info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
@@ -255,7 +288,7 @@ function checkNeuralInputOutputDistance(scname, synTh, confTh)
     sz = size(V);
 
     % load input output voxel info
-    niofname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(confTh) '_neuralInOutVoxels.mat'];
+    niofname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralInOutVoxels.mat'];
     load(niofname);
 
     D = cell(length(inIdx),1);
@@ -271,7 +304,7 @@ function checkNeuralInputOutputDistance(scname, synTh, confTh)
 
         scinlen = length(scinidx);
         scoutlen = length(scoutidx);
-        disp(['dist ' scname num2str(synTh) 'sr' num2str(confTh) ' : process i=' num2str(i) ' invox=' num2str(scinlen) ' outvox=' num2str(scoutlen)]);
+        disp(['dist ' scname num2str(synTh) 'sr' num2str(scoreTh) ' : process i=' num2str(i) ' invox=' num2str(scinlen) ' outvox=' num2str(scoutlen)]);
 
         Sin = zeros(scinlen,1,3,'single');
         for j=1:scinlen
@@ -308,25 +341,21 @@ function checkNeuralInputOutputDistance(scname, synTh, confTh)
     save(fname,'D','Didx','-v7.3');
 end
 
-function checkNeuralDBScan(scname, synTh, confTh, epsilon, minpts)
-    fname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(confTh) '_neuralDBScan' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
+function checkNeuralDBScan(conf, epsilon, minpts)
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralDBScan' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
     if exist(fname,'file'), return; end
 
     info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
     V = niftiread(info);
     sz = size(V);
 
-    switch(scname)
-    case 'hemi'
-        % FlyEM read neuron info (id, connection number, size)
-        load('data/hemibrain_v1_2_neurons.mat');
-        clear Nconn; clear Ncrop; clear Nsize; 
-    case 'wire'
-        load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
-    end
+    % read neuron info (id, connection number, size)
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
 
     % load input output voxel info
-    niofname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(confTh) '_neuralInOutVoxels.mat'];
+    niofname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralInOutVoxels.mat'];
     load(niofname);
 
     DBidx = cell(length(inIdx),1);
@@ -371,7 +400,7 @@ function checkNeuralDBScan(scname, synTh, confTh, epsilon, minpts)
         DBidx{i} = sdbidx;
 
         cls = unique(sdbidx);
-        disp(['dbscan ' scname num2str(synTh) 'sr' num2str(confTh) ' : process (' num2str(i) ') nid=' num2str(Nid(i)) ' cls=' num2str(length(cls(cls>0))) ' invox=' num2str(scinlen) ' outvox=' num2str(scoutlen)]);
+        disp(['dbscan ' conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : process (' num2str(i) ') nid=' num2str(Nid(i)) ' cls=' num2str(length(cls(cls>0))) ' invox=' num2str(scinlen) ' outvox=' num2str(scoutlen)]);
     end
     save(fname,'inlen','DBidx','-v7.3');
 end
@@ -586,18 +615,20 @@ function checkDistanceReciprocalConnections(synTh, confTh)
     save(fname,'rcpreCloseDist','rcpreCloseSids','rcpostCloseDist','rcpostCloseSids','-v7.3');
 end
 
-function checkNeuralReciprocalConnectionsFw(synTh, scoreTh)
-    fname = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
+function checkNeuralReciprocalConnectionsFw(conf)
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
     if exist(fname,'file'), return; end
-    fnameNin = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
+    fnameNin = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
 
     % FlyWire read neuron info
     Nid = [];
-    load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
 
     % FlyWire read synapse info
     preNidx = []; postNidx = [];
-    load('data/flywire783_synapse.mat');
+    load(conf.synapseFile);
     score = (cleftScore >= scoreTh);
     Sidx = int32(1:length(Sid))';
     valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
@@ -653,33 +684,35 @@ function checkNeuralReciprocalConnectionsFw(synTh, scoreTh)
             rcpostSidx{i} = Sidx(pologi & rcprlogi & valid & score); 
         end
 
-        disp(['wire' num2str(synTh) 'sr' num2str(scoreTh) ' : reciprocal process(' num2str(i) ') nid=' num2str(Nid(i)) ' in/out/reci=' num2str(length(inNidx{i})) '/' num2str(length(outNidx{i})) '/' num2str(length(rcNidx{i})) ...
+        disp([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : reciprocal process(' num2str(i) ') nid=' num2str(Nid(i)) ' in/out/reci=' num2str(length(inNidx{i})) '/' num2str(length(outNidx{i})) '/' num2str(length(rcNidx{i})) ...
             ' rcpost/rcpre=' num2str(length(rcpostSidx{i})) '/' num2str(length(rcpreSidx{i}))]);
     end
     save(fname,'rcNidx','rcpostSidx','rcpreSidx','-v7.3');
     save(fnameNin,'inNidx','outNidx','-v7.3');
 end
 
-function checkDistanceReciprocalConnectionsFw(synTh, scoreTh)
-    fname = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalSynapseDistances.mat'];
+function checkDistanceReciprocalConnectionsFw(conf)
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalSynapseDistances.mat'];
     if exist(fname,'file'), return; end
-    rcfname = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
+    rcfname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
     rcpreSidx = {}; rcpostSidx = {}; rcNidx = {};
     load(rcfname);
 
     % FlyWire read neuron info
-    load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
 
     % FlyWire read synapse info
-    load('data/flywire783_synapse.mat');
+    load(conf.synapseFile);
     score = (cleftScore >= scoreTh);
     Sidx = int32(1:length(Sid))';
     valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
 
-    % FlyEM read synapse info
+    % FlyWire read synapse locations
     Spostloc = []; Spreloc = [];
-    load('data/flywire783_sypostloc.mat');
-    load('data/flywire783_sypreloc.mat');
+    load(conf.sypostlocFile);
+    load(conf.syprelocFile);
 
     nlen = length(rcNidx);
     rcpreCloseDist = cell(nlen,1);
@@ -757,17 +790,19 @@ function checkNeuralAutoConnections(synTh, confTh)
     save(fname,'rcNids','rcpostSids','rcpreSids','autoNids','-v7.3');
 end
 
-function checkNeuralAutoConnectionsFw(synTh, scoreTh)
-    fname = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
+function checkNeuralAutoConnectionsFw(conf)
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
     if ~exist(fname,'file'), return; end
     load(fname);
     if exist('autoNidx','var'), return; end
 
-    fnameNin = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
+    fnameNin = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
     load(fnameNin);
 
     % FlyWire read neuron info
-    load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
 
     % count pre (to post) and post synapse count
     nlen = length(Nid);
@@ -895,22 +930,24 @@ function checkNeuralTriFeedforward(synTh, confTh)
     save(fname,'triffNids','triffSids','-v7.3');
 end
 
-function checkNeuralTriFeedforwardFw(synTh, scoreTh)
-    fname = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neuralTriFeedforward.mat'];
+function checkNeuralTriFeedforwardFw(conf)
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralTriFeedforward.mat'];
     if exist(fname,'file'), return; end
-    fnameReci = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
-    fnameNin = ['results/neuralsc/wire' num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
+    fnameReci = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
+    fnameNin = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
     outNidx = {};
     load(fnameReci);
     load(fnameNin);
 
     % FlyWire read neuron info
     Nid = []; 
-    load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
 
     % FlyWire read synapse info
     postNidx = []; preNidx = [];
-    load('data/flywire783_synapse.mat');
+    load(conf.synapseFile);
     score = (cleftScore >= scoreTh);
     Sidx = int32(1:length(Sid))';
     valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
@@ -991,7 +1028,7 @@ function checkNeuralTriFeedforwardFw(synTh, scoreTh)
             triffSidx{i} = ffSidx;
         end
 
-        disp(['wire' num2str(synTh) 'sr' num2str(scoreTh) ' : tri feedforward process(' num2str(i) ') nid=' num2str(Nid(i)) ...
+        disp([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : tri feedforward process(' num2str(i) ') nid=' num2str(Nid(i)) ...
             ' out/pout/tri=' num2str(length(outNidx{i})) '/' num2str(length(poutNidx{i})) '/' num2str(tricount)]);
     end
     save(fname,'triffNidx','triffSidx','-v7.3');
