@@ -171,20 +171,27 @@ function checkNeuralInputOutputVoxelsFw(conf)
     if exist(fname,'file'), return; end
 
     % FlyWire read neuron info
+    Nid = [];
     load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
 
     % FlyWire read synapse info
+    preNidx = []; postNidx = [];
     load(conf.synapseFile);
     score = (cleftScore >= scoreTh);
     Sidx = int32(1:length(Sid))';
     valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
 
     % read synapse location in FDA
+    SpostlocFc = [];
     load(conf.sypostlocFdaFile);
 
     info = niftiinfo('template/thresholded_FDACal.nii.gz');
     Vt = niftiread(info); Vt(:) = 0;
     sz = size(Vt);
+
+    % set pool num. this calculation takes time. we need big pool num.
+    delete(gcp('nocreate')); % shutdown pools
+    parpool(24);
 
     % count pre (to post) and post synapse count
     nlen = length(Nid);
@@ -193,7 +200,7 @@ function checkNeuralInputOutputVoxelsFw(conf)
     outCount = cell(nlen,1);
     inIdx = cell(nlen,1);
     inCount = cell(nlen,1);
-    for i=1:nlen
+    parfor i=1:nlen
         logi = ismember(preNidx,i); % find pre-synapses which belong to target neurons
         if synTh > 0                % for checking flywire codex compatible
             nidx=postNidx(logi);        % get connected post-synapse neurons

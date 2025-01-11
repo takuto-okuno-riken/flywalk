@@ -332,7 +332,7 @@ function checkReciprocalConnectionFw(conf)
     load(['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalSynapseDistances.mat']);
 
     nlen = length(Nid);
-    for i=1:nlen
+    for i=1:1000:nlen
         if isempty(rcpreSidx{i}), continue; end
         disp(['plot closest reciprocal synapses (' num2str(i) ') nid=' num2str(Nid(i)) ' (' tlabels{Ntype(i)+1} ')']);
 
