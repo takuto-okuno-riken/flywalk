@@ -10,21 +10,58 @@ function plotNeuralFC
     scTh = 80; synTh = 0; % FlyEM synapse confidence & synapse count at one neuron threshold
 %    confTh = 60; synTh = 5; % almost flywire codex compatible setting
     conf = getSCconfig('hemi',synTh,scTh);
-%    checkNeuralFCFw(conf, epsilon, minpts);
 
-    checkReciprocalConnectionFw(conf)
+%    showNeuralFCFw(conf, epsilon, minpts);
 
+%    showReciprocalDistanceFw(conf)
+%{
+    for p12=1:2
+        for p13=1:2
+            for p23=1:2
+                showTriangleDistanceFw(conf,'Feedforward', (p12==1), (p13==1), (p23==1));
+            end
+        end
+    end
+%}
+%{
+    for p12=1:2
+        for p13=1:2
+            for p23=1:2
+                showTriangleDistanceFw(conf,'Unicycle', (p12==1), (p13==1), (p23==1))
+            end
+        end
+    end
+%}
     % check NeuralFC of FlyWire
     scTh = 130; synTh = 0; % FlyWire synapse score & synapse count at one neuron threshold
 %    scTh = 50; synTh = 0;
 %    scTh = 50; synTh = 5; % for checking flywire codex compatible
     conf = getSCconfig('wire',synTh,scTh);
-%    checkNeuralFCFw(conf, epsilon, minpts);
 
-    checkReciprocalConnectionFw(conf)
+%    showNeuralFCFw(conf, epsilon, minpts);
+
+%    showReciprocalDistanceFw(conf)
+%{
+    for p12=1:2
+        for p13=1:2
+            for p23=1:2
+                showTriangleDistanceFw(conf,'Feedforward', (p12==1), (p13==1), (p23==1))
+            end
+        end
+    end
+%}
+%{
+    for p12=1:2
+        for p13=1:2
+            for p23=1:2
+                showTriangleDistanceFw(conf,'Unicycle', (p12==1), (p13==1), (p23==1))
+            end
+        end
+    end
+%}
 end
 
-function checkNeuralFC(synTh, confTh, epsilon, minpts)
+function showNeuralFC(synTh, confTh, epsilon, minpts)
     preproc = 'ar'; % for move correct, slice time correct
     hpfTh = [0]; % high-pass filter threshold
     smooth = {'s230'};
@@ -97,7 +134,7 @@ function checkNeuralFC(synTh, confTh, epsilon, minpts)
     end
 end
 
-function checkNeuralFCFw(conf, epsilon, minpts)
+function showNeuralFCFw(conf, epsilon, minpts)
     tlabels = {'Unknown','DA','SER','GABA','GLUT','ACH','OCT'};
     preproc = 'ar'; % for move correct, slice time correct
     hpfTh = [0]; % high-pass filter threshold
@@ -172,7 +209,7 @@ function checkNeuralFCFw(conf, epsilon, minpts)
     end
 end
 
-function checkReciprocalConnection(synTh, confTh)
+function showReciprocalDistance(synTh, confTh)
     % FlyEM read neuron info (id, connection number, size)
     load('data/hemibrain_v1_2_neurons.mat');
     clear Nconn; clear Ncrop; clear Nsize; 
@@ -196,9 +233,9 @@ function checkReciprocalConnection(synTh, confTh)
     clear Srate;
 
     % FlyWire read neural SC
-    load(['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh) '_neuralReciprocalConnections.mat']);
+    load(['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh) '_reciprocalConnections.mat']);
 %    load(['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat']);
-    load(['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh) '_reciprocalSynapseDistances.mat']);
+    load(['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh) '_reciprocalDistances.mat']);
 
     for i=1:nlen
         if isempty(rcpreSids{i}), continue; end
@@ -307,10 +344,11 @@ function checkReciprocalConnection(synTh, confTh)
     end
 end
 
-function checkReciprocalConnectionFw(conf)
+function showReciprocalDistanceFw(conf)
     tlabels = {'Unknown','DA','SER','GABA','GLUT','ACH','OCT'};
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
+    scname = conf.scname;
 
     % FlyWire read neuron info
     load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
@@ -327,88 +365,65 @@ function checkReciprocalConnectionFw(conf)
     load(conf.syprelocFile);
 
     % FlyWire read neural SC
-    load(['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat']);
-%    load(['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat']);
-    load(['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalSynapseDistances.mat']);
+    load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalConnections.mat']);
+%    load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat']);
+    load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalDistances.mat']);
 
     nlen = length(Nid);
-    for i=1:1000:nlen
+    for i=1:10:nlen
         if isempty(rcpreSidx{i}), continue; end
         disp(['plot closest reciprocal synapses (' num2str(i) ') nid=' num2str(Nid(i)) ' (' tlabels{Ntype(i)+1} ')']);
 
-        % close from reciprocal pre-synapse on Nid(i)
-        prelocs = Spreloc(rcpreSidx{i},:);         % reciprocal pre-synapse on Nid(i)
-        rcpreDs = rcpreCloseDist{i};
-        postclocs = Spostloc(rcpreCloseSidx{i},:); % reci post sidx on Nid(i)
-        % close from reciprocal post-synapse on Nid(i)
-        postlocs = Spostloc(rcpostSidx{i},:);      % reciprocal post-synapse on Nid(i)
-        rcpostDs = rcpostCloseDist{i};
-        preclocs = Spreloc(rcpostCloseSidx{i},:);  % reci pre sidx on Nid(i)
+        rcDs = rcCloseDist{i};
+        if size(rcDs,1) > size(rcDs,2)
+            % close from reciprocal pre-synapse on Nid(i)
+            preclocs = Spreloc(rcpreSidx{i},:);         % reciprocal pre-synapse on Nid(i)
+            postclocs = Spostloc(rcCloseSidx{i},:);     % reci post sidx on Nid(i)
+            postcsidxs = rcCloseSidx{i};
+        else
+            % close from reciprocal post-synapse on Nid(i)
+            preclocs = Spreloc(rcCloseSidx{i},:);       % reci pre sidx on Nid(i)
+            postclocs = Spostloc(rcpostSidx{i},:);      % reciprocal post-synapse on Nid(i)
+            postcsidxs = rcpostSidx{i};
+        end
 
         % for detail plot, need to add Trees toolbox (https://www.treestoolbox.org/index.html)
         swc = loadSwc([conf.swcPath '/' num2str(Nid(i)) '.swc'], true);
         prelogi = ismember(preNidx,i);
         postlogi = ismember(postNidx,i);
-%%{
-        [md, didx] = sort(rcpreDs);
+
+        [md, didx] = sort(rcDs);
         for k=1:length(didx)
             if k>3, break; end
             j = didx(k);
-            postcsix = rcpreCloseSidx{i}(j);
-            rcnidx = preNidx(postcsix);
+            rcnidx = preNidx(postcsidxs(j));
             prelogi2 = ismember(preNidx,rcnidx);
             postlogi2 = ismember(postNidx,rcnidx);
-            disp([num2str(i) '-' num2str(k) ' nids=' num2str(Nid(i)) ',' num2str(Nid(rcnidx)) ' (' tlabels{Ntype(i)+1} ',' tlabels{Ntype(rcnidx)+1} ') dist=' num2str(rcpreDs(j)) 'nm']);
 
             % get all connected synapses
-            loc1 = Spreloc(prelogi & postlogi2,:);
-            loc2 = Spostloc(postlogi & prelogi2,:);
+            loc1 = Spreloc(prelogi & postlogi2 & valid & score,:);
+            loc2 = Spostloc(postlogi & prelogi2 & valid & score,:);
 
+            disp([num2str(i) '-' num2str(k) ' nids=' num2str(Nid(i)) ',' num2str(Nid(rcnidx)) ' (' tlabels{Ntype(i)+1} ',' tlabels{Ntype(rcnidx)+1} ') ' ...
+                'con=' num2str(size(loc1,1)+size(loc2,1)) ' dist=' num2str(rcDs(j)) 'nm']);
+            disp(['    pre: ' num2str(double(preclocs(j,:))./conf.swcSize) ',  post: ' num2str(double(postclocs(j,:))./conf.swcSize)]);
+%{
             % plot neuron and synapses
             swc2 = loadSwc([conf.swcPath '/' num2str(Nid(rcnidx)) '.swc'], true);
             figure;
             plotSwc(swc, [0.7 0.7 1], 1, true); view(3); grid on; axis image;
-            title([num2str(i) '-' num2str(k) ' nids=' num2str(Nid(i)) ',' num2str(Nid(rcnidx)) ' (' tlabels{Ntype(i)+1} ',' tlabels{Ntype(rcnidx)+1} ') dist=' num2str(rcpreDs(j)) 'nm']);
+            title([num2str(i) '-' num2str(k) ' nids=' num2str(Nid(i)) ',' num2str(Nid(rcnidx)) ' (' tlabels{Ntype(i)+1} ',' tlabels{Ntype(rcnidx)+1} ') ' ...
+                'con=' num2str(size(loc1,1)+size(loc2,1)) ' dist=' num2str(rcDs(j)) 'nm']);
             xlabel('x [nm]'); ylabel('y [nm]'); zlabel('z [nm]');
             hold on; plotSwc(swc2, [1 0.8 0.8], 0.2, true); hold off; alpha(.4);
             hold on; scatter3(loc1(:,1),loc1(:,2),loc1(:,3),18,'red'); hold off;
             hold on; scatter3(loc2(:,1),loc2(:,2),loc2(:,3),18,'blue'); hold off;
-            hold on; scatter3(prelocs(j,1),prelocs(j,2),prelocs(j,3),24,'red','filled'); hold off;        % pre. output
+            hold on; scatter3(preclocs(j,1),preclocs(j,2),preclocs(j,3),24,'red','filled'); hold off;        % pre. output
             hold on; scatter3(postclocs(j,1),postclocs(j,2),postclocs(j,3),24,'blue','filled'); hold off; % post. input
-            disp(['    pre: ' num2str(double(prelocs(j,:))./conf.swcSize) ',  post: ' num2str(double(postclocs(j,:))./conf.swcSize)]);
-        end
 %}
-%%{
-        [md, didx] = sort(rcpostDs);
-        for k=1:length(didx)
-            if k>3, break; end
-            j = didx(k);
-            rcpostsidx = rcpostSidx{i}(j);
-            rcnidx = preNidx(rcpostsidx);
-            prelogi2 = ismember(preNidx,rcnidx);
-            postlogi2 = ismember(postNidx,rcnidx);
-            disp([num2str(i) '-' num2str(k) ' nids=' num2str(Nid(i)) ',' num2str(Nid(rcnidx)) ' (' tlabels{Ntype(i)+1} ',' tlabels{Ntype(rcnidx)+1} ') dist=' num2str(rcpostDs(j)) 'nm']);
-
-            % get all connected synapses
-            loc1 = Spreloc(prelogi & postlogi2,:);
-            loc2 = Spostloc(postlogi & prelogi2,:);
-
-            % plot neuron and synapses
-            swc2 = loadSwc([conf.swcPath '/' num2str(Nid(rcnidx)) '.swc'], true);
-            figure;
-            plotSwc(swc, [0.7 0.7 1], 1, true); view(3); grid on; axis image;
-            title([num2str(i) '-' num2str(k) ' nids=' num2str(Nid(i)) ',' num2str(Nid(rcnidx)) ' (' tlabels{Ntype(i)+1} ',' tlabels{Ntype(rcnidx)+1} ') dist=' num2str(rcpostDs(j)) 'nm']);
-            xlabel('x [nm]'); ylabel('y [nm]'); zlabel('z [nm]');
-            hold on; plotSwc(swc2, [1 0.8 0.8], 0.2, true); hold off; alpha(.4);
-            hold on; scatter3(loc1(:,1),loc1(:,2),loc1(:,3),18,'red'); hold off;
-            hold on; scatter3(loc2(:,1),loc2(:,2),loc2(:,3),18,'blue'); hold off;
-            hold on; scatter3(preclocs(j,1),preclocs(j,2),preclocs(j,3),24,'red','filled'); hold off;  % pre. output
-            hold on; scatter3(postlocs(j,1),postlocs(j,2),postlocs(j,3),24,'blue','filled'); hold off; % post. input
-            disp(['    pre: ' num2str(double(preclocs(j,:))./conf.swcSize) ',  post: ' num2str(double(postlocs(j,:))./conf.swcSize)]);
         end
-%}
+%{
         % plot all neurons and synapses related reciprocal (faster line plot). This one is heavy.
-%%{
         figure;
         for k=1:length(rcNidx{i})
             swc2 = loadSwc([conf.swcPath '/' num2str(Nid(rcNidx{i}(k))) '.swc']);
@@ -417,9 +432,139 @@ function checkReciprocalConnectionFw(conf)
         hold on; plotSwc(swc, [0.5 0.5 1], 1.5); hold off; view(3); grid on; axis image;
         title(['reciprocal connections(' num2str(i) ') nids=' num2str(Nid(i)) ',' num2str(Nid(rcnidx))]);
         xlabel('x [nm]'); ylabel('y [nm]'); zlabel('z [nm]');
-        hold on; scatter3(prelocs(:,1),prelocs(:,2),prelocs(:,3),18,'red'); hold off;
-        hold on; scatter3(postlocs(:,1),postlocs(:,2),postlocs(:,3),18,'blue'); hold off;
+        hold on; scatter3(preclocs(:,1),preclocs(:,2),preclocs(:,3),18,'red'); hold off;
+        hold on; scatter3(postclocs(:,1),postclocs(:,2),postclocs(:,3),18,'blue'); hold off;
 %}
+    end
+end
+
+function showTriangleDistanceFw(conf, trType, isPure12, isPure13, isPure23)
+    tlabels = {'Unknown','DA','SER','GABA','GLUT','ACH','OCT'};
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+    scname = conf.scname;
+    if isPure12, pstr='Pu'; else pstr='Rc'; end
+    if isPure13, pstr=[pstr 'Pu']; else pstr=[pstr 'Rc']; end
+    if isPure23, pstr=[pstr 'Pu']; else pstr=[pstr 'Rc']; end
+
+    % FlyWire read neuron info
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+
+    % FlyWire read synapse info
+    load(conf.synapseFile);
+    score = (cleftScore >= scoreTh);
+    Sidx = int32(1:length(Sid))';
+    valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
+
+    % FlyEM read synapse info
+    Spostloc = []; Spreloc = [];
+    load(conf.sypostlocFile);
+    load(conf.syprelocFile);
+
+    % FlyWire read neural SC
+    load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_triangle' trType pstr '.mat']);
+%    load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat']);
+    load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_triangle' trType pstr 'Dists.mat']);
+    load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalConnections.mat']);
+
+    nlen = length(Nid);
+    for i=1:1:nlen
+        triCdist = triCloseDist{i};
+        triCsidx = triCloseSidx{i};
+        if isempty(triCdist), continue; end
+        disp(['plot closest triangle synapses (' num2str(i) ') nid=' num2str(Nid(i)) ' (' tlabels{Ntype(i)+1} ')']);
+
+        pD = []; pSidx = [];
+        for j=1:size(triCdist,1)
+            if ~isempty(triCdist{j})
+                pD = [pD; triCdist{j}];
+                pSidx = [pSidx; triCsidx{j}];
+            end
+        end
+
+        % load swc
+        swc = loadSwc([conf.swcPath '/' num2str(Nid(i)) '.swc'], true);
+
+        prelogi1 = ismember(preNidx,i);
+        postlogi1 = ismember(postNidx,i);
+
+        [pDs, didx] = sort(pD);
+        for k=1:length(didx)
+            if k>5, break; end
+            j = didx(k);
+            sidx = pSidx(j,:);
+            prnidx = preNidx(sidx);
+            nidx = postNidx(sidx);
+            if strcmp(trType,'Unicycle')
+                tmp = nidx(2); nidx(2) = prnidx(2); prnidx(2) = tmp;
+            end
+            if prnidx(1) ~= i || prnidx(2) ~= i || prnidx(3) ~= nidx(1) || nidx(2) ~= nidx(3)
+                disp(['bad i=' num2str(i) ' and nidx1=' num2str(nidx(1))]);
+            end
+
+            prelocs = Spreloc(sidx,:);
+            postlocs = Spostloc(sidx,:);
+
+            prelogi2 = ismember(preNidx,nidx(1));
+            postlogi2 = ismember(postNidx,nidx(1));
+            prelogi3 = ismember(preNidx,nidx(3));
+            postlogi3 = ismember(postNidx,nidx(3));
+
+            % get reciprocal neuron synapses
+            loc1 = zeros(0,3,'int32'); loc2 = zeros(0,3,'int32');
+            t1 = Spreloc(prelogi1 & postlogi2 & valid & score,:);
+            t2 = Spostloc(postlogi1 & prelogi2 & valid & score,:);
+            if length(t1)>=synTh, loc1 = [loc1;t1]; end
+            if length(t2)>=synTh, loc2 = [loc2;t2]; end
+            switch(trType)
+            case 'Feedforward'
+                t1 = Spreloc(prelogi1 & postlogi3 & valid & score,:);
+                t2 = Spostloc(postlogi1 & prelogi3 & valid & score,:);
+            case 'Unicycle'
+                t2 = Spreloc(prelogi1 & postlogi3 & valid & score,:);
+                t1 = Spostloc(postlogi1 & prelogi3 & valid & score,:);
+            end
+            if length(t1)>=synTh, loc1 = [loc1;t1]; end
+            if length(t2)>=synTh, loc2 = [loc2;t2]; end
+            t1 = Spreloc(prelogi2 & postlogi3 & valid & score,:);
+            t2 = Spostloc(postlogi2 & prelogi3 & valid & score,:);
+            if length(t1)>=synTh, loc1 = [loc1;t1]; end
+            if length(t2)>=synTh, loc2 = [loc2;t2]; end
+
+            % check reciprocal
+            if isPure12 && isPure13 && isPure23
+                if size(loc2,1) > 0
+                    disp('!error! reciprocal exist!'); return;
+                end
+            else
+                if size(loc2,1) == 0
+                    disp('!error! reciprocal does not exist!'); return;
+                end
+            end
+
+            disp([num2str(i) '-' num2str(k) ' ' trType pstr ' nids=' num2str(Nid(i)) ',' num2str(Nid(nidx(1))) ',' num2str(Nid(nidx(3))) ...
+                ' (' tlabels{Ntype(i)+1} ',' tlabels{Ntype(nidx(1))+1} ',' tlabels{Ntype(nidx(3))+1} ') ' ...
+                'con=' num2str(size(loc1,1)+size(loc2,1)) ' rccon=' num2str(size(loc2,1)) ' dist=' num2str(pD(j)) 'nm']);
+            for p=1:3
+                disp(['    pre: ' num2str(double(prelocs(p,:))./conf.swcSize) ',  post: ' num2str(double(postlocs(p,:))./conf.swcSize)]);
+            end
+%{
+            % plot neuron and synapses
+            swc2 = loadSwc([conf.swcPath '/' num2str(Nid(nidx(1))) '.swc'], true);
+            swc3 = loadSwc([conf.swcPath '/' num2str(Nid(nidx(3))) '.swc'], true);
+            figure;
+            plotSwc(swc, [0.7 0.7 1], 1, true); view(3); grid on; axis image;
+            title([num2str(i) '-' num2str(k) ' ' trType pstr ' nids=' num2str(Nid(i)) ',' num2str(Nid(nidx(1))) ',' num2str(Nid(nidx(3))) ...
+                ' (' tlabels{Ntype(i)+1} ',' tlabels{Ntype(nidx(1))+1} ',' tlabels{Ntype(nidx(3))+1} ') dist=' num2str(pD(j)) 'nm']);
+            xlabel('x [nm]'); ylabel('y [nm]'); zlabel('z [nm]');
+            hold on; plotSwc(swc2, [1 0.8 0.8], 0.2, true); hold off; alpha(.4);
+            hold on; plotSwc(swc3, [0.8 1 0.8], 0.2, true); hold off; alpha(.4);
+            hold on; scatter3(loc1(:,1),loc1(:,2),loc1(:,3),18,'red'); hold off;
+            hold on; scatter3(loc2(:,1),loc2(:,2),loc2(:,3),18,'blue'); hold off;
+            hold on; scatter3(prelocs(:,1),prelocs(:,2),prelocs(:,3),24,'red','filled'); hold off;        % pre. output
+            hold on; scatter3(postlocs(:,1),postlocs(:,2),postlocs(:,3),24,'blue','filled'); hold off; % post. input
+%}
+        end
     end
 end
 

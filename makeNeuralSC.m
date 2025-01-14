@@ -27,15 +27,26 @@ function makeNeuralSC
     checkNeuralNamedReciprocalConnections(Cnames, Cnids, synTh, scTh/100)
 %}
     checkNeuralAutoConnectionsFw(conf);
-    
-    checkNeuralTriFeedforwardFw(conf);
-
-    checkDistanceTriConnectionsFw(conf,'Feedforward');
-
-    checkNeuralTriUnicycleFw(conf);
-
-    checkDistanceTriConnectionsFw(conf,'Unicycle');
-
+%%{
+    for p12=1:2
+        for p13=1:2
+            for p23=1:2
+                checkNeuralTriFeedforwardFw(conf, (p12==1), (p13==1), (p23==1));
+                checkDistanceTriConnectionsFw(conf,'Feedforward', (p12==1), (p13==1), (p23==1));
+            end
+        end
+    end
+%}
+%%{
+    for p12=1:2
+        for p13=1:2
+            for p23=1:2
+                checkNeuralTriUnicycleFw(conf, (p12==1), (p13==1), (p23==1));
+                checkDistanceTriConnectionsFw(conf,'Unicycle', (p12==1), (p13==1), (p23==1));
+            end
+        end
+    end
+%}
 %    checkNeuralQuadFeedforward(synTh, scTh/100);
 
     % check neural input & output voxels (FlyWire)
@@ -56,14 +67,26 @@ function makeNeuralSC
     checkDistanceReciprocalConnectionsFw(conf);
 
     checkNeuralAutoConnectionsFw(conf);
-    
-    checkNeuralTriFeedforwardFw(conf);
-
-    checkDistanceTriConnectionsFw(conf,'Feedforward');
-
-    checkNeuralTriUnicycleFw(conf);
-
-    checkDistanceTriConnectionsFw(conf,'Unicycle');
+%%{
+    for p12=1:2
+        for p13=1:2
+            for p23=1:2
+                checkNeuralTriFeedforwardFw(conf, (p12==1), (p13==1), (p23==1));
+                checkDistanceTriConnectionsFw(conf,'Feedforward', (p12==1), (p13==1), (p23==1));
+            end
+        end
+    end
+%}
+%%{
+    for p12=1:2
+        for p13=1:2
+            for p23=1:2
+                checkNeuralTriUnicycleFw(conf, (p12==1), (p13==1), (p23==1));
+                checkDistanceTriConnectionsFw(conf,'Unicycle', (p12==1), (p13==1), (p23==1));
+            end
+        end
+    end
+%}
 end
 
 function checkNeuralInputOutputVoxels(synTh, confTh)
@@ -394,7 +417,7 @@ function checkNeuralDBScan(conf, epsilon, minpts)
 end
 
 function checkNeuralReciprocalConnections(synTh, confTh)
-    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralReciprocalConnections.mat'];
+    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_reciprocalConnections.mat'];
     if exist(fname,'file'), return; end
     fnameNin = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neural_Nin_Nout.mat'];
 
@@ -486,7 +509,7 @@ function checkNeuralReciprocalConnections(synTh, confTh)
 end
 
 function checkNeuralNamedReciprocalConnections(Cnames, Cnids, synTh, confTh)
-    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralReciprocalConnections.mat'];
+    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_reciprocalConnections.mat'];
     load(fname);
 
     % FlyEM read neuron info (id, connection number, size)
@@ -519,9 +542,9 @@ function checkNeuralNamedReciprocalConnections(Cnames, Cnids, synTh, confTh)
 end
 
 function checkDistanceReciprocalConnections(synTh, confTh)
-    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_reciprocalSynapseDistances.mat'];
+    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_reciprocalDistances.mat'];
     if exist(fname,'file'), return; end
-    rcfname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralReciprocalConnections.mat'];
+    rcfname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_reciprocalConnections.mat'];
     rcNids = {}; rcpreSids = {}; rcpostSids = {};
     load(rcfname);
 
@@ -606,9 +629,11 @@ end
 function checkNeuralReciprocalConnectionsFw(conf)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
-    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
+    scname = conf.scname;
+
+    fname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalConnections.mat'];
     if exist(fname,'file'), return; end
-    fnameNin = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
+    fnameNin = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
 
     % FlyWire read neuron info
     Nid = [];
@@ -672,7 +697,7 @@ function checkNeuralReciprocalConnectionsFw(conf)
             rcpostSidx{i} = Sidx(pologi & rcprlogi & valid & score); 
         end
 
-        disp([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : reciprocal process(' num2str(i) ') nid=' num2str(Nid(i)) ' in/out/reci=' num2str(length(inNidx{i})) '/' num2str(length(outNidx{i})) '/' num2str(length(rcNidx{i})) ...
+        disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : reciprocal process(' num2str(i) ') nid=' num2str(Nid(i)) ' in/out/reci=' num2str(length(inNidx{i})) '/' num2str(length(outNidx{i})) '/' num2str(length(rcNidx{i})) ...
             ' rcpost/rcpre=' num2str(length(rcpostSidx{i})) '/' num2str(length(rcpreSidx{i}))]);
     end
     save(fname,'rcNidx','rcpostSidx','rcpreSidx','-v7.3');
@@ -682,9 +707,11 @@ end
 function checkDistanceReciprocalConnectionsFw(conf)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
-    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalSynapseDistances.mat'];
+    scname = conf.scname;
+
+    fname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalDistances.mat'];
     if exist(fname,'file'), return; end
-    rcfname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
+    rcfname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalConnections.mat'];
     rcpreSidx = {}; rcpostSidx = {}; rcNidx = {};
     load(rcfname);
 
@@ -703,10 +730,8 @@ function checkDistanceReciprocalConnectionsFw(conf)
     load(conf.syprelocFile);
 
     nlen = length(rcNidx);
-    rcpreCloseDist = cell(nlen,1);
-    rcpreCloseSidx = cell(nlen,1);
-    rcpostCloseDist = cell(nlen,1);
-    rcpostCloseSidx = cell(nlen,1);
+    rcCloseDist = cell(nlen,1);
+    rcCloseSidx = cell(nlen,1);
     for i=1:nlen
         nids = rcNidx{i};
         if isempty(nids), continue; end
@@ -728,32 +753,22 @@ function checkDistanceReciprocalConnectionsFw(conf)
         clear rcNidx1; clear rcNidx2;
 
         % find minimum distance of pre and post (should be same reciprocal target neuron)
-        [minD, idxD] = min(D,[],2,'omitnan');
-        rcpreCloseDist{i} = minD;
-        rcpreCloseSidx{i} = rcpostSidx{i}(idxD);
-        [minD2, idxD2] = min(D,[],1,'omitnan');
-        rcpostCloseDist{i} = minD2;
-        rcpostCloseSidx{i} = rcpreSidx{i}(idxD2);
-        disp(['find closest reciprocal synapses (' num2str(i) ') nid=' num2str(Nid(i))]);
-%{
-        [md,idx] = sort(minD);
-        for j=1:length(idx)
-            if j>3, break; end
-            k = idx(j);
-            pt1 = single(prelocs(k,:)) ./ conf.swcSize;
-            pt2 = single(postlocs(idxD(k),:)) ./ conf.swcSize;
-            d = sqrt(sum(((pt1-pt2).*conf.voxelSize).^2,2)); % this should equal md(j)
-            postsid = rcpreCloseSidx{i}(k); % pre-post sid
-            disp(['      rcnid=' num2str(Nid(postNidx(postsid))) ' preloc=' num2str(pt1(1)) ',' num2str(pt1(2)) ',' num2str(pt1(3)) ...
-                ' postloc=' num2str(pt2(1)) ',' num2str(pt2(2)) ',' num2str(pt2(3)) ' dist=' num2str(md(j)) 'nm  cf' num2str(d-md(j))])
+        if size(D,1) > size(D,2)
+            [minD, idxD] = min(D,[],2,'omitnan');
+            rcCloseDist{i} = minD;
+            rcCloseSidx{i} = rcpostSidx{i}(idxD);
+        else
+            [minD2, idxD2] = min(D,[],1,'omitnan');
+            rcCloseDist{i} = minD2;
+            rcCloseSidx{i} = rcpreSidx{i}(idxD2);
         end
-%}
+        disp(['find closest reciprocal synapses (' num2str(i) ') nid=' num2str(Nid(i))]);
     end
-    save(fname,'rcpreCloseDist','rcpreCloseSidx','rcpostCloseDist','rcpostCloseSidx','-v7.3');
+    save(fname,'rcCloseDist','rcCloseSidx','-v7.3');
 end
 
 function checkNeuralAutoConnections(synTh, confTh)
-    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralReciprocalConnections.mat'];
+    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_reciprocalConnections.mat'];
     if ~exist(fname,'file'), return; end
     load(fname);
     if exist('autoNids','var'), return; end
@@ -783,7 +798,7 @@ end
 function checkNeuralAutoConnectionsFw(conf)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
-    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
+    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalConnections.mat'];
     if ~exist(fname,'file'), return; end
     load(fname);
     if exist('autoNidx','var'), return; end
@@ -809,9 +824,9 @@ function checkNeuralAutoConnectionsFw(conf)
 end
 
 function checkNeuralTriFeedforward(synTh, confTh)
-    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralTriFeedforward.mat'];
+    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_triangleFeedforward.mat'];
     if exist(fname,'file'), return; end
-    fnameReci = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralReciprocalConnections.mat'];
+    fnameReci = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_reciprocalConnections.mat'];
     fnameNin = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neural_Nin_Nout.mat'];
     outNids = {};
     load(fnameReci);
@@ -920,14 +935,19 @@ function checkNeuralTriFeedforward(synTh, confTh)
     save(fname,'triffNids','triffSids','-v7.3');
 end
 
-function checkNeuralTriFeedforwardFw(conf)
+function checkNeuralTriFeedforwardFw(conf, isPure12, isPure13, isPure23)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
-    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralTriFeedforward.mat'];
+    scname = conf.scname;
+    if isPure12, pstr='Pu'; else pstr='Rc'; end
+    if isPure13, pstr=[pstr 'Pu']; else pstr=[pstr 'Rc']; end
+    if isPure23, pstr=[pstr 'Pu']; else pstr=[pstr 'Rc']; end
+
+    fname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_triangleFeedforward' pstr '.mat'];
     if exist(fname,'file'), return; end
-    fnameReci = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
-    fnameNin = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
-    outNidx = {};
+    fnameReci = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalConnections.mat'];
+    fnameNin = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
+    outNidx = {}; rcNidx = {};
     load(fnameReci);
     load(fnameNin);
 
@@ -962,53 +982,52 @@ function checkNeuralTriFeedforwardFw(conf)
     % extract triangle feed forward neurons
     triNidx = cell(nlen,1);
     triSidx = cell(nlen,1);
-%    for i=1:nlen
+%    for i=1:500 %nlen
     parfor i=1:nlen
-        poutnidx = poutNidx{i}; % pure output
-        if isempty(poutnidx), continue; end
+        if isPure12
+            trinidx = poutNidx{i}; % pure output
+        else
+            trinidx = rcNidx{i};   % reciprocal output
+        end
+        if isempty(trinidx), continue; end
 
         % connected post-synapses
-        cpostsidx = Sidx(preNidx==i); % find connected post-synapses from Nid(i)
+        cpostsidx = Sidx(preNidx==i & valid & score); % find connected post-synapses from Nid(i)
 
         tricount = 0;
-        ffNidx = cell(length(poutnidx),2); % pure output nids, extra nids (including reciprocal)
-        ffSidx = cell(length(poutnidx),5); % (i)->tri(j) post-sidx, pure (i)->ff(j), pure tri(j)->ff(j), extra ..., extra ...
-        for j=1:length(poutnidx)
-            logis = (Nidx==poutnidx(j));
-            poutnidx2 = poutNidx(logis); % pure output. this should extract one cell
-            outnidx2 = outNidx(logis);   % all output (including reciprocal)
-%            idx = find(Nidx==poutnids(j)); % find version.
+        ffNidx = cell(length(trinidx),1); % ff nids
+        ffSidx = cell(length(trinidx),3); % (i)->tri(j) sidx, (i)->ff(j), tri(j)->ff(j)
+        for j=1:length(trinidx)           % triangle neuron loop
+            logis = (Nidx==trinidx(j));
+            if isPure23
+                trioutnidx = poutNidx(logis); % tri output nidxs. this should extract one cell
+            else
+                trioutnidx = rcNidx(logis);   % tri output nidxs. this should extract one cell
+            end
+%            idx = find(Nidx==outnids(j)); % find version.
 %            poutnidx2 = {poutNidx{idx}};
-            if ~isempty(outnidx2)
-                plogi = ismember(poutnidx,poutnidx2{1});
-                pffnidx = poutnidx(plogi);
-                alogi = ismember(poutnidx,outnidx2{1});
-                effnidx = poutnidx(alogi & ~plogi);
-                ffNidx{j,1} = pffnidx;
-                ffNidx{j,2} = effnidx;
-                if ~isempty(pffnidx) || ~isempty(effnidx)
+            if ~isempty(trioutnidx)
+                if isPure13
+                    onlogi = ismember(poutNidx{i},trioutnidx{1});
+                    ffnidx = poutNidx{i}(onlogi);
+                else
+                    onlogi = ismember(rcNidx{i},trioutnidx{1});
+                    ffnidx = rcNidx{i}(onlogi);
+                end
+                ffNidx{j,1} = ffnidx;
+                if ~isempty(ffnidx)
                     % find synapses
-                    pinsidx = Sidx(postNidx==poutnidx(j));     % get post-synapse of pure out Nid(i)->tri neuron(j)
-                    cpslogi = ismember(cpostsidx,pinsidx);
+                    trinsidx = Sidx(postNidx==trinidx(j) & valid & score);
+                    cpslogi = ismember(cpostsidx,trinsidx);                   % get post-synapse of Nid(i)->tri neuron(j)
                     ffSidx{j,1} = cpostsidx(cpslogi);
-                    tricpostsidx = Sidx(preNidx==poutnidx(j)); % get connected post-synapse from tri neuron(j)
+                    tricpostsidx = Sidx(preNidx==trinidx(j) & valid & score); % get connected post-synapse from tri neuron(j)
 
-                    if ~isempty(pffnidx)
-                        pfflogi = ismember(postNidx, pffnidx);
-                        pffinsidx = Sidx(pfflogi);
-                        cpslogi1 = ismember(cpostsidx,pffinsidx);    % get post-synapse of Nid(i)->pure ff neuron
-                        cpslogi2 = ismember(tricpostsidx,pffinsidx); % get post-synapse of tri(j)->pure ff neuron
-                        ffSidx{j,2} = cpostsidx(cpslogi1);
-                        ffSidx{j,3} = tricpostsidx(cpslogi2);
-                    end
-                    if ~isempty(effnidx)
-                        efflogi = ismember(postNidx, effnidx);
-                        effinsidx = Sidx(efflogi);
-                        cpslogi1 = ismember(cpostsidx,effinsidx);    % get post-synapse of Nid(i)->extra ff neuron
-                        cpslogi2 = ismember(tricpostsidx,effinsidx); % get post-synapse of tri(j)->extra ff neuron
-                        ffSidx{j,4} = cpostsidx(cpslogi1);
-                        ffSidx{j,5} = tricpostsidx(cpslogi2);
-                    end
+                    fflogi = ismember(postNidx, ffnidx);
+                    ffinsidx = Sidx(fflogi & valid & score);
+                    cpslogi1 = ismember(cpostsidx,ffinsidx);    % get post-synapse of Nid(i)->ff neuron
+                    cpslogi2 = ismember(tricpostsidx,ffinsidx); % get post-synapse of tri(j)->ff neuron
+                    ffSidx{j,2} = cpostsidx(cpslogi1);
+                    ffSidx{j,3} = tricpostsidx(cpslogi2);
                     tricount = tricount + 1;
                 end
             end
@@ -1018,19 +1037,24 @@ function checkNeuralTriFeedforwardFw(conf)
             triSidx{i} = ffSidx;
         end
 
-        disp([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : tri feedforward process(' num2str(i) ') nid=' num2str(Nid(i)) ...
+        disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : tri feedforward ' pstr ' process(' num2str(i) ') nid=' num2str(Nid(i)) ...
             ' out/pout/tri=' num2str(length(outNidx{i})) '/' num2str(length(poutNidx{i})) '/' num2str(tricount)]);
     end
     save(fname,'triNidx','triSidx','-v7.3');
 end
 
-function checkDistanceTriConnectionsFw(conf, trType)
+function checkDistanceTriConnectionsFw(conf, trType, isPure12, isPure13, isPure23)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
-    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_tri' trType 'Distances.mat'];
+    scname = conf.scname;
+    if isPure12, pstr='Pu'; else pstr='Rc'; end
+    if isPure13, pstr=[pstr 'Pu']; else pstr=[pstr 'Rc']; end
+    if isPure23, pstr=[pstr 'Pu']; else pstr=[pstr 'Rc']; end
+
+    fname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_triangle' trType pstr 'Dists.mat'];
     if exist(fname,'file'), return; end
-    fnameTri = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralTri' trType '.mat'];
-    fnameNin = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
+    fnameTri = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_triangle' trType pstr '.mat'];
+    fnameNin = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
     triNidx = {}; triSidx = {};
     load(fnameTri);
     load(fnameNin);
@@ -1058,17 +1082,17 @@ function checkDistanceTriConnectionsFw(conf, trType)
     nlen = length(triNidx);
     triCloseDist = cell(nlen,1);
     triCloseSidx = cell(nlen,1);
+%    for i=1:500
     parfor i=1:nlen
         trinidx = triNidx{i}; % tri nidx
         if isempty(trinidx), continue; end
         trisidx = triSidx{i};
 
-        triCdist = cell(size(trinidx,1),8);  % D1 min col(ff,tri), D1 min row(ff,tri), D2 min col, D2 min row, D3 min, D3 min, D4 min, D4 min
-        triCsidx = cell(size(trinidx,1),8);  % D1 min col idx, D1 min row idx, ...
+        D = cell(size(trinidx,1),1);
+        S = cell(size(trinidx,1),1);
         for j=1:size(trinidx,1)
-            pffnidx = trinidx{j,1};
-            effnidx = trinidx{j,2};
-            if ~isempty(pffnidx)
+            ffnidx = trinidx{j};
+            if ~isempty(ffnidx)
                 sylocs1 = single(Spreloc(trisidx{j,1},:)) ./ conf.swcSize .* conf.voxelSize;      % tri pre-synapse on Nid(i)
                 switch(trType)
                 case 'Feedforward'
@@ -1086,12 +1110,21 @@ function checkDistanceTriConnectionsFw(conf, trType)
                 syP1 = []; syP12 = []; % clear memory
 
                 % Nid(i), Tri(j) are fixed. ff/uc are not.
-                [minD, idxD] = min(D1,[],2,'omitnan');
-                triCdist{j,1} = minD;
-                triCsidx{j,1} = trisidx{j,2}(idxD);
-                [minD2, idxD2] = min(D1,[],1,'omitnan');
-                triCdist{j,2} = minD2;
-                triCsidx{j,2} = trisidx{j,1}(idxD2);
+                if size(D1,1) > size(D1,2)
+                    [minD, idxD] = min(D1,[],2,'omitnan');
+                    triCdist12 = minD;
+                    triCsidx1  = trisidx{j,1};
+                    triCsidx2a = trisidx{j,2}(idxD);
+                    [minD2, idxD2] = min(D1,[],1,'omitnan');
+                    triCdist12c = minD2;
+                    triCsidx1c  = trisidx{j,1}(idxD2);
+                    triCsidx2c  = trisidx{j,2};
+                else
+                    [minD2, idxD2] = min(D1,[],1,'omitnan');
+                    triCdist12 = minD2;
+                    triCsidx1  = trisidx{j,1}(idxD2);
+                    triCsidx2a = trisidx{j,2};
+                end
                 D1 = []; % clear memory
 
                 syP23 = repmat(syP2,[size(syP3,1) 1 1]);
@@ -1099,67 +1132,109 @@ function checkDistanceTriConnectionsFw(conf, trType)
                 D2 = sqrt(sum((syP3-syP23).^2,3));
                 syP23 = []; syP3 = []; % clear memory
 
-                % Nid(i), Tri(j) are fixed. ff/uc are not.
-                [minD, idxD] = min(D2,[],2,'omitnan');
-                triCdist{j,3} = minD;
-                triCsidx{j,3} = trisidx{j,2}(idxD);
-                [minD2, idxD2] = min(D2,[],1,'omitnan');
-                triCdist{j,4} = minD2;
-                triCsidx{j,4} = trisidx{j,3}(idxD2);
-                D2 = []; % clear memory
-            end
-            if ~isempty(effnidx)
-                sylocs1 = single(Spreloc(trisidx{j,1},:)) ./ conf.swcSize .* conf.voxelSize;      % tri pre-synapse on Nid(i)
                 switch(trType)
                 case 'Feedforward'
-                    sylocs2 = single(Spreloc(trisidx{j,4},:)) ./ conf.swcSize .* conf.voxelSize;  % ff pre-synapse on Nid(i); 
+                    syN23 = postNidx(trisidx{j,2})';
                 case 'Unicycle'
-                    sylocs2 = single(Spostloc(trisidx{j,4},:)) ./ conf.swcSize .* conf.voxelSize; % uc post-synapse on Nid(i); 
+                    syN23 = preNidx(trisidx{j,2})';
+                end                   
+                syN3 = postNidx(trisidx{j,3});
+                syN23 = repmat(syN23,[size(syN3,1) 1]);
+                syN3 = repmat(syN3,[1 size(syN23,2)]);
+                D2(syN3~=syN23) = nan; % post synapse pair should be same neuron.
+                syN23 = []; syN3 = [];
+
+                % Nid(i), Tri(j) are fixed. ff/uc are not.
+                if size(D2,1) > size(D2,2)
+                    [minD, idxD] = min(D2,[],2,'omitnan');
+                    triCdist23 = minD;
+                    triCsidx2b = trisidx{j,2}(idxD);
+                    triCsidx3  = trisidx{j,3};
+                    [minD2, idxD2] = min(D2,[],1,'omitnan');
+                    triCdist23c = minD2;
+                    triCsidx2c  = trisidx{j,2};
+                    triCsidx3c  = trisidx{j,3}(idxD2);
+                else
+                    [minD2, idxD2] = min(D2,[],1,'omitnan');
+                    triCdist23 = minD2;
+                    triCsidx2b = trisidx{j,2};
+                    triCsidx3  = trisidx{j,3}(idxD2);
                 end
-                sylocs3 = single(Spreloc(trisidx{j,5},:)) ./ conf.swcSize .* conf.voxelSize;      % ff pre-synapse on Tri(j)
-                syP1 = reshape(sylocs1,[size(sylocs1,1) 1 3]);
-                syP2 = reshape(sylocs2,[1 size(sylocs2,1) 3]);
-                syP3 = reshape(sylocs3,[size(sylocs3,1) 1 3]);
-                syP1 = repmat(syP1,[1 size(syP2,2) 1]);
-                syP12 = repmat(syP2,[size(syP1,1) 1 1]);
-                D3 = sqrt(sum((syP1-syP12).^2,3));
-                syP1 = []; syP12 = []; % clear memory
+                D2 = []; % clear memory
 
-                % Nid(i), Tri(j) are fixed. ff/uc are not.
-                [minD, idxD] = min(D3,[],2,'omitnan');
-                triCdist{j,5} = minD;
-                triCsidx{j,5} = trisidx{j,4}(idxD);
-                [minD2, idxD2] = min(D3,[],1,'omitnan');
-                triCdist{j,6} = minD2;
-                triCsidx{j,6} = trisidx{j,1}(idxD2);
-                D3 = []; % clear memory
-
-                syP23 = repmat(syP2,[size(syP3,1) 1 1]);
-                syP3 = repmat(syP3,[1 size(syP2,2) 1]);
-                D4 = sqrt(sum((syP3-syP23).^2,3));
-                syP23 = []; syP3 = []; % clear memory
-
-                % Nid(i), Tri(j) are fixed. ff/uc are not.
-                [minD, idxD] = min(D4,[],2,'omitnan');
-                triCdist{j,7} = minD;
-                triCsidx{j,7} = trisidx{j,4}(idxD);
-                [minD2, idxD2] = min(D4,[],1,'omitnan');
-                triCdist{j,8} = minD2;
-                triCsidx{j,8} = trisidx{j,5}(idxD2);
-                D4 = []; % clear memory
+                if size(triCdist12,1) > size(triCdist12,2)
+                    if size(triCdist23,1) > size(triCdist23,2)
+                        % checking both side vector
+                        Dj = zeros(length(triCdist12),1,'single');
+                        Sj = zeros(length(triCdist12),3,'int32');
+                        for k=1:length(triCdist12)
+                            logis = (triCsidx2a(k)==triCsidx2c);
+                            Dj(k) = triCdist12(k) + triCdist23c(logis);
+                            Sj(k,:) = [triCsidx1(k) triCsidx2c(logis) triCsidx3c(logis)];
+                        end
+                        Dj2 = zeros(length(triCdist23),1,'single');
+                        Sj2 = zeros(length(triCdist23),3,'int32');
+                        for k=1:length(triCdist23)
+                            logis = (triCsidx2c==triCsidx2b(k));
+                            Dj2(k) = triCdist12c(logis) + triCdist23(k);
+                            Sj2(k,:) = [triCsidx1c(logis) triCsidx2c(logis) triCsidx3(k)];
+                        end
+                        D{j} = [Dj; Dj2];
+                        S{j} = [Sj; Sj2];
+                    else
+                        Dj = zeros(length(triCdist12),1,'single');
+                        Sj = zeros(length(triCdist12),3,'int32');
+                        for k=1:length(triCdist12)
+                            logis = (triCsidx2a(k)==triCsidx2b);
+                            Dj(k) = triCdist12(k) + triCdist23(logis);
+                            Sj(k,:) = [triCsidx1(k) triCsidx2b(logis) triCsidx3(logis)];
+                        end
+                        D{j} = Dj;
+                        S{j} = Sj;
+                    end
+                else
+                    % find close tri(j)-ff/uc synapse pairs
+                    if size(triCdist23,1) > size(triCdist23,2)
+                        Dj = zeros(length(triCdist23),1,'single');
+                        Sj = zeros(length(triCdist23),3,'int32');
+                        for k=1:length(triCdist23)
+                            logis = (triCsidx2a==triCsidx2b(k));
+                            Dj(k) = triCdist12(logis) + triCdist23(k);
+                            Sj(k,:) = [triCsidx1(logis) triCsidx2a(logis) triCsidx3(k)];
+                        end
+                        D{j} = Dj;
+                        S{j} = Sj;
+                    else
+                        D{j} = triCdist12(:) + triCdist23(:);
+                        if sum(triCsidx2a-triCsidx2b) ~= 0, disp([num2str(i) '-' num2str(j) ' 2a == 2b error']); end
+                        S{j} = [triCsidx1(:), triCsidx2a(:), triCsidx3(:)]; % 2a == 2b
+                    end
+                end
+                % check neural connections.
+                for k=1:size(S{j},1)
+                    sidx = S{j}(k,:);
+                    prnidx = preNidx(sidx);
+                    nidx = postNidx(sidx);
+                    if strcmp(trType,'Unicycle')
+                        tmp = nidx(2); nidx(2) = prnidx(2); prnidx(2) = tmp;
+                    end
+                    if prnidx(1) ~= i || prnidx(2) ~= i || prnidx(3) ~= nidx(1) || nidx(2) ~= nidx(3)
+                        disp(['bad ' num2str(i) '-' num2str(j) '-' num2str(k) ' and nidx=' num2str(i) ',' num2str(nidx(2)) ',' num2str(nidx(3))]);
+                    end
+                end
             end
         end
-        triCloseDist{i} = triCdist;
-        triCloseSidx{i} = triCsidx;
+        triCloseDist{i} = D;
+        triCloseSidx{i} = S;
         disp(['find closest triangle synapses (' num2str(i) ') nid=' num2str(Nid(i))]);
     end
     save(fname,'triCloseDist','triCloseSidx','-v7.3');
 end
 
 function checkNeuralTriUnicycle(synTh, confTh)
-    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralTriUnicycle.mat'];
+    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_triangleUnicycle.mat'];
     if exist(fname,'file'), return; end
-    fnameReci = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralReciprocalConnections.mat'];
+    fnameReci = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_reciprocalConnections.mat'];
     fnameNin = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neural_Nin_Nout.mat'];
     load(fnameReci);
     load(fnameNin);
@@ -1218,14 +1293,19 @@ function checkNeuralTriUnicycle(synTh, confTh)
     save(fname,'tripucNids','trieucNids','-v7.3');
 end
 
-function checkNeuralTriUnicycleFw(conf)
+function checkNeuralTriUnicycleFw(conf, isPure12, isPure13, isPure23)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
-    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralTriUnicycle.mat'];
+    scname = conf.scname;
+    if isPure12, pstr='Pu'; else pstr='Rc'; end
+    if isPure13, pstr=[pstr 'Pu']; else pstr=[pstr 'Rc']; end
+    if isPure23, pstr=[pstr 'Pu']; else pstr=[pstr 'Rc']; end
+
+    fname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_triangleUnicycle' pstr '.mat'];
     if exist(fname,'file'), return; end
-    outNidx = {}; inNidx = {};
-    fnameReci = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralReciprocalConnections.mat'];
-    fnameNin = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
+    outNidx = {}; inNidx = {}; rcNidx = {};
+    fnameReci = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalConnections.mat'];
+    fnameNin = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
     load(fnameReci);
     load(fnameNin);
 
@@ -1259,62 +1339,61 @@ function checkNeuralTriUnicycleFw(conf)
         end
     end
 
+    % set pool num. this calculation takes time. we need big pool num.
+    delete(gcp('nocreate')); % shutdown pools
+    parpool(24);
+
     triNidx = cell(nlen,1);
     triSidx = cell(nlen,1);
-%    for i=1:nlen
+%    for i=1:500 %nlen
     parfor i=1:nlen
-        poutnidx = poutNidx{i}; % pure output
-        if isempty(poutnidx), continue; end
-        pinnidx = pinNidx{i};
-        if isempty(pinnidx), continue; end
+        if isPure12
+            trinidx = poutNidx{i}; % pure output
+        else
+            trinidx = rcNidx{i};   % reciprocal output
+        end
+        if isempty(trinidx), continue; end
 
         % connected post-synapses
-        postsidx = Sidx(postNidx==i); % find post-synapses on Nid(i)
-        cpostsidx = Sidx(preNidx==i); % find connected post-synapses from Nid(i)
+        postsidx = Sidx(postNidx==i & valid & score); % find post-synapses on Nid(i)
+        cpostsidx = Sidx(preNidx==i & valid & score); % find connected post-synapses from Nid(i)
 
         tricount = 0;
-        ucNidx = cell(length(poutnidx),2); % pure output nids, extra nids (including reciprocal)
-        ucSidx = cell(length(poutnidx),5); % (i)->tri(j) post-sidx, pure (i)->ff(j), pure tri(j)->ff(j), extra ..., extra ...
-        for j=1:length(poutnidx)
-            logis = (Nidx==poutnidx(j));
-            poutnidx2 = poutNidx(logis); % pure output. this should extract one cell
-            outnidx2 = outNidx(logis);   % all output (including reciprocal)
+        ucNidx = cell(length(trinidx),1); % uc nids
+        ucSidx = cell(length(trinidx),3); % (i)->tri(j) sidx, (i)->ff(j), tri(j)->ff(j)
+        for j=1:length(trinidx)           % triangle neuron loop
+            logis = (Nidx==trinidx(j));
+            if isPure23
+                trioutnidx = poutNidx(logis); % tri output nidxs. this should extract one cell
+            else
+                trioutnidx = rcNidx(logis);   % tri output nidxs. this should extract one cell
+            end
 %            idx = find(Nidx==poutnids(j)); % find version.
 %            poutnidx2 = {poutNidx{idx}};
-            if ~isempty(outnidx2)
-                plogi = ismember(pinnidx,poutnidx2{1});
-                pucnidx = pinnidx(plogi);
-                alogi = ismember(pinnidx,outnidx2{1});
-                eucnidx = pinnidx(alogi & ~plogi);
-                ucNidx{j,1} = pucnidx;
-                ucNidx{j,2} = eucnidx;
-                if ~isempty(pucnidx) || ~isempty(eucnidx)
+            if ~isempty(trioutnidx)
+                if isPure13
+                    onlogi = ismember(pinNidx{i},trioutnidx{1});
+                    ucnidx = pinNidx{i}(onlogi);
+                else
+                    onlogi = ismember(rcNidx{i},trioutnidx{1});
+                    ucnidx = rcNidx{i}(onlogi);
+                end
+                ucNidx{j,1} = ucnidx;
+                if ~isempty(ucnidx)
                     % find synapses
-                    pinsidx = Sidx(postNidx==poutnidx(j));     % get post-synapse of pure out Nid(i)->tri neuron(j)
-                    cpslogi = ismember(cpostsidx,pinsidx);
+                    trinsidx = Sidx(postNidx==trinidx(j) & valid & score);    % get post-synapse of Nid(i)->tri neuron(j)
+                    cpslogi = ismember(cpostsidx,trinsidx);
                     ucSidx{j,1} = cpostsidx(cpslogi);
-                    tricpostsidx = Sidx(preNidx==poutnidx(j)); % get connected post-synapse from tri neuron(j)
+                    tricpostsidx = Sidx(preNidx==trinidx(j) & valid & score); % get connected post-synapse from tri neuron(j)
 
-                    if ~isempty(pucnidx)
-                        puclogi = ismember(postNidx, pucnidx);
-                        pucinsidx = Sidx(puclogi);
-                        puclogi2 = ismember(preNidx, pucnidx);
-                        pucoutsidx = Sidx(puclogi2);
-                        cpslogi1 = ismember(postsidx,pucoutsidx);    % get pre-synapse of Nid(i)<-pure uc neuron
-                        cpslogi2 = ismember(tricpostsidx,pucinsidx); % get post-synapse of tri(j)->pure uc neuron
-                        ucSidx{j,2} = postsidx(cpslogi1);
-                        ucSidx{j,3} = tricpostsidx(cpslogi2);
-                    end
-                    if ~isempty(eucnidx)
-                        euclogi = ismember(postNidx, eucnidx);
-                        eucinsidx = Sidx(euclogi);
-                        euclogi2 = ismember(preNidx, eucnidx);
-                        eucoutsidx = Sidx(euclogi2);
-                        cpslogi1 = ismember(postsidx,eucoutsidx);    % get pre-synapse of Nid(i)<-extra uc neuron
-                        cpslogi2 = ismember(tricpostsidx,eucinsidx); % get post-synapse of tri(j)->extra uc neuron
-                        ucSidx{j,4} = postsidx(cpslogi1);
-                        ucSidx{j,5} = tricpostsidx(cpslogi2);
-                    end
+                    uclogi = ismember(postNidx, ucnidx);
+                    ucinsidx = Sidx(uclogi & valid & score);
+                    uclogi2 = ismember(preNidx, ucnidx);
+                    ucoutsidx = Sidx(uclogi2 & valid & score);
+                    cpslogi1 = ismember(postsidx,ucoutsidx);    % get pre-synapse of Nid(i)<-uc neuron
+                    cpslogi2 = ismember(tricpostsidx,ucinsidx); % get post-synapse of tri(j)->uc neuron
+                    ucSidx{j,2} = postsidx(cpslogi1);
+                    ucSidx{j,3} = tricpostsidx(cpslogi2);
                     tricount = tricount + 1;
                 end
             end
@@ -1324,7 +1403,7 @@ function checkNeuralTriUnicycleFw(conf)
             triSidx{i} = ucSidx;
         end
 
-        disp([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : tri unicycle process(' num2str(i) ') nid=' num2str(Nid(i)) ...
+        disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : tri unicycle process(' num2str(i) ') nid=' num2str(Nid(i)) ...
             ' in/pin/tri=' num2str(length(inNidx{i})) '/' num2str(length(pinNidx{i})) '/' num2str(tricount)]);
     end
     save(fname,'triNidx','triSidx','-v7.3');
@@ -1334,7 +1413,7 @@ function checkNeuralQuadFeedforward(synTh, confTh)
     fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralQuadFeedforward.mat'];
     if exist(fname,'file'), return; end
     outNids = {}; rcNids = {};
-    fnameReci = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neuralReciprocalConnections.mat'];
+    fnameReci = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_reciprocalConnections.mat'];
     fnameNin = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neural_Nin_Nout.mat'];
     load(fnameReci);
     load(fnameNin);
