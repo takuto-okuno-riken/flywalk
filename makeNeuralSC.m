@@ -1403,7 +1403,7 @@ function checkNeuralTriUnicycleFw(conf, isPure12, isPure13, isPure23)
             triSidx{i} = ucSidx;
         end
 
-        disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : tri unicycle process(' num2str(i) ') nid=' num2str(Nid(i)) ...
+        disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : tri unicycle ' pstr ' process(' num2str(i) ') nid=' num2str(Nid(i)) ...
             ' in/pin/tri=' num2str(length(inNidx{i})) '/' num2str(length(pinNidx{i})) '/' num2str(tricount)]);
     end
     save(fname,'triNidx','triSidx','-v7.3');
