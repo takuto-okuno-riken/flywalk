@@ -1,4 +1,4 @@
-% generate Erdos-Renyi random graph by probability
+% generate (directed) Erdos-Renyi random graph by probability
 % input:
 %  n            node size
 %  prob         probability (density)
