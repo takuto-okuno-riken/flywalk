@@ -12,13 +12,15 @@ function makeNeuralSC
 %    scTh = 0; synTh = 0; % for cheking neuPRINT+ compatible
     conf = getSCconfig('hemi', synTh, scTh);
 
-    checkNeuralInputOutputVoxelsFw(conf);
+%    checkNeuralInputOutputVoxelsFw(conf); % no use
 
-%    checkNeuralInputOutputDistance(conf);
+%    checkNeuralInputOutputDistance(conf); % no use
 
-%    checkNeuralDBScan(conf, epsilon, minpts);
+%    checkNeuralDBScan(conf, epsilon, minpts); % no use
 
     checkNeuralReciprocalConnectionsFw(conf);
+
+    checkNeuralNetworkPropertiesFw(conf);
 
     checkDistanceReciprocalConnectionsFw(conf);
 %{
@@ -50,19 +52,25 @@ function makeNeuralSC
 %    checkNeuralQuadFeedforward(synTh, scTh/100);
 
     % check neural input & output voxels (FlyWire)
+    scTh = 50; synTh = 5; % for checking flywire codex compatible
+    conf = getSCconfig('wire', synTh, scTh);
+
+    checkNeuralNetworkPropertiesFw(conf);
+
     scTh = 130; synTh = 0; % FlyWire synapse score & synapse count at one neuron threshold
 %    scTh = 50; synTh = 0;
-%    scTh = 50; synTh = 5; % for checking flywire codex compatible
 %    scTh = 130; synTh = 5; % high confidence & connection setting.
     conf = getSCconfig('wire', synTh, scTh);
 
-    checkNeuralInputOutputVoxelsFw(conf);
+%    checkNeuralInputOutputVoxelsFw(conf); % no use
 
-%    checkNeuralInputOutputDistance(conf);
+%    checkNeuralInputOutputDistance(conf); % no use
 
-%    checkNeuralDBScan(conf, epsilon, minpts);
+%    checkNeuralDBScan(conf, epsilon, minpts); % no use
 
     checkNeuralReciprocalConnectionsFw(conf);
+
+    checkNeuralNetworkPropertiesFw(conf);
 
     checkDistanceReciprocalConnectionsFw(conf);
 
@@ -257,7 +265,7 @@ function checkNeuralInputOutputVoxelsFw(conf)
         end
         disp([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : process(' num2str(i) ') nid=' num2str(Nid(i)) ' postsids=' num2str(length(postsidx)) ' presids=' num2str(length(presidx))]);
 
-        % get connected post-synapse counts from APL pre-synapses (output)
+        % get connected post-synapse counts from pre-synapses (output)
         conSlocFc = SpostlocFc(presidx,:); V = Vt; % get (pre-post) 3D location in FDA Cal template.
         for j=1:size(conSlocFc,1)
             t = ceil(conSlocFc(j,:));
@@ -271,7 +279,7 @@ function checkNeuralInputOutputVoxelsFw(conf)
         outIdx{i} = idx;
         outCount{i} = V(idx);
 
-        % get post-synapse count of APL neuron (input)
+        % get post-synapse count of neuron (input)
         conSlocFc = SpostlocFc(postsidx,:); V = Vt; % get (pre-post) 3D location in FDA Cal template.
         for j=1:size(conSlocFc,1)
             t = ceil(conSlocFc(j,:));
@@ -702,6 +710,73 @@ function checkNeuralReciprocalConnectionsFw(conf)
     end
     save(fname,'rcNidx','rcpostSidx','rcpreSidx','-v7.3');
     save(fnameNin,'inNidx','outNidx','-v7.3');
+end
+
+function checkNeuralNetworkPropertiesFw(conf)
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+    scname = conf.scname;
+
+    fname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_network_prop.mat'];
+    if exist(fname,'file'), return; end
+    rcfname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat'];
+    load(rcfname);
+
+    % FlyWire read neuron info
+    Nid = [];
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+
+    % FlyWire read synapse info
+    preNidx = []; postNidx = [];
+    load(conf.synapseFile);
+    score = (cleftScore >= scoreTh);
+    Sidx = int32(1:length(Sid))';
+    valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
+
+    % count pre (to post) and post synapse count
+    nlen = length(Nid);
+    S = zeros(nlen,nlen,'logical');
+    for i=1:nlen
+        outnidx = outNidx{i};
+        innidx = inNidx{i};
+        S(i,outnidx) = 1;
+        S(innidx,i) = 1;
+    end
+    L = sum(S,'all'); % total number of links
+    dens = L / (nlen*(nlen-1));
+    disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : ' num2str(nlen) ' neurons, ' num2str(L) ' connections, density=' num2str(dens)]);
+
+    % reciprocity
+    [R, aR, count] = calcReciprocity(S);
+    disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : reci ' num2str(count) ' neurons, reciprocity=' num2str(aR)]);
+
+    % clustering coefficient
+    [C, aC, count] = calcClusteringCoeff(S);
+    disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : tri ' num2str(count) ' neurons, avg clustering coeff=' num2str(aC)]);
+
+    % compared with ER
+    E = generateERgraph(nlen, dens);
+    EL = sum(E,'all'); % total number of links
+    Edens = EL / (nlen*(nlen-1));
+    disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : ER ' num2str(nlen) ' neurons, ' num2str(EL) ' connections, density=' num2str(Edens)]);
+
+    [R, EaR, count] = calcReciprocity(E);
+    disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : ER reci ' num2str(count) ' neurons, reciprocity=' num2str(EaR) ', x ER=' num2str(aR/EaR)]);
+
+    [C, EaC, count] = calcClusteringCoeff(E);
+    disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : ER tri ' num2str(count) ' neurons, avg clustering coeff=' num2str(EaC) ', x ER=' num2str(aC/EaC)]);
+
+    % compared with CFG
+    G = generateCFGgraph(S);
+    GL = sum(G,'all'); % total number of links
+    Edens = GL / (nlen*(nlen-1));
+    disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : CFG ' num2str(nlen) ' neurons, ' num2str(GL) ' connections, density=' num2str(Edens)]);
+
+    [R, GaR, count] = calcReciprocity(G);
+    disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : CFG reci ' num2str(count) ' neurons, reciprocity=' num2str(GaR) ', x CFG=' num2str(aR/GaR)]);
+
+    [C, GaC, count] = calcClusteringCoeff(G);
+    disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : CFG tri ' num2str(count) ' neurons, avg clustering coeff=' num2str(GaC) ', x CFG=' num2str(aC/GaC)]);
 end
 
 function checkDistanceReciprocalConnectionsFw(conf)
