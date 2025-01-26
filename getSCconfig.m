@@ -25,6 +25,16 @@ function conf = getSCconfig(scname, synTh, scoreTh)
         conf.swcPath = 'swc/flywire783';
         conf.swcSize = [4 4 40];   % swc unit is nano meter
         conf.voxelSize = [4 4 40]; % nano meter
+    case 'wire630'
+        conf.neuronFile = 'data/flywire630_neuron.mat';
+        conf.synapseFile = 'data/flywire630_synapse.mat';
+        conf.syprelocFile = '';
+        conf.sypostlocFile = '';
+        conf.syprelocFdaFile = '';
+        conf.sypostlocFdaFile = '';
+        conf.swcPath = 'swc/flywire630';
+        conf.swcSize = [4 4 40];   % swc unit is nano meter
+        conf.voxelSize = [4 4 40]; % nano meter
     end
     conf.voxelUnit = 'nm';
     conf.voxelSizeFda = [2.45, 2.28, 3.715]; % micro meter
