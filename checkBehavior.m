@@ -40,5 +40,23 @@ function checkBehavior
     figure; plot(MScal'); title('speed per TR in each fly');
     figure; plot(MBcal'); title('moving behavior per TR in each fly');
 
-    save('data/behavior.mat','MScal','MBcal');
+    % apply calcium response function (CRF)
+    res = 25; % CRF sampling resolution
+    dt = (TR  / 1000) / res; % sec
+
+    [t, hrf] = getGlmCRF(dt, 1.7, 0.25, 5);
+    figure; plot(t,hrf); xlim([0,5]); title('calcium response function.');
+
+    sz2 = (size(MBcal,2)-1);
+    x = 0:TR:TR*sz2;
+    xq = 0:TR/res:TR*sz2;
+    MBcal2 = MBcal;
+    for i=1:size(MBcal,1)
+        vq = interp1(x,MBcal(i,:),xq);
+        U = conv(vq, hrf);
+        X = U(1:res:res*(sz2+1)); % sampling
+        figure; imagesc([MBcal(i,:)', X']); title([num2str(i) ') original vs. conv CRF'])
+    end
+
+    save('data/behavior.mat','MScal','MBcal','MBcal2');
 end
