@@ -22,7 +22,7 @@ function makeNeuralSC
 
     checkNeuralReciprocalConnectionsFw(conf);
 
-%    checkNeuralNetworkPropertiesFw(conf);
+%    checkNeuralNetworkPropertiesFw(conf); % this is heavy to see
 
     checkDistanceReciprocalConnectionsFw(conf);
 %{
@@ -57,11 +57,11 @@ function makeNeuralSC
     scTh = 50; synTh = 5; % for checking flywire codex compatible
     conf = getSCconfig('wire', synTh, scTh);
 
-%    checkNeuralNetworkPropertiesFw(conf);
+%    checkNeuralNetworkPropertiesFw(conf); % this is heavy to see
 
-    scTh = 130; synTh = 0; % FlyWire synapse score & synapse count at one neuron threshold
+    scTh = 140; synTh = 0; % FlyWire synapse score & synapse count at one neuron threshold
 %    scTh = 50; synTh = 0;
-%    scTh = 130; synTh = 5; % high confidence & connection setting.
+%    scTh = 140; synTh = 5; % high confidence & connection setting.
     conf = getSCconfig('wire', synTh, scTh);
 
 %    checkNeuralInputOutputVoxelsFw(conf); % no use
@@ -74,7 +74,7 @@ function makeNeuralSC
 
     checkNeuralReciprocalConnectionsFw(conf);
 
-%    checkNeuralNetworkPropertiesFw(conf);
+    checkNeuralNetworkPropertiesFw(conf); % this is heavy to see
 
     checkDistanceReciprocalConnectionsFw(conf);
 

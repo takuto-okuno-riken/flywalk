@@ -36,7 +36,7 @@ function plotNeuralFC
     end
 %}
     % check NeuralFC of FlyWire
-    scTh = 130; synTh = 0; % FlyWire synapse score & synapse count at one neuron threshold
+    scTh = 140; synTh = 0; % FlyWire synapse score & synapse count at one neuron threshold
 %    scTh = 50; synTh = 0;
 %    scTh = 50; synTh = 5; % for checking flywire codex compatible
     conf = getSCconfig('wire',synTh,scTh);
