@@ -2,8 +2,8 @@
 
 function makeNeuralSC
     % DBscan param
-    epsilon = 5; % micro meter. almost 2 voxels.
-    minpts = 3; % set 1, but isolated synapse will be ignored
+    epsilon = 1000; % nano meter
+    minpts = 2; % isolated synapse will be ignored
 
     % check neural input & output voxels (FlyEM)
     scTh = 80; synTh = 0; % FlyEM synapse confidence & synapse count at one neuron threshold
@@ -16,20 +16,22 @@ function makeNeuralSC
 
 %    checkNeuralInputOutputDistance(conf); % no use
 
-%    checkNeuralDBScan(conf, epsilon, minpts); % no use
+    for i=1:5
+        checkNeuralDBScanFw(conf, epsilon*i, minpts);
+    end
 
     checkNeuralReciprocalConnectionsFw(conf);
 
-    checkNeuralNetworkPropertiesFw(conf);
+%    checkNeuralNetworkPropertiesFw(conf);
 
     checkDistanceReciprocalConnectionsFw(conf);
 %{
     Cnames = {'SMP352'};
     Cnids = {[266187532, 266528078, 266528086, 296194535, 328593903, 5813009926]};
-    checkNeuralNamedReciprocalConnections(Cnames, Cnids, synTh, scTh/100)
+    checkNeuralNamedReciprocalConnectionsFw(Cnames, Cnids, conf)
 %}
     checkNeuralAutoConnectionsFw(conf);
-%%{
+%{
     for p12=1:2
         for p13=1:2
             for p23=1:2
@@ -39,7 +41,7 @@ function makeNeuralSC
         end
     end
 %}
-%%{
+%{
     for p12=1:2
         for p13=1:2
             for p23=1:2
@@ -55,7 +57,7 @@ function makeNeuralSC
     scTh = 50; synTh = 5; % for checking flywire codex compatible
     conf = getSCconfig('wire', synTh, scTh);
 
-    checkNeuralNetworkPropertiesFw(conf);
+%    checkNeuralNetworkPropertiesFw(conf);
 
     scTh = 130; synTh = 0; % FlyWire synapse score & synapse count at one neuron threshold
 %    scTh = 50; synTh = 0;
@@ -66,16 +68,18 @@ function makeNeuralSC
 
 %    checkNeuralInputOutputDistance(conf); % no use
 
-%    checkNeuralDBScan(conf, epsilon, minpts); % no use
+    for i=1:5
+        checkNeuralDBScanFw(conf, epsilon*i, minpts);
+    end
 
     checkNeuralReciprocalConnectionsFw(conf);
 
-    checkNeuralNetworkPropertiesFw(conf);
+%    checkNeuralNetworkPropertiesFw(conf);
 
     checkDistanceReciprocalConnectionsFw(conf);
 
     checkNeuralAutoConnectionsFw(conf);
-%%{
+%{
     for p12=1:2
         for p13=1:2
             for p23=1:2
@@ -85,7 +89,7 @@ function makeNeuralSC
         end
     end
 %}
-%%{
+%{
     for p12=1:2
         for p13=1:2
             for p23=1:2
@@ -360,10 +364,72 @@ function checkNeuralInputOutputDistance(conf)
     save(fname,'D','Didx','-v7.3');
 end
 
-function checkNeuralDBScan(conf, epsilon, minpts)
+function checkNeuralDBScanFw(conf, epsilon, minpts)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
     fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralDBScan' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
+    if exist(fname,'file'), return; end
+
+    % read neuron info (id, connection number, size)
+    Nid = [];
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+
+    % FlyWire read synapse info
+    preNidx = []; postNidx = [];
+    load(conf.synapseFile);
+    score = (cleftScore >= scoreTh);
+    Sidx = int32(1:length(Sid))';
+    valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
+
+    % read synapse location in FDA
+    Spostloc = []; Spreloc = [];
+    load(conf.sypostlocFile);
+    load(conf.syprelocFile);
+
+    nlen = length(Nid);
+    DBidx = cell(nlen,1);
+    DBcount = cell(nlen,1);
+    clcount = zeros(nlen,3,'int16');
+    parfor i=1:nlen
+        prelogi = ismember(preNidx,i); % find pre-synapses which belong to target neurons
+        poslogi = ismember(postNidx,i); % find pre-synapses which belong to target neurons
+
+        X = double(Spreloc(prelogi & valid & score,:))./ conf.swcSize .* conf.voxelSize;    % reciprocal pre-synapse on Nid(i); FlyWire original space (unit is nano meter) (int32)
+        prelen = size(X,1);
+        Xb = double(Spostloc(poslogi & valid & score,:)) ./ conf.swcSize .* conf.voxelSize; % reciprocal post-synapse on Nid(i); 
+        X = [X; Xb];
+        if isempty(X), continue; end
+
+        dbidx = int32(dbscan(X,epsilon,minpts)); % nanometer
+        DBidx{i} = dbidx;
+
+        % count info
+        clsz = max(dbidx);
+        predbidx = dbidx(1:prelen);
+        postdbidx = dbidx(prelen+1:end);
+        cmat = zeros(clsz,2,'int32');
+        cmat2 = zeros(clsz,1);
+        for j=1:clsz
+            c1 = length(find(predbidx==j));
+            c2 = length(find(postdbidx==j));
+            cmat(j,1) = c1;
+            cmat(j,2) = c2;
+            cmat2(j) = double(c1) / (c1 + c2);
+        end
+        DBcount{i} = cmat;
+        inOnly = sum(cmat2==0);
+        outOnly = sum(cmat2==1);
+        clcount(i,:) = [clsz, inOnly, outOnly];
+
+        disp(['dbscan ' conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : process (' num2str(i) ') nid=' num2str(Nid(i)) ', clsz=' num2str(clsz) ' (' num2str(inOnly) ', ' num2str(outOnly) ')']);
+    end
+    save(fname,'clcount','DBcount','DBidx','-v7.3');
+end
+
+function checkNeuralDBScanVoxelFw(conf, epsilon, minpts)
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralDBScanVox' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
     if exist(fname,'file'), return; end
 
     info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
@@ -514,39 +580,6 @@ function checkNeuralReciprocalConnections(synTh, confTh)
     end
     save(fname,'rcNids','rcpostSids','rcpreSids','-v7.3');
     save(fnameNin,'inNids','outNids','-v7.3');
-end
-
-function checkNeuralNamedReciprocalConnections(Cnames, Cnids, synTh, confTh)
-    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_reciprocalConnections.mat'];
-    load(fname);
-
-    % FlyEM read neuron info (id, connection number, size)
-    load('data/hemibrain_v1_2_neurons.mat');
-    clear Nconn; clear Ncrop; clear Nsize;
-    tracedNids = Nid(Nstatus==1);
-    Nidx = 1:length(tracedNids);
-
-    % FlyEM read synapse info
-    load('data/hemibrain_v1_2_synapses.mat');
-    clear Sloc;
-
-    for i=1:length(Cnids)
-        logis = ismember(tracedNids,Cnids{i});
-        idxs = Nidx(logis);
-        rcnids = [];
-        for j=1:length(idxs)
-            nid = tracedNids(idxs(j));
-            rcn = rcNids{idxs(j)};
-            disp([Cnames{i} ' ' num2str(nid) ' has reciprocal neurons : ' num2str(rcn')]);
-            rcnids = [rcnids; rcn];
-        end
-        numnid = groupcounts(rcnids);
-        rcnids = unique(rcnids);
-        rcnids = rcnids(numnid>1); nnid = numnid(numnid>1);
-        str = [];
-        for j=1:length(rcnids), str=[str num2str(rcnids(j)) ' (' num2str(nnid(j)) '), ']; end
-        disp([Cnames{i} ' multiple reciprocal neurons : ' str]);
-    end
 end
 
 function checkDistanceReciprocalConnections(synTh, confTh)
@@ -712,6 +745,44 @@ function checkNeuralReciprocalConnectionsFw(conf)
     save(fnameNin,'inNidx','outNidx','-v7.3');
 end
 
+% TODO: not yet.
+function checkNeuralNamedReciprocalConnectionsFw(Cnames, Cnids, conf)
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+    scname = conf.scname;
+    fname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalConnections.mat'];
+    load(fname);
+
+    % FlyWire read neuron info
+    Nid = [];
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+
+    % FlyWire read synapse info
+    preNidx = []; postNidx = [];
+    load(conf.synapseFile);
+    score = (cleftScore >= scoreTh);
+    Sidx = int32(1:length(Sid))';
+    valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
+
+    for i=1:length(Cnids)
+        logis = ismember(Nid,Cnids{i});
+        idxs = Nid(logis);
+        rcnids = [];
+        for j=1:length(idxs)
+            nid = tracedNids(idxs(j));
+            rcn = rcNids{idxs(j)};
+            disp([Cnames{i} ' ' num2str(nid) ' has reciprocal neurons : ' num2str(rcn')]);
+            rcnids = [rcnids; rcn];
+        end
+        numnid = groupcounts(rcnids);
+        rcnids = unique(rcnids);
+        rcnids = rcnids(numnid>1); nnid = numnid(numnid>1);
+        str = [];
+        for j=1:length(rcnids), str=[str num2str(rcnids(j)) ' (' num2str(nnid(j)) '), ']; end
+        disp([Cnames{i} ' multiple reciprocal neurons : ' str]);
+    end
+end
+
 function checkNeuralNetworkPropertiesFw(conf)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
@@ -751,8 +822,8 @@ function checkNeuralNetworkPropertiesFw(conf)
     disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : reci ' num2str(count) ' neurons, reciprocity=' num2str(aR)]);
 
     % clustering coefficient
-    [C, aC, count] = calcClusteringCoeff(S);
-    disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : tri ' num2str(count) ' neurons, avg clustering coeff=' num2str(aC)]);
+    [aC, count, allTriplet] = calcGlobalClusteringCoeff(sparse(S));
+    disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : tri ' num2str(count) ' triangles, avg clustering coeff=' num2str(aC)]);
 
     % compared with ER
     E = generateERgraph(nlen, dens);
@@ -763,8 +834,8 @@ function checkNeuralNetworkPropertiesFw(conf)
     [R, EaR, count] = calcReciprocity(E);
     disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : ER reci ' num2str(count) ' neurons, reciprocity=' num2str(EaR) ', x ER=' num2str(aR/EaR)]);
 
-    [C, EaC, count] = calcClusteringCoeff(E);
-    disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : ER tri ' num2str(count) ' neurons, avg clustering coeff=' num2str(EaC) ', x ER=' num2str(aC/EaC)]);
+    [EaC, count, allTriplet] = calcGlobalClusteringCoeff(sparse(E));
+    disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : ER tri ' num2str(count) ' triangles, avg clustering coeff=' num2str(EaC) ', x ER=' num2str(aC/EaC)]);
 
     % compared with CFG
     G = generateCFGgraph(S);
@@ -775,8 +846,8 @@ function checkNeuralNetworkPropertiesFw(conf)
     [R, GaR, count] = calcReciprocity(G);
     disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : CFG reci ' num2str(count) ' neurons, reciprocity=' num2str(GaR) ', x CFG=' num2str(aR/GaR)]);
 
-    [C, GaC, count] = calcClusteringCoeff(G);
-    disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : CFG tri ' num2str(count) ' neurons, avg clustering coeff=' num2str(GaC) ', x CFG=' num2str(aC/GaC)]);
+    [GaC, count, allTriplet] = calcGlobalClusteringCoeff(sparse(G));
+    disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : CFG tri ' num2str(count) ' triangles, avg clustering coeff=' num2str(GaC) ', x CFG=' num2str(aC/GaC)]);
 end
 
 function checkDistanceReciprocalConnectionsFw(conf)
@@ -840,34 +911,6 @@ function checkDistanceReciprocalConnectionsFw(conf)
         disp(['find closest reciprocal synapses (' num2str(i) ') nid=' num2str(Nid(i))]);
     end
     save(fname,'rcCloseDist','rcCloseSidx','-v7.3');
-end
-
-function checkNeuralAutoConnections(synTh, confTh)
-    fname = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_reciprocalConnections.mat'];
-    if ~exist(fname,'file'), return; end
-    load(fname);
-    if exist('autoNids','var'), return; end
-
-    fnameNin = ['results/neuralsc/hemi' num2str(synTh) 'sr' num2str(confTh*100) '_neural_Nin_Nout.mat'];
-    load(fnameNin);
-
-    % FlyEM read neuron info (id, connection number, size)
-    load('data/hemibrain_v1_2_neurons.mat');
-    clear Nconn; clear Ncrop; clear Nsize; 
-
-    % count pre (to post) and post synapse count
-    tracedNids = Nid(Nstatus==1);
-    nlen = length(tracedNids);
-    autoNids = [];
-    for i=1:nlen
-        outnids = outNids{i};
-        if ~isempty(outnids)
-            if any(outnids==tracedNids(i))
-                autoNids = [autoNids tracedNids(i)];
-            end
-        end
-    end
-    save(fname,'rcNids','rcpostSids','rcpreSids','autoNids','-v7.3');
 end
 
 function checkNeuralAutoConnectionsFw(conf)

@@ -11,7 +11,7 @@ function plotNeuralFC
 %    confTh = 60; synTh = 5; % almost flywire codex compatible setting
     conf = getSCconfig('hemi',synTh,scTh);
 
-%    showNeuralFCFw(conf, epsilon, minpts);
+%    showNeuralFCFw(conf, epsilon, minpts); % no use
 
     showNeuralDBScanFw(conf, epsilon, minpts);
 
@@ -41,7 +41,7 @@ function plotNeuralFC
 %    scTh = 50; synTh = 5; % for checking flywire codex compatible
     conf = getSCconfig('wire',synTh,scTh);
 
-%    showNeuralFCFw(conf, epsilon, minpts);
+%    showNeuralFCFw(conf, epsilon, minpts); % no use
 
     showNeuralDBScanFw(conf, epsilon, minpts);
 
