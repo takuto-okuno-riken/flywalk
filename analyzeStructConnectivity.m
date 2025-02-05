@@ -109,7 +109,7 @@ function checkAPLneuron()
 end
 
 function checkAPLneuronFw()
-    scoreTh = 130; % FlyWire synapse score threshold
+    scoreTh = 140; % FlyWire synapse score threshold
 
     % FlyWire read neuron info
     load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
@@ -129,6 +129,10 @@ function checkAPLneuronFw()
     presidx = Sidx(logi & valid & score);
     logi = ismember(postNidx,APLidx); % find post-synapses which belong to APL neurons
     postsidx = Sidx(logi & valid & score);
+
+    info = niftiinfo('template/thresholded_FDACal.nii.gz');
+    Vt = niftiread(info); Vt(:) = 0; V = Vt;
+    sz = size(Vt);
 
     % get connected post-synapse counts from APL pre-synapses (output)
     fname = 'results/nifti/wireAplOutputSynapses.nii';
@@ -183,11 +187,11 @@ function checkSCpostSynapse()
 
     % make post-synapse could of FlyEM hemibrain
     confThs = [50 60 70 80 90];
-    synThs = [0]; % 5 10 20 30 50 100];
+    hbsynThs = [0]; % 5 10 20 30 50 100];
     for r=1:length(confThs)
         confTh = confThs(r);
-        for j=1:length(synThs)
-            synTh = synThs(j);
+        for j=1:length(hbsynThs)
+            synTh = hbsynThs(j);
 
             niifile = ['results/nifti/hemibrain_hb' num2str(synTh) 'sr' num2str(confTh) '_postsynFDACal.nii'];
             if exist([niifile '.gz'],'file')
@@ -199,15 +203,26 @@ function checkSCpostSynapse()
                 clear Nconn; clear Ncrop; clear Nsize; 
         
                 load('data/hemibrain_v1_2_synapses.mat');
-                clear Sloc; clear StoS;
+                clear Sloc;
+                Sid = uint32(1:length(StoN))';
                 srate = (Srate >= (confTh / 100)); % use only accurate synapse more than confidence threshold
                 straced = ismember(StoN,Nid(Nstatus==1)); % Find synapses belong to Traced neuron.
-                spost = (Sdir == 2); % Find post synapse
-        
+                s1rate = ismember(StoS(:,1),Sid(srate));
+                s2rate = ismember(StoS(:,2),Sid(srate));
+                ssrate = (s1rate & s2rate);
+                s1traced = ismember(StoS(:,1),Sid(straced));
+                s2traced = ismember(StoS(:,2),Sid(straced));
+                sstraced = (s1traced & s2traced);
+
+                presids = Sid(straced & Sdir==1);
+                logi = ismember(StoS(:,1),presids); % get pre-synapse to connected post-synapse
+                cpostsids = StoS(logi & ssrate & sstraced,2);
+                [cpostsids, ia] = unique(cpostsids);
+
                 load('data/hemibrain_v1_2_synapseloc_fdacal.mat');
-                SpostlocFc = SlocFc(srate & straced & spost,:);
+                SpostlocFc = SlocFc(cpostsids,:); % get 3D location in FDA Cal template.
                 clear SlocFc;
-        
+    
                 hbinfo = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
                 hbV = niftiread(hbinfo); % mask should have same transform with 4D nifti data
                 hbV(:) = 0;
@@ -230,24 +245,25 @@ function checkSCpostSynapse()
 
     % make post-synapse could of FlyWire (hemibrain)
     scoreThs = [50 70 100 130 140 150];
-    synThs = [0]; % 5 10 20 30 50 100];
+    fwsynThs = [0]; % 5 10 20 30 50 100];
     for r=1:length(scoreThs)
         scoreTh = scoreThs(r);
-        for j=1:length(synThs)
-            synTh = synThs(j);
+        for j=1:length(fwsynThs)
+            synTh = fwsynThs(j);
 
+            conf = getSCconfig('wire', synTh, scoreTh);
             niifile = ['results/nifti/hemibrain_fw' num2str(synTh) 'sr' num2str(scoreTh) '_postsynFDACal.nii'];
             if exist([niifile '.gz'],'file')
                 fwinfo = niftiinfo([niifile '.gz']);
                 fwV = niftiread(fwinfo);
             else
                 % read synapse info
-                load('data/flywire783_synapse.mat');
+                load(conf.synapseFile);
                 score = (cleftScore >= scoreTh);
                 valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
             
                 % read synapse location in FDA
-                load('data/flywire783i_sypostloc_fdacal.mat');
+                load(conf.sypostlocFdaFile);
                 SpostlocFc = SpostlocFc(valid & score,:);
         
                 fwinfo = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
@@ -275,7 +291,7 @@ function checkSCpostSynapse()
     end
 
     % load SC & atlas
-    roitypes = {'hemiroi'};
+    roitypes = {'hemiroi', 'hemidistkm500'};
 
     for i = 1:length(roitypes)
         roitype = roitypes{i};
@@ -293,21 +309,25 @@ function checkSCpostSynapse()
                     V = niftiread(['atlas/' roitype '/roi' num2str(j) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
                     roiIdxs{j} = find(V>0);
                 end
+            otherwise
+                V = niftiread(['atlas/' roitype 'atlasCal.nii.gz']); % ROI mask should have same transform with 4D nifti data
+                roitype = lower(roitype);
+                roimax = max(V(:));
+                for i=1:roimax
+                    roiIdxs{i} = find(V==i);
+                end
+                primaryIds = 1:roimax;
             end
 
-            confThs = [50 60 70 80 90];
-            hbsynThs = [0];
-            scoreThs = [50 70 100 130 140 150];
-            fwsynThs = [0];
             hbS = nan(length(roiIdxs),length(confThs),length(hbsynThs),'single');
             fwS = nan(length(roiIdxs),length(scoreThs),length(fwsynThs),'single');
 
             for k=1:length(roiIdxs)
                 for r=1:length(confThs)
-                    confTh = confThs(r);
+                    scoreTh = confThs(r);
                     for c=1:length(hbsynThs)
                         synTh = hbsynThs(c);
-                        hbV = niftiread(['results/nifti/hemibrain_hb' num2str(synTh) 'sr' num2str(confTh) '_postsynFDACal.nii.gz']);
+                        hbV = niftiread(['results/nifti/hemibrain_hb' num2str(synTh) 'sr' num2str(scoreTh) '_postsynFDACal.nii.gz']);
                         hbSc = hbV(roiIdxs{k});
                         hbS(k,r,c) = sum(hbSc);
                     end
@@ -328,16 +348,18 @@ function checkSCpostSynapse()
 end
 
 function checkNeuralTransmitterFw()
+    conf = getSCconfig('wire', 0, 140);
+
     % read neuron info (id, type)
-    load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
 
     % read synapse info
-    load('data/flywire783_synapse.mat');
+    load(conf.synapseFile);
 
     % make transmitter type of FlyWire (hemibrain)
     rateThs = [50 70 100 130 140 150];
     synThs = [0];
-    roitypes = {'hemiroi'};
+    roitypes = {'hemiroi', 'hemidistkm500'};
 
     for n = 1:length(roitypes)
         for r=1:length(rateThs)

@@ -4,27 +4,26 @@
 function plotStructConnectivity
     % check SC post synapse cloud
     % roitype: hemiroi primary
-    checkSCpostSynapse();
+    showSCpostSynapse();
 
     % check SC matrix connection similarity FlyEM vs. FlyWire
     % roitype: hemiroi primary
-    checkSCmatrixSimilarity();
+    showSCmatrixSimilarity();
 
     % check SC vs. FC matrix connection FlyEM vs. FlyWire
     % roitype: hemiroi primary
-    checkSCFCmatrixSimilarity();
+    showSCFCmatrixSimilarity();
 
     % check neural transmitter type in each neuron
     % roitype: hemiroi primary
-    checkNeuralTransmitter();
+    showNeuralTransmitter();
 
     % check mushroom body huge GABA neuron (APL-R) FlyEM, FlyWire
-    checkAPLneuron();
+    showAPLneuron();
 
-    % check SC matrix connection count diff FlyEM 0sr80 vs. FlyWire 0sr50 (roi 20 to 1000)
-    % but FlyWire 0sr50 will not be used, so this one was obsolete.
+    % check SC matrix connection count diff FlyEM 0sr80 vs. FlyWire 0sr140 (roi 20 to 1000)
     % roitype: Branson,Cm,DistKm
-%    checkSCdiffConnectionCount();
+%    showSCdiffConnectionCount(); % no use
 
     % hemibrain ROI check other piece (Orphan) body type check.
 %{
@@ -36,12 +35,12 @@ function plotStructConnectivity
 %}
 end
 
-function checkSCpostSynapse()
+function showSCpostSynapse()
     % primary, R/L, name order
     load('data/hemiroi.mat');
 
     % load SC & atlas
-    roitypes = {'hemiroi'};
+    roitypes = {'hemiroi', 'hemidistkm500'};
 
     for i = 1:length(roitypes)
         roitype = roitypes{i};
@@ -75,19 +74,20 @@ function checkSCpostSynapse()
         figure; bar(cats,X); %set(gca,'yscale','log');
         title(['total post-synapse count in all ROI : ' roitype]);
 
-        % plot bar mean post-synapse count of ROIs (FlyEM80-FlyWire130 case)
-        p = {[4 5+4],[1 5+1]};
+        % plot bar mean post-synapse count of ROIs (FlyEM80-FlyWire140 case)
+        p = {[4 5+5],[1 5+1]};
         figure; boxplot(Y); ylim([0 1.5e6]); %set(gca,'yscale','log');
         pval = ranksum(Y(:,p{1}(1)),Y(:,p{1}(2))); xticklabels(labels);
         title(['boxplot post-synapse count of ROIs : ' roitype ' ' labels{p{1}(1)} '-' labels{p{1}(2)} ' p=' num2str(pval)]);
 
-        % plot bar in each ROI (FlyEM80-FlyWire130 case)
+        % plot bar in each ROI (FlyEM80-FlyWire140 case)
         str = split(roitype,'_');
         switch(str{1})
         case 'hemiroi'
             labelNames = roiname(ids,1);
         otherwise
             labelNames = {};
+            for j=1:size(Y,1), labelNames{end+1} = num2str(j); end
         end
         cats=categorical(labelNames, labelNames);
         for j=1:length(p)
@@ -99,21 +99,31 @@ function checkSCpostSynapse()
     end
 end
 
-function checkSCmatrixSimilarity()
+function showSCmatrixSimilarity()
     rgbs = [107 41 147; 55 41 185; 0 0 0; 192 0 0; 254 254 41];
     gradmap = colormapGen(rgbs,[0,0.25,0.5,0.75,1],256);
 
-    % primary, R/L, name order
-    load('data/hemiroi.mat');
+    hbsynThs = [0];
+    hbrateThs = [50 60 70 80 90];
+    fwsynThs = [0];
+    fwrateThs = [50 70 100 130 140 150];
 
     % load SC & atlas
-    roitypes = {'hemiroi'};
+    roitypes = {'hemiroi', 'hemidistkm500'};
 
     for i = 1:length(roitypes)
         roitype = roitypes{i};
-
         fname = ['results/sc/' roitype '_postsyncount.mat'];
         load(fname);
+
+        switch(roitype)
+        case 'hemiroi'
+            % primary, R/L, name order
+            load('data/hemiroi.mat');
+        otherwise
+            roiname = {};
+            for j=1:length(primaryIds), roiname{end+1,1} = num2str(j); end
+        end
         ids = primaryIds;
 
         idlen = length(ids);
@@ -184,7 +194,7 @@ function checkSCmatrixSimilarity()
                 Swr(j,k) = corr(Sw1(:),Sw2(:));
 
                 % plot SC matrix
-                if (j==4 && k==5+4) % FlyEM80-FlyWire130 case
+                if (j==4 && k==5+5) % FlyEM80-FlyWire140 case
                     labelNames = roiname(ids,1);
                     lN1 = log10(N1); lN1(isinf(lN1)) = 0; lN2 = log10(N2); lN2(isinf(lN2)) = 0; 
 %                    figure; imagesc(lN1); colorbar; daspect([1 1 1]); title([num2str(j) '-' num2str(k) ' ' roitype ' neuron']);
@@ -223,7 +233,27 @@ function checkSCmatrixSimilarity()
     end
 end
 
-function checkSCFCmatrixSimilarity()
+function showSCFCmatrixSimilarity()
+    preproc = 'ar'; % for move correct, slice time correct
+    smoothSet = {{'', 's30', 's80'},{'', 's30', 's80','s150','s230','s300'}};
+    nuisanceSet = {{'','poltcomp'},{'','poltcomp'}};
+    combinationIdx = [4, 11]; % using combination index for bar plot (4=no smooth & poltcomp)
+    barYlimSet = {[0.5 0.8; 0.7 1; 1.0 1.6], [0.5 0.8; 0.6 0.9; 1.0 1.5]};
+
+    % roytypes set of SC & atlas 
+    roitypesSet = {{'hemiroi_hb0sr50','hemiroi_hb0sr60','hemiroi_hb0sr70','hemiroi_hb0sr80','hemiroi_hb0sr90', ...
+            'hemiroi_fw0sr50','hemiroi_fw0sr70','hemiroi_fw0sr100','hemiroi_fw0sr130','hemiroi_fw0sr140','hemiroi_fw0sr150', ...
+            'hemiroi_fw5sr50','hemiroi_fw5sr140'}, ...
+            {'hemiDistKm500_hb0sr50','hemiDistKm500_hb0sr60','hemiDistKm500_hb0sr70','hemiDistKm500_hb0sr80','hemiDistKm500_hb0sr90', ...
+            'hemiDistKm500_fw0sr50','hemiDistKm500_fw0sr70','hemiDistKm500_fw0sr100','hemiDistKm500_fw0sr130','hemiDistKm500_fw0sr140','hemiDistKm500_fw0sr150', ...
+            'hemiDistKm500_fw5sr50','hemiDistKm500_fw5sr140'}};
+
+    for i=1:length(smoothSet)
+        showSCFCmatrixSimilaritySet(preproc, smoothSet{i}, nuisanceSet{i}, roitypesSet{i}, combinationIdx(i), barYlimSet{i})
+    end
+end
+
+function showSCFCmatrixSimilaritySet(preproc, smooth, nuisance, roitypes, cIdx, barYlim)
     vslabels = {
         'log10(neurons f) vs. m-FCz', ...
         'log10(synapse weight f) vs. m-FCz', ...
@@ -250,15 +280,6 @@ function checkSCFCmatrixSimilarity()
         'ROI in-synapse weight vs. FC-Tval', ...
         'ROI out-neuron weight vs. FC-Tval', ...
     };
-
-    preproc = 'ar'; % for move correct, slice time correct
-    smooth = {'', 's30', 's80'};
-    nuisance = {'','poltcomp'};
-
-    % load SC & atlas
-    roitypes = {'hemiroi_hb0sr50','hemiroi_hb0sr60','hemiroi_hb0sr70','hemiroi_hb0sr80','hemiroi_hb0sr90', ... % for s30 & s80, '' & poltcomp
-            'hemiroi_fw0sr50','hemiroi_fw0sr70','hemiroi_fw0sr100','hemiroi_fw0sr130','hemiroi_fw0sr140','hemiroi_fw0sr150', ...
-            'hemiroi_hb5sr60','hemiroi_fw5sr50','hemiroi_fw5sr130'};
 
     ylabels = {}; rlabels = {}; R3 = []; A3 = []; roiR3 = [];
     for r = 1:length(roitypes)
@@ -287,7 +308,7 @@ function checkSCFCmatrixSimilarity()
         ylabels = [ylabels(:); strcat(C(:),vslabels(:))];
     end
     % FC-SC correlation (all)
-    T = [0:24:24*13];
+    T = [0:24:24*12];
     I = getR3idx([7 9],T);  % show only Traced neuron, synapse
     figure; imagescLabel2(R3(I,:),xlabels,ylabels(I),[0.2 0.9]); colorbar; title(['FC-SC correlation (All) ']); colormap(hot);
     
@@ -317,13 +338,13 @@ function checkSCFCmatrixSimilarity()
     llabels = {'neuron count','synapse count','neuron weight','synapse weight'};
     cats=categorical(rlabels,rlabels);
 
-    figure; bar(cats,[R3(I1,4)';R3(I2,4)';R3(I3,4)';R3(I4,4)']); ylim([0.5 0.8]);
+    figure; bar(cats,[R3(I1,cIdx)';R3(I2,cIdx)';R3(I3,cIdx)';R3(I4,cIdx)']); ylim(barYlim(1,:));
     title([str{1} ' FC-SC correlation : SC vs. poltcomp m-FC(z)']); legend(llabels);
 
-    figure; bar(cats,[A3(I1,4)';A3(I2,4)';A3(I3,4)';A3(I4,4)']); ylim([0.7 1]);
+    figure; bar(cats,[A3(I1,cIdx)';A3(I2,cIdx)';A3(I3,cIdx)';A3(I4,cIdx)']); ylim(barYlim(2,:));
     title([str{1} ' FC-SC detection : SC vs. poltcomp m-FC(z)']); legend(llabels);
 
-    figure; bar(cats,[B(I1,4)';B(I2,4)';B(I3,4)';B(I4,4)']); ylim([1.1 1.6]);
+    figure; bar(cats,[B(I1,cIdx)';B(I2,cIdx)';B(I3,cIdx)';B(I4,cIdx)']); ylim(barYlim(3,:));
     title([str{1} ' FC-SC correlation & detection : SC vs. poltcomp m-FC(z)']); legend(llabels);
 
     % plot ROI SC vs. poltcomp m-FC(z) result
@@ -337,24 +358,30 @@ function checkSCFCmatrixSimilarity()
         labelNames = roiname(ids,1);
     otherwise
         labelNames = {};
+        for j=1:size(roiR3,1), labelNames{end+1} = num2str(j); end
     end
     cats=categorical(labelNames, labelNames);
-    figure; h=bar(cats,roiR3(:,72+7,4)); h.FaceAlpha = 0.4;
-    hold on; h=bar(cats,roiR3(:,192+7,4)); h.FaceAlpha = 0.4; hold off;
-    title(['FC-SC correlation in each ROI']); legend({ylabels{72+7},ylabels{192+7}});
+    figure; h=bar(cats,roiR3(:,72+7,cIdx)); h.FaceAlpha = 0.4;
+    hold on; h=bar(cats,roiR3(:,216+7,cIdx)); h.FaceAlpha = 0.4; hold off;
+    title(['FC-SC correlation in each ROI']); legend({ylabels{72+7},ylabels{216+7}});
 
-    figure; scatter(roiR3(:,72+7,4),roiR3(:,192+7,4)); ylim([0 1]); xlim([0 1]); daspect([1 1 1]);
-    hold on; plot([0 1], [0 1],':','Color',[0.5 0.5 0.5]); hold off; xlabel(ylabels{72+7}); ylabel(ylabels{192+7});
-    r = corr(roiR3(:,72+7,4),roiR3(:,192+7,4));
+    figure; scatter(roiR3(:,72+7,cIdx),roiR3(:,216+7,cIdx)); ylim([0 1]); xlim([0 1]); daspect([1 1 1]);
+    hold on; plot([0 1], [0 1],':','Color',[0.5 0.5 0.5]); hold off; xlabel(ylabels{72+7}); ylabel(ylabels{216+7});
+    r = corr(roiR3(:,72+7,cIdx),roiR3(:,216+7,cIdx));
     title(['correlation of regional FC-SC between FlyEM and FlyWire r=' num2str(r)]);
 end
 
 
-function checkNeuralTransmitter()
+function showNeuralTransmitter()
     llabels = {'Unknown','DA','SER','GABA','GLUT','ACH','OCT'};
-    rateThs = [130]; %50 70 100  140 150];
+    rateThs = [140]; %50 70 100  140 150];
     synThs = [0];
-    roitypes = {'hemiroi'};
+    roitypes = {'hemiroi', 'hemidistkm500'};
+
+    % use appropriate smooth and nuisance
+    preproc = 'ar';
+    smooth = {'','s230'};
+    nuisance = {'poltcomp','poltcomp'};
 
     for n = 1:length(roitypes)
         roitype = roitypes{n};
@@ -375,9 +402,9 @@ function checkNeuralTransmitter()
                     % primary, R/L, name order
                     load('data/hemiroi.mat');
                     labelNames = roiname(ids,1);
-                    pftype = ['poltcomp' 'ar' idstr];
                 otherwise
                     labelNames = {};
+                    for k=1:length(primaryIds), labelNames{end+1} = num2str(k); end
                 end
                 cats=categorical(labelNames,labelNames);
 
@@ -397,6 +424,7 @@ function checkNeuralTransmitter()
                 title([idstr ' in-synapse transmitters in each ROI']); legend(llabels);
 
                 % compare with FC-SC correlation in each ROI.
+                pftype = [smooth{n} nuisance{n} preproc idstr];
                 aucmat = ['results/auc/' pftype '-fcauc.mat'];
                 load(aucmat);
                 FcSc = roiR(:,7); % already primaryId. (neuron count vs. m-FC(z))
@@ -426,7 +454,7 @@ function checkNeuralTransmitter()
     end
 end
 
-function checkSCdiffConnectionCount()
+function showSCdiffConnectionCount()
     roinums = [20 30 50 100 200 300 500 1000];
     roitypes = {'hemiBranson7065km','hemiCmkm','hemiDistKm'};
 
@@ -453,7 +481,7 @@ function checkSCdiffConnectionCount()
             xlabels{j} = ['roi' num2str(roinums(j))];
             roitype = [roitypes{i} num2str(roinums(j))];
             confile = ['results/sc/' lower(roitype) '_connectlist.mat'];
-            confilefw = ['results/sc/' lower(roitype) '_fw_connectlist.mat'];
+            confilefw = ['results/sc/' lower(roitype) '_fw0sr140_connectlist.mat'];
             if exist(confile,'file') && exist(confilefw,'file')
                 t = load(confile);
                 ids = t.primaryIds;
@@ -509,7 +537,7 @@ function checkSCdiffConnectionCount()
     figure; plot([mS1oth' mS2oth']); legend(labels); setlineColors(3); title(['mean other connected synapse count between FlyEM and FlyWire.'])
 end
 
-function checkAPLneuron()
+function showAPLneuron()
     % load mushroom body ROIs.
     aV = niftiread('atlas/hemiRoi68-59-87-106-50-27-54atlasCal.nii.gz');
     idx = find(aV>0);

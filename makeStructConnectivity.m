@@ -5,7 +5,7 @@
 function makeStructConnectivity
     SCVER = 5;
     hbSth = 80; % FlyEM hemibrain synapse threshold
-    fwSth = 130; % FlyWire synapse score threshold
+    fwSth = 140; % FlyWire synapse score threshold
     synTh = 0; % synapse count at one neuron threshold
 
     % ---------------------------------------------------------------------
@@ -176,7 +176,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from neuprint connectivity list (flyem hemibrain) by FlyWire EM data.
     %
-%{
+%%{
     clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
     idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth)];
     fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
@@ -413,7 +413,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 k-means atlas by FlyWire EM data
     %
-%{
+%%{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiBranson7065km' num2str(k) '_fw'  num2str(synTh) 'sr' num2str(fwSth)];
         fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
@@ -914,7 +914,8 @@ function makeStructConnectivity
         end
         if scver <= SCVER
             % set same order of FlyEM hemibrain.
-            flyemname = ['results/sc/' lower(idstr(1:end-3)) '_connectlist.mat'];
+            str = split(idstr,'_');
+            flyemname = ['results/sc/' lower(str{1}) '_connectlist.mat'];
             cl = load(flyemname);
             primaryIds = cl.primaryIds;
             clear cl;
@@ -1078,8 +1079,8 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from distance based k-means atlas by FlyWire EM data.
     %
-%{
-    for k=[20 30 50 100 200 300 500 1000 5000 10000]
+%%{
+    for k=[20 30 50 100 200 300 500 1000]% 5000 10000]
         idstr = ['hemiDistKm' num2str(k) '_fw' num2str(synTh) 'sr' num2str(fwSth)];
         fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
