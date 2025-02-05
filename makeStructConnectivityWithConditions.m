@@ -135,8 +135,8 @@ function makeStructConnectivityWithConditions
     %
 %{
     k = 500; % roinum
-%    rateThs = [50 60 70 80 90];
-%    synThs = [0]; % 5 10 20 30 50 100];
+    rateThs = [50 60 70 80 90];
+    synThs = [0]; % 5 10 20 30 50 100];
     for r=1:length(rateThs)
         rateTh = rateThs(r);
         for j=1:length(synThs)
