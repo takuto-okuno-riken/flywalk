@@ -318,15 +318,14 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
         loc2 = Spostloc(postlogi & valid & score,:);
 
         tstr = [num2str(i) ') k=' num2str(k) ' nid=' num2str(nid) ' (' tlabels{Ntype(k)+1} ') sycount=' num2str(syCount(k,1)) ' (' num2str(syCount(k,2)) '/' num2str(syCount(k,3)) ';' num2str(syCount(k,6)) ')' ...
-            ', Sdbs=' num2str(Nspidx(k)) ', syMdbs=' num2str(NsywMixScore(k)) ', Ldbs=' num2str(Ldbs(k))];
+            ', nSPidx=' num2str(Nspidx(k)) ', syMIXscore=' num2str(NsywMixScore(k)) ', Ldbs=' num2str(Ldbs(k))];
         disp(tstr);
         figure; plotBrainSwc(swc, mesh, conf.brainMeshView, loc1, loc2, tstr);
     end
 %}
     % show most mixed and large synapse neurons
-%{
-    [dsyMdbs,dIdx] = sort(syMdbs,'descend');
-%    [dRate,dIdx] = sort(Sdbs,'descend');
+%%{
+    [dsyMdbs,dIdx] = sort(NsywMixScore,'descend');
     for i=1:50
         k = dIdx(i);
         nid = Nid(k);
@@ -342,7 +341,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
         loc2 = Spostloc(postlogi & valid & score,:);
 
         tstr = [num2str(i) ') k=' num2str(k) ' nid=' num2str(nid) ' (' tlabels{Ntype(k)+1} ') sycount=' num2str(syCount(k,1)) ' (' num2str(syCount(k,2)) '/' num2str(syCount(k,3)) ';' num2str(syCount(k,6)) ')' ...
-            ', Sdbs=' num2str(Sdbs(k)) ', syMdbs=' num2str(syMdbs(k)) ', Ldbs=' num2str(Ldbs(k))];
+            ', nSPidx=' num2str(Nspidx(k)) ', syMIXscore=' num2str(NsywMixScore(k)) ', Ldbs=' num2str(Ldbs(k))];
         disp(tstr);
         figure; plotBrainSwc(swc, mesh, conf.brainMeshView, loc1, loc2, tstr);
     end
@@ -365,7 +364,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
         loc2 = Spostloc(postlogi & valid & score,:);
 
         tstr = [num2str(i) ') k=' num2str(k) ' nid=' num2str(nid) ' (' tlabels{Ntype(k)+1} ') sycount=' num2str(syCount(k,1)) ' (' num2str(syCount(k,2)) '/' num2str(syCount(k,3)) ';' num2str(syCount(k,6)) ')' ...
-            ', Sdbs=' num2str(Nspidx(k)) ', sySdbs=' num2str(NsywSepScore(k)) ', Ldbs=' num2str(Ldbs(k))];
+            ', nSPidx=' num2str(Nspidx(k)) ', sySPscore=' num2str(NsywSepScore(k)) ', Ldbs=' num2str(Ldbs(k))];
         disp(tstr);
         figure; plotBrainSwc(swc, mesh, conf.brainMeshView, loc1, loc2, tstr);
     end

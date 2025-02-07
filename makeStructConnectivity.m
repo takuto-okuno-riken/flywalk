@@ -4,9 +4,9 @@
 
 function makeStructConnectivity
     SCVER = 5;
-    hbSth = 80; % FlyEM hemibrain synapse threshold
-    fwSth = 140; % FlyWire synapse score threshold
-    synTh = 0; % synapse count at one neuron threshold
+    hbSth = 80;     % FlyEM hemibrain synapse threshold
+    fwSth = 140;    % FlyWire synapse score threshold
+    synTh = 0;      % synapse count at one neuron threshold
     epsilon = 3000; % dbscan range (nanometer)
     minpts = 1;     % set 1, includes isolated synapse
 
