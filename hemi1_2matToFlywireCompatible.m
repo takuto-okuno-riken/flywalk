@@ -19,7 +19,7 @@ function hemi1_2matToFlywireCompatible
 
     % transform synapse mat file
     fname = 'data/hemibrain1_2fw_synapse.mat';
-    if false %exist(fname,'file')
+    if exist(fname,'file')
         load(fname);
     else
         % FlyEM read synapse info
@@ -76,5 +76,24 @@ function hemi1_2matToFlywireCompatible
         if any(D>1.0) % voxel
             disp('pre-post in FDA distance error!');
         end
+    end
+    % transform synapse separation index mat file (fw type to original)
+    synTh = 0; scoreTh = 80; epsilon = 3000; minpts = 1;
+    fname = ['data/hemibrain_v1_2_synapses_sepidx' num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
+    if exist(fname,'file')
+        load(fname);
+    else
+        % FlyEM read synapse info
+        load('data/hemibrain_v1_2_synapses.mat');
+
+        % read separation index (fw type)
+        load('data/hemibrain1_2fw_synapse.mat');
+        load(['data/hemibrain1_2fw_synapse_sepidx' num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+
+        Spidx = ones(length(StoN),1,'int16') * -1;
+        Spidx(Sid) = postSpidx;
+        Spidx(preSid) = preSpidx;
+
+        save(fname,'Spidx','-v7.3');
     end
 end

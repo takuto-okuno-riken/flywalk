@@ -4,7 +4,7 @@
 function plotNeuralFC
     % DBscan param
     epsilon = 3000; % nanometer
-    minpts = 2; % set 1, but isolated synapse will be ignored
+    minpts = 1; % set 1, but isolated synapse will be ignored
 
     % check NeuralFC of FlyEM
     scTh = 80; synTh = 0; % FlyEM synapse confidence & synapse count at one neuron threshold
@@ -15,7 +15,7 @@ function plotNeuralFC
 
     showNeuralDBScanFw(conf, epsilon, minpts);
 
-%    showReciprocalDistanceFw(conf, uint64(425790257), 3000); % APL-R
+%    showReciprocalDistanceFw(conf, uint64(425790257), 2000); % APL-R
 %    showReciprocalDistanceFw(conf, [], [])
 %{
     for p12=1:2
@@ -45,8 +45,8 @@ function plotNeuralFC
 
     showNeuralDBScanFw(conf, epsilon, minpts);
 
-    showReciprocalDistanceFw(conf, int64(720575940613583001), 3000); % APL-R
-    showReciprocalDistanceFw(conf, int64(720575940628908548), 3000); % CT1
+    showReciprocalDistanceFw(conf, int64(720575940628908548), 2000); % CT1 (2um is good threshold based on histogram).
+    showReciprocalDistanceFw(conf, int64(720575940613583001), 2000); % APL-R
  
     showReciprocalDistanceFw(conf, [], []); % show all neuron, top 3 closest
 %{
@@ -239,7 +239,13 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
     load(conf.syprelocFile);
 
     % FlyWire read neural SC
+    DBcount = {};
     load(['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralDBScan' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+
+    % pre-post-synapse separate index
+    load([conf.neuSepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+    Nspidx = double(Nspidx) / 10000;
+    Nspidx(Nspidx<0) = nan;
 
     % whole brain mesh
     mesh = load(conf.brainMeshFile);
@@ -250,9 +256,6 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
 
     % synapse count & calc pre-post-synapse separation index
     syCount = zeros(nlen,6,'single');
-    Sdbs = nan(nlen,1,'single');
-    sySdbs = nan(nlen,1,'single');
-    syMdbs = nan(nlen,1,'single');
     Ldbs = nan(nlen,1,'single');
     for i=1:nlen
         if isempty(DBcount{i}), continue; end
@@ -266,21 +269,8 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
         syCount(i,6) = size(cmat,1);     % cluster size
 
         % pre-post-synapse separation index based on DBscan clustering
-%{
-        t = sum(cmat,1);
-        N1 = t(1); N2 = t(2); % these could be zero.
-        Dt1 = cmat(:,1) / N1;
-        Dt2 = cmat(:,2) / N2;
-        Ddbs(i) = sum(abs(Dt1-Dt2)) / 2;
-        syDdbs(i) = (1-Ddbs(i)) * log10(syCount(i,1));
-%}
         s = sum(cmat,2);
-%        Sdbs(i) = sum(((cmat(:,1)-cmat(:,2))./s).^2) / size(cmat,1);       % squared version (cluster equal weight)
-%        Ldbs(i) = sum(abs(cmat(:,1)-cmat(:,2))./s) / size(cmat,1);         % linear version (cluster equal weight)
-        Sdbs(i) = sum(((cmat(:,1)-cmat(:,2))./s).^2 .* (s./syCount(i,1)));  % squared version (cluster synaptic weight)
         Ldbs(i) = sum(abs(cmat(:,1)-cmat(:,2))./s .* (s./syCount(i,1))) ;   % linear version (cluster synaptic weight)
-        syMdbs(i) = (1-Sdbs(i)) * log10(syCount(i,1)); % synapse weighted mixing score
-        sySdbs(i) = Sdbs(i) * log10(syCount(i,1));     % synapse weighted separation score
     end
 
     % show histogram
@@ -288,7 +278,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
     N = [];
     for i=1:length(tlabels)
         idx = find(Ntype==(i-1));
-        h = histcounts(Sdbs(idx),edges);
+        h = histcounts(Nspidx(idx),edges);
         N = [N, h'];
     end
     % Sdbs is better than linear version with FlyWire and hemibrain
@@ -296,22 +286,22 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
     title([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : pre-post-synapse separation index histogram']);
 %    figure; histogram(Ldbs);
 
-    Sdbs(isnan(Sdbs)) = -1;
-    syMdbs(isnan(syMdbs)) = -1;
-    sySdbs(isnan(sySdbs)) = -1;
+    Nspidx(isnan(Nspidx)) = -1;
+    NsywMixScore(isnan(NsywMixScore)) = -1;
+    NsywSepScore(isnan(NsywSepScore)) = -1;
 
     syAll = sum(syCount,1);
     disp(['total cluster (synapse)=' num2str(clAll(1)) ' (' num2str(syAll(1)) '), totalIn=' num2str(clAll(2)) ' (' num2str(syAll(4)) '), totalOut=' num2str(clAll(3)) ' (' num2str(syAll(5)) ')']);
     disp(['in-cluster rate=' num2str(clAll(2)/clAll(1)) ', out-cluster rate=' num2str(clAll(3)/clAll(1))]);
     disp(['cluster belong synapse rate=' num2str(syAll(1)/syVnum) ', in-cluster synapse rate=' num2str(syAll(4)/syVnum) ', out-cluster synapse rate=' num2str(syAll(5)/syVnum)]);
 
-    nnum = length(find(Sdbs>=0));
-    spnum = length(find(Sdbs==1));
+    nnum = length(find(Nspidx>=0));
+    spnum = length(find(Nspidx==1));
     disp(['full separation neuron rate=' num2str(spnum/nnum) ' (' num2str(spnum) '/' num2str(nnum) ')']);
 
     % show pure separation neurons
 %%{
-    s1idx = find(Sdbs==1);
+    s1idx = find(Nspidx==1);
     [syCnt1,dIdx] = sort(syCount(s1idx,1),'descend');
     for i=1:10
         k = s1idx(dIdx(i));
@@ -328,7 +318,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
         loc2 = Spostloc(postlogi & valid & score,:);
 
         tstr = [num2str(i) ') k=' num2str(k) ' nid=' num2str(nid) ' (' tlabels{Ntype(k)+1} ') sycount=' num2str(syCount(k,1)) ' (' num2str(syCount(k,2)) '/' num2str(syCount(k,3)) ';' num2str(syCount(k,6)) ')' ...
-            ', Sdbs=' num2str(Sdbs(k)) ', syMdbs=' num2str(syMdbs(k)) ', Ldbs=' num2str(Ldbs(k))];
+            ', Sdbs=' num2str(Nspidx(k)) ', syMdbs=' num2str(NsywMixScore(k)) ', Ldbs=' num2str(Ldbs(k))];
         disp(tstr);
         figure; plotBrainSwc(swc, mesh, conf.brainMeshView, loc1, loc2, tstr);
     end
@@ -359,7 +349,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
 %}
     % show most separated and large synapse neurons
 %%{
-    [dsySdbs,dIdx] = sort(sySdbs,'descend');
+    [dsySdbs,dIdx] = sort(NsywSepScore,'descend');
     for i=1:50
         k = dIdx(i);
         nid = Nid(k);
@@ -375,7 +365,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
         loc2 = Spostloc(postlogi & valid & score,:);
 
         tstr = [num2str(i) ') k=' num2str(k) ' nid=' num2str(nid) ' (' tlabels{Ntype(k)+1} ') sycount=' num2str(syCount(k,1)) ' (' num2str(syCount(k,2)) '/' num2str(syCount(k,3)) ';' num2str(syCount(k,6)) ')' ...
-            ', Sdbs=' num2str(Sdbs(k)) ', sySdbs=' num2str(sySdbs(k)) ', Ldbs=' num2str(Ldbs(k))];
+            ', Sdbs=' num2str(Nspidx(k)) ', sySdbs=' num2str(NsywSepScore(k)) ', Ldbs=' num2str(Ldbs(k))];
         disp(tstr);
         figure; plotBrainSwc(swc, mesh, conf.brainMeshView, loc1, loc2, tstr);
     end
@@ -567,23 +557,34 @@ function showReciprocalDistanceFw(conf, targetNid, dth)
             preclocs = Spreloc(rcpreSidx{i},:);         % reciprocal pre-synapse on Nid(i)
             postclocs = Spostloc(rcCloseSidx{i},:);     % reci post sidx on Nid(i)
             postcsidxs = rcCloseSidx{i};
+            rcprenum = length(unique(rcpreSidx{i})); rcpostnum = length(unique(rcCloseSidx{i}));
         else
             % close from reciprocal post-synapse on Nid(i)
             preclocs = Spreloc(rcCloseSidx{i},:);       % reci pre sidx on Nid(i)
             postclocs = Spostloc(rcpostSidx{i},:);      % reciprocal post-synapse on Nid(i)
             postcsidxs = rcpostSidx{i};
+            rcprenum = length(unique(rcCloseSidx{i})); rcpostnum = length(unique(rcpostSidx{i}));
         end
 
         % for detail plot, need to add Trees toolbox (https://www.treestoolbox.org/index.html)
         swc = loadSwc([conf.swcPath '/' num2str(Nid(i)) '.swc'], true);
         prelogi = ismember(preNidx,i);
         postlogi = ismember(postNidx,i);
+        sprenum = length(Sidx(prelogi & valid & score,:));
+        spostnum = length(Sidx(postlogi & valid & score,:));
 
         % show neuron and thresholded distance synapses
         [md, didx] = sort(rcDs);
         if ~isempty(dth)
-            thlen = length(find(md<dth)); % 3 um
-            disp([num2str(i) ' nids=' num2str(Nid(i)) ' (' tlabels{Ntype(i)+1} ') close reci synapses=' num2str(thlen) '/' num2str(length(rcDs))]);
+            idx = find(md<dth); % thresholded (reciprocal-synapse)
+            rcthidx = didx(idx);
+            if size(rcDs,1) > size(rcDs,2)
+                rcthprenum = length(unique(rcpreSidx{i}(rcthidx))); rcthpostnum = length(unique(rcCloseSidx{i}(rcthidx)));
+            else
+                rcthprenum = length(unique(rcCloseSidx{i}(rcthidx))); rcthpostnum = length(unique(rcpostSidx{i}(rcthidx)));
+            end
+            
+            disp([num2str(i) ' nids=' num2str(Nid(i)) ' (' tlabels{Ntype(i)+1} ') close reci synapses=' num2str(rcthprenum+rcthpostnum) '/' num2str(rcprenum+rcpostnum) '/' num2str(sprenum+spostnum)]);
             figure;
             plotSwc(swc, [0.7 0.7 1], 1, true); view(3); grid on; axis image; alpha(.1);
             xlabel('x [nm]'); ylabel('y [nm]'); zlabel('z [nm]'); title([num2str(i) ' nids=' num2str(Nid(i)) ' (' tlabels{Ntype(i)+1} ')']);

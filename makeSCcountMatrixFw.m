@@ -1,6 +1,9 @@
 % make SC neuron & synapse count matrix by FlyWire structure data.
 
-function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrixFw(roiIdxs, sz, rateTh, synTh, type)
+function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrixFw(roiIdxs, sz, scoreTh, synTh, type, spiTh, epsilon, minpts)
+    if nargin < 8, minpts = 1; end
+    if nargin < 7, epsilon = 3000; end
+    if nargin < 6, spiTh = 0; end
 
     % read neuron info (id, type)
 %    load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
@@ -9,13 +12,21 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     % read synapse info
     Sid = []; postNidx = []; preNidx = [];
     load('data/flywire783_synapse.mat');
-    score = (cleftScore >= rateTh);
+    score = (cleftScore >= scoreTh);
     Sidx = int32(1:length(Sid))';
     valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
 
     % read synapse location in FDA
     SpostlocFc = [];
     load('data/flywire783i_sypostloc_fdacal.mat');
+
+    % read synapse separation index
+    if spiTh > 0
+        load(['data/flywire783_synapse_sepidx' num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+        spidx = (postSpidx>=spiTh & preSpidx>=spiTh);
+    else
+        spidx = valid; % no separation index threshold
+    end
 
     % make presynapse index
     cfile = 'results/flywire783i_sypostCell.mat';
@@ -58,7 +69,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                 sididx = [sididx, D{j}]; % get pre-post synapse set in this ROI
             end
             logis = ismember(Sidx, sididx); % get valid post-synapse ids in this ROI
-            rsidx = Sidx(logis & score);
+            rsidx = Sidx(logis & valid & score & spidx);
 
             nidx = postNidx(rsidx);
             numsyn = groupcounts(nidx); % number of synapse in each neuron
@@ -127,7 +138,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
 
             % ROI(i) output all cells to pre-synapses for other ROIs
             logi = ismember(preNidx,outnidx); % find synapses which belong to ROI(i) output neurons
-            sidx = Sidx(logi & valid & score);
+            sidx = Sidx(logi & valid & score & spidx);
 
             % get connected synapse counts in each ROI (from ROI to connected ROI)
             conSlocFc = SpostlocFc(sidx,:); % get (pre-post) 3D location in FDA Cal template.

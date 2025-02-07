@@ -3,19 +3,19 @@
 
 function plotStructConnectivity
     % check SC post synapse cloud
-    % roitype: hemiroi primary
+    % roitype: hemiroi primary, hemiDistKm500
     showSCpostSynapse();
 
     % check SC matrix connection similarity FlyEM vs. FlyWire
-    % roitype: hemiroi primary
+    % roitype: hemiroi primary, hemiDistKm500
     showSCmatrixSimilarity();
 
     % check SC vs. FC matrix connection FlyEM vs. FlyWire
-    % roitype: hemiroi primary
+    % roitype: hemiroi primary, hemiDistKm500
     showSCFCmatrixSimilarity();
 
     % check neural transmitter type in each neuron
-    % roitype: hemiroi primary
+    % roitype: hemiroi primary, hemiDistKm500
     showNeuralTransmitter();
 
     % check mushroom body huge GABA neuron (APL-R) FlyEM, FlyWire

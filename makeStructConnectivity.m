@@ -7,9 +7,11 @@ function makeStructConnectivity
     hbSth = 80; % FlyEM hemibrain synapse threshold
     fwSth = 140; % FlyWire synapse score threshold
     synTh = 0; % synapse count at one neuron threshold
+    epsilon = 3000; % dbscan range (nanometer)
+    minpts = 1;     % set 1, includes isolated synapse
 
     % ---------------------------------------------------------------------
-    % make structural connectivity matrix from neuprint connectivity list.
+    % make structural connectivity matrix of flyem hemibrain neuropil ROIs.
     % list data was acquired by c.fetch_roi_connectivity() of neuprint python api.
 %%{
     % primary ROIs
@@ -174,9 +176,9 @@ function makeStructConnectivity
     figure; scatter(CM(:),DM(:)); title([idstr ' sc vs. dist r=' num2str(r)]); xlabel('neuron SC matrix'); ylabel('distance matrix');
 %}
     % ---------------------------------------------------------------------
-    % make structural connectivity matrix from neuprint connectivity list (flyem hemibrain) by FlyWire EM data.
+    % make structural connectivity matrix of flyem hemibrain neuropil ROIs by FlyWire EM data.
     %
-%%{
+%{
     clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
     idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth)];
     fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
@@ -214,8 +216,100 @@ function makeStructConnectivity
         save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
     end
     ids = primaryIds; CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
-    figure; imagesc(log(CM)); colorbar; title('hemibrain fw neurons matrix');
-    figure; imagesc(log(SM)); colorbar; title('hemibrain fw synapses matrix');
+    figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
+    figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
+%}
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix of flyem hemibrain neuropil ROIs
+    % pre-post synapse separation index is applied for threshold
+%{
+    for k=[5 10 15 20 30]
+        clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
+        idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) '_sp' num2str(k) 'db' num2str(epsilon) 'mi' num2str(minpts)];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
+        if exist(fname,'file')
+            load(fname);
+        else
+            info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
+            aV = niftiread(info); aV(:) = 0;
+            cnt = 1;
+            roiIdxs = {};
+            listing = dir(['atlas/hemiroi/*.nii.gz']);
+            for i=1:length(listing)
+                V = niftiread(['atlas/hemiroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+                idx = find(V>0);
+                roiIdxs{i} = idx;
+                if any(ismember(turnerIds,i))
+                    aV(idx) = cnt; cnt = cnt + 1;
+                end
+                sz = size(V);
+            end
+    
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr), k*100, epsilon, minpts);
+    
+            countMat = []; weightMat = []; scver = 5;
+        end
+        if scver <= SCVER
+            % set same order of FlyEM hemibrain.
+            flyemname = ['results/sc/hemiroi_connectlist.mat'];
+            cl = load(flyemname);
+            primaryIds = cl.primaryIds;
+            clear cl;
+        end
+        if scver <= SCVER
+            scver = scver + 0.1;
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+        end
+        ids = primaryIds; CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
+    end
+%}
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix of flyem hemibrain neuropil ROIs by FlyWire EM data.
+    % pre-post synapse separation index is applied for threshold
+%{
+    for k=[5 10 15 20 30]
+        clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
+        idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth) '_sp' num2str(k) 'db' num2str(epsilon) 'mi' num2str(minpts)];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
+        if exist(fname,'file')
+            load(fname);
+        else
+            info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
+            aV = niftiread(info); aV(:) = 0;
+            cnt = 1;
+            roiIdxs = {};
+            listing = dir(['atlas/hemiroi/*.nii.gz']);
+            for i=1:length(listing)
+                V = niftiread(['atlas/hemiroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+                idx = find(V>0);
+                roiIdxs{i} = idx;
+                if any(ismember(turnerIds,i))
+                    aV(idx) = cnt; cnt = cnt + 1;
+                end
+                sz = size(V);
+            end
+    
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, fwSth, synTh, lower(idstr), k*100, epsilon, minpts);
+    
+            countMat = []; weightMat = []; scver = 5;
+        end
+        if scver <= SCVER
+            % set same order of FlyEM hemibrain.
+            flyemname = ['results/sc/hemiroi_connectlist.mat'];
+            cl = load(flyemname);
+            primaryIds = cl.primaryIds;
+            clear cl;
+        end
+        if scver <= SCVER
+            scver = scver + 0.1;
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+        end
+        ids = primaryIds; CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
+    end
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson matrix csv.
@@ -1124,6 +1218,92 @@ function makeStructConnectivity
 
         ids = primaryIds;
         CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
+    end
+%}
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix from distance based k-means atlas
+    % pre-post synapse separation index is applied for threshold
+%%{
+    for k=[5 10 15 20 30]
+        clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
+        idstr = ['hemiDistKm500_hb'  num2str(synTh) 'sr' num2str(hbSth) '_sp' num2str(k) 'db' num2str(epsilon) 'mi' num2str(minpts)];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
+        if exist(fname,'file')
+            load(fname);
+        else
+            atlV = niftiread(['atlas/hemiDistKm' num2str(500) 'atlasCal.nii.gz']);
+            roimax = max(atlV(:));
+            sz = size(atlV);
+    
+            roiIdxs = {};
+            for i=1:roimax
+                roiIdxs{i} = find(atlV==i);
+            end
+            primaryIds = 1:roimax;
+            roiNum = length(primaryIds);
+    
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr), k*100, epsilon, minpts);
+
+            countMat = []; weightMat = []; scver = 5;
+        end
+        if scver <= SCVER
+            % set same order of FlyEM hemibrain.
+            str = split(idstr,'_');
+            flyemname = ['results/sc/' lower(str{1}) '_connectlist.mat'];
+            cl = load(flyemname);
+            primaryIds = cl.primaryIds;
+            clear cl;
+        end
+        if scver <= SCVER
+            scver = scver + 0.1;
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+        end
+        ids = primaryIds; CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
+    end
+%}
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix from distance based k-means atlas by FlyWire EM data.
+    % pre-post synapse separation index is applied for threshold
+%%{
+    for k=[5 10 15 20 30]
+        clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
+        idstr = ['hemiDistKm500_fw'  num2str(synTh) 'sr' num2str(fwSth) '_sp' num2str(k) 'db' num2str(epsilon) 'mi' num2str(minpts)];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
+        if exist(fname,'file')
+            load(fname);
+        else
+            atlV = niftiread(['atlas/hemiDistKm' num2str(500) 'atlasCal.nii.gz']);
+            roimax = max(atlV(:));
+            sz = size(atlV);
+    
+            roiIdxs = {};
+            for i=1:roimax
+                roiIdxs{i} = find(atlV==i);
+            end
+            primaryIds = 1:roimax;
+            roiNum = length(primaryIds);
+    
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, fwSth, synTh, lower(idstr), k*100, epsilon, minpts);
+    
+            countMat = []; weightMat = []; scver = 5;
+        end
+        if scver <= SCVER
+            % set same order of FlyEM hemibrain.
+            str = split(idstr,'_');
+            flyemname = ['results/sc/' lower(str{1}) '_connectlist.mat'];
+            cl = load(flyemname);
+            primaryIds = cl.primaryIds;
+            clear cl;
+        end
+        if scver <= SCVER
+            scver = scver + 0.1;
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+        end
+        ids = primaryIds; CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
         figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
         figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
     end
