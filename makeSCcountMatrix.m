@@ -1,8 +1,8 @@
 % make SC neuron & synapse count matrix by hemibrain FlyEM structure data.
 
-function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, rateTh, synTh, type, spiTh, epsilon, minpts, rcdistTh, isrand, calcRange)
+function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, rateTh, synTh, type, spiTh, epsilon, minpts, rcdistTh, rtype, calcRange)
     if nargin < 11, calcRange = {1:3, 1:2}; end
-    if nargin < 10, isrand = false; end
+    if nargin < 10, rtype = 0; end
     if nargin < 9, rcdistTh = 0; end
     if nargin < 8, minpts = 1; end
     if nargin < 7, epsilon = 3000; end
@@ -38,7 +38,8 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     if spiTh > 0
         load(['data/hemibrain_v1_2_synapses_sepidx' num2str(synTh) 'sr' num2str(rateTh*100) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
         splogi = (Spidx >= spiTh);
-        if isrand
+        switch(rtype)
+        case {1,2}
             rnum = sum(splogi);
             slogi = (srate & straced);
             idx = find(slogi);
@@ -57,13 +58,24 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
         load(['data/hemibrain_v1_2_synapses_reci'  num2str(synTh) 'sr' num2str(rateTh*100) '.mat']);
         clear SrcCloseSid;
         rclogi = ~(SrcCloseDist < rcdistTh); % nan should be ignored by <.
-        if isrand
+        switch(rtype)
+        case {1,2,4,5}
             rnum = sum(SrcCloseDist < rcdistTh);
-            slogi = srate & straced;
+            if rtype==1 || rtype==4
+                slogi = srate & straced; % full random
+            else
+                slogi = srate & straced & rclogi; % exclusive random
+            end
             idx = find(slogi);
             pidx = randperm(length(idx));
             slogi(idx(pidx(rnum+1:end))) = 0;
-            rclogi = ~slogi;
+            if rtype==1 || rtype==2
+                rclogi = ~slogi;
+            else
+                rclogi = slogi;
+            end
+        case 3
+            rclogi = (SrcCloseDist < rcdistTh); % nan should be ignored by <.
         end
         s1rcdist = ismember(StoS(:,1),Sid(rclogi));
         s2rcdist = ismember(StoS(:,2),Sid(rclogi));

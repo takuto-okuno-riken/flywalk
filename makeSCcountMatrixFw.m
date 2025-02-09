@@ -1,7 +1,7 @@
 % make SC neuron & synapse count matrix by FlyWire structure data.
 
-function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrixFw(roiIdxs, sz, conf, type, spiTh, epsilon, minpts, rcdistTh, isrand)
-    if nargin < 9, isrand = false; end
+function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrixFw(roiIdxs, sz, conf, type, spiTh, epsilon, minpts, rcdistTh, rtype)
+    if nargin < 9, rtype = 0; end
     if nargin < 8, rcdistTh = 0; end
     if nargin < 7, minpts = 1; end
     if nargin < 6, epsilon = 3000; end
@@ -28,7 +28,8 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     if spiTh > 0
         load([conf.sySepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
         spidx = (postSpidx>=spiTh & preSpidx>=spiTh);
-        if isrand
+        switch(rtype)
+        case {1,2}
             rnum = sum(spidx);
             slogi = (valid & score);
             idx = find(slogi);
@@ -43,13 +44,25 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     if rcdistTh > 0
         load([conf.syReciFile num2str(synTh) 'sr' num2str(scoreTh) '.mat']);
         rcdist = ~(SrcpreCloseDist<rcdistTh | SrcpostCloseDist<rcdistTh); % nan should be ignored by <.
-        if isrand
+        switch(rtype)
+        case {1,2,4,5}
             rnum = sum(SrcpreCloseDist<rcdistTh | SrcpostCloseDist<rcdistTh);
-            slogi = (valid & score);
+            if rtype==1 || rtype==4
+                slogi = (valid & score); % full random
+            else
+                slogi = (valid & score & rcdist); % exclusive random
+            end
+            
             idx = find(slogi);
             pidx = randperm(length(idx));
             slogi(idx(pidx(rnum+1:end))) = 0;
-            rcdist = ~slogi;
+            if rtype==1 || rtype==2
+                rcdist = ~slogi;
+            else
+                rcdist = slogi;
+            end
+        case 3
+            rcdist = (SrcpreCloseDist<rcdistTh | SrcpostCloseDist<rcdistTh); % nan should be ignored by <.
         end
     else
         rcdist = (valid | true); % no reciprocal distance threshold
