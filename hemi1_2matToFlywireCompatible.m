@@ -77,6 +77,7 @@ function hemi1_2matToFlywireCompatible
             disp('pre-post in FDA distance error!');
         end
     end
+
     % transform synapse separation index mat file (fw type to original)
     synTh = 0; scoreTh = 80; epsilon = 3000; minpts = 1;
     fname = ['data/hemibrain_v1_2_synapses_sepidx' num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
@@ -95,5 +96,29 @@ function hemi1_2matToFlywireCompatible
         Spidx(preSid) = preSpidx;
 
         save(fname,'Spidx','-v7.3');
+    end
+
+    % transform synapse separation index mat file (fw type to original)
+    synTh = 0; scoreTh = 80;
+    fname = ['data/hemibrain_v1_2_synapses_reci' num2str(synTh) 'sr' num2str(scoreTh) '.mat'];
+    if exist(fname,'file')
+        load(fname);
+    else
+        % FlyEM read synapse info
+        load('data/hemibrain_v1_2_synapses.mat');
+
+        % read separation index (fw type)
+        load('data/hemibrain1_2fw_synapse.mat');
+        load(['data/hemibrain1_2fw_synapse_reci' num2str(synTh) 'sr' num2str(scoreTh) '.mat']);
+
+        SrcCloseDist = nan(length(StoN),1,'single');
+        SrcCloseDist(Sid) = SrcpostCloseDist;
+        SrcCloseDist(preSid) = SrcpreCloseDist;
+
+        SrcCloseSid = zeros(length(StoN),1,'int32'); % TODO:
+%        SrcCloseSid(Sid) = preSid(SrcpostCloseSidx); % set close pre sid
+%        SrcCloseSid(preSid) = Sid(SrcpreCloseSidx);  % set close post sid
+
+        save(fname,'SrcCloseDist','SrcCloseSid','-v7.3');
     end
 end

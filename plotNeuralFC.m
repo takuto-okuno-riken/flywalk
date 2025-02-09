@@ -13,7 +13,9 @@ function plotNeuralFC
 
 %    showNeuralFCFw(conf, epsilon, minpts); % no use
 
-    showNeuralDBScanFw(conf, epsilon, minpts);
+%    showNeuralDBScanFw(conf, epsilon, minpts);
+
+    showReciprocalDistanceGraphFw(conf);
 
 %    showReciprocalDistanceFw(conf, uint64(425790257), 2000); % APL-R
 %    showReciprocalDistanceFw(conf, [], [])
@@ -43,7 +45,9 @@ function plotNeuralFC
 
 %    showNeuralFCFw(conf, epsilon, minpts); % no use
 
-    showNeuralDBScanFw(conf, epsilon, minpts);
+%    showNeuralDBScanFw(conf, epsilon, minpts);
+
+    showReciprocalDistanceGraphFw(conf);
 
     showReciprocalDistanceFw(conf, int64(720575940628908548), 2000); % CT1 (2um is good threshold based on histogram).
     showReciprocalDistanceFw(conf, int64(720575940613583001), 2000); % APL-R
@@ -639,6 +643,64 @@ function showReciprocalDistanceFw(conf, targetNid, dth)
         hold on; scatter3(postclocs(:,1),postclocs(:,2),postclocs(:,3),18,'blue'); hold off;
 %}
     end
+end
+
+function showReciprocalDistanceGraphFw(conf)
+    tlabels = {'Unknown','DA','SER','GABA','GLUT','ACH','OCT'};
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+    scname = conf.scname;
+
+    % FlyWire read neuron info
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+
+    % FlyWire read synapse info
+    load(conf.synapseFile);
+    score = (cleftScore >= scoreTh);
+    Sidx = int32(1:length(Sid))';
+    valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
+
+    % FlyWire read neural SC
+    rcpreSidx = {};
+    load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalConnections.mat']);
+    load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalDistances.mat']);
+
+    allDs = []; allTypes = [];
+    for i=1:length(Nid)
+        if isempty(rcpreSidx{i}), continue; end
+
+        presidxs = rcpreSidx{i};         % reciprocal pre-synapse on Nid(i)
+        postsidxs = rcpostSidx{i};
+        rcDs1 = rcpreCloseDist{i};
+        rcDs2 = rcpostCloseDist{i};
+        allDs = [allDs; rcDs1; rcDs2];
+
+        allTypes = [allTypes; ones(length(rcDs1)+length(rcDs2),1,'uint16') * Ntype(i)];
+        rcprenum = length(unique(presidxs)); rcpostnum = length(unique(postsidxs));
+    end
+
+    % show histogram (full range)
+    edges = 0:10000:600000;
+    N = [];
+    for i=1:length(tlabels)
+        idx = find(allTypes==(i-1));
+        h = histcounts(allDs(idx),edges);
+        N = [N, h'];
+    end
+    figure; bar(N,'stacked','LineWidth',0.1); legend(tlabels); xlabel('distance [*10um]'); ylabel('synapse count');
+    title([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : reciprocal synapse distance histogram']);
+
+    % show histogram (less than 20 um)
+    edges = 0:1000:20000;
+    N = [];
+    for i=1:length(tlabels)
+        idx = find(allTypes==(i-1));
+        h = histcounts(allDs(idx),edges);
+        N = [N, h'];
+    end
+    % Sdbs is better than linear version with FlyWire and hemibrain
+    figure; bar(N,'stacked','LineWidth',0.1); legend(tlabels); xlabel('distance [*1um]'); ylabel('synapse count');
+    title([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : reciprocal synapse distance histogram']);
 end
 
 function showTriangleDistanceFw(conf, trType, isPure12, isPure13, isPure23)

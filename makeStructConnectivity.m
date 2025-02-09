@@ -200,7 +200,8 @@ function makeStructConnectivity
             sz = size(V);
         end
 
-        [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, fwSth, synTh, lower(idstr));
+        conf = getSCconfig('wire', synTh, fwSth);
+        [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr));
 
         countMat = []; weightMat = []; scver = 5;
     end
@@ -290,8 +291,197 @@ function makeStructConnectivity
                 end
                 sz = size(V);
             end
+
+            conf = getSCconfig('wire', synTh, fwSth);
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), k*100, epsilon, minpts);
     
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, fwSth, synTh, lower(idstr), k*100, epsilon, minpts);
+            countMat = []; weightMat = []; scver = 5;
+        end
+        if scver <= SCVER
+            % set same order of FlyEM hemibrain.
+            flyemname = ['results/sc/hemiroi_connectlist.mat'];
+            cl = load(flyemname);
+            primaryIds = cl.primaryIds;
+            clear cl;
+        end
+        if scver <= SCVER
+            scver = scver + 0.1;
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+        end
+        ids = primaryIds; CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
+    end
+%}
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix of flyem hemibrain neuropil ROIs
+    % reciprocal synapse distance is applied for threshold
+%%{
+    for k=[20 40 100 500 1000 10000]
+        clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
+        idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) '_rc' num2str(k)];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
+        if exist(fname,'file')
+            load(fname);
+        else
+            info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
+            aV = niftiread(info); aV(:) = 0;
+            cnt = 1;
+            roiIdxs = {};
+            listing = dir(['atlas/hemiroi/*.nii.gz']);
+            for i=1:length(listing)
+                V = niftiread(['atlas/hemiroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+                idx = find(V>0);
+                roiIdxs{i} = idx;
+                if any(ismember(turnerIds,i))
+                    aV(idx) = cnt; cnt = cnt + 1;
+                end
+                sz = size(V);
+            end
+    
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr), 0, epsilon, minpts, k*100);
+    
+            countMat = []; weightMat = []; scver = 5;
+        end
+        if scver <= SCVER
+            % set same order of FlyEM hemibrain.
+            flyemname = ['results/sc/hemiroi_hb0sr80_connectlist.mat']; % not 52 ROIs, but this one is 63 ROIs
+            cl = load(flyemname);
+            primaryIds = cl.primaryIds;
+            clear cl;
+        end
+        if scver <= SCVER
+            scver = scver + 0.1;
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+        end
+        ids = primaryIds; CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
+    end
+%}
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix of flyem hemibrain neuropil ROIs by FlyWire EM data.
+    % reciprocal synapse distance is applied for threshold
+%%{
+    for k=[20 40 100 500 1000 10000]
+        clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
+        idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth) '_rc' num2str(k)];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
+        if exist(fname,'file')
+            load(fname);
+        else
+            info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
+            aV = niftiread(info); aV(:) = 0;
+            cnt = 1;
+            roiIdxs = {};
+            listing = dir(['atlas/hemiroi/*.nii.gz']);
+            for i=1:length(listing)
+                V = niftiread(['atlas/hemiroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+                idx = find(V>0);
+                roiIdxs{i} = idx;
+                if any(ismember(turnerIds,i))
+                    aV(idx) = cnt; cnt = cnt + 1;
+                end
+                sz = size(V);
+            end
+
+            conf = getSCconfig('wire', synTh, fwSth);
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), 0, epsilon, minpts, k*100);
+    
+            countMat = []; weightMat = []; scver = 5;
+        end
+        if scver <= SCVER
+            % set same order of FlyEM hemibrain.
+            flyemname = ['results/sc/hemiroi_hb0sr80_connectlist.mat'];
+            cl = load(flyemname);
+            primaryIds = cl.primaryIds;
+            clear cl;
+        end
+        if scver <= SCVER
+            scver = scver + 0.1;
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+        end
+        ids = primaryIds; CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
+    end
+%}
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix of flyem hemibrain neuropil ROIs
+    % separation index & reciprocal synapse distance are applied for threshold
+%{
+    SR = {[5 40],[5 10000]};
+    for k=1:length(SR)
+        clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
+        idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) '_sp' num2str(SR{k}(1)) 'db' num2str(epsilon) 'mi' num2str(minpts) '_rc' num2str(SR{k}(2))];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
+        if exist(fname,'file')
+            load(fname);
+        else
+            info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
+            aV = niftiread(info); aV(:) = 0;
+            cnt = 1;
+            roiIdxs = {};
+            listing = dir(['atlas/hemiroi/*.nii.gz']);
+            for i=1:length(listing)
+                V = niftiread(['atlas/hemiroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+                idx = find(V>0);
+                roiIdxs{i} = idx;
+                if any(ismember(turnerIds,i))
+                    aV(idx) = cnt; cnt = cnt + 1;
+                end
+                sz = size(V);
+            end
+    
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr), SR{k}(1)*100, epsilon, minpts, SR{k}(2)*100);
+
+            countMat = []; weightMat = []; scver = 5;
+        end
+        if scver <= SCVER
+            % set same order of FlyEM hemibrain.
+            flyemname = ['results/sc/hemiroi_connectlist.mat'];
+            cl = load(flyemname);
+            primaryIds = cl.primaryIds;
+            clear cl;
+        end
+        if scver <= SCVER
+            scver = scver + 0.1;
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+        end
+        ids = primaryIds; CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
+    end
+%}
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix of flyem hemibrain neuropil ROIs by FlyWire EM data.
+    % separation index & reciprocal synapse distance are applied for threshold
+%{
+    SR = {[5 40],[5 10000]};
+    for k=1:length(SR)
+        clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
+        idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth) '_sp' num2str(SR{k}(1)) 'db' num2str(epsilon) 'mi' num2str(minpts) '_rc' num2str(SR{k}(2))];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
+        if exist(fname,'file')
+            load(fname);
+        else
+            info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
+            aV = niftiread(info); aV(:) = 0;
+            cnt = 1;
+            roiIdxs = {};
+            listing = dir(['atlas/hemiroi/*.nii.gz']);
+            for i=1:length(listing)
+                V = niftiread(['atlas/hemiroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+                idx = find(V>0);
+                roiIdxs{i} = idx;
+                if any(ismember(turnerIds,i))
+                    aV(idx) = cnt; cnt = cnt + 1;
+                end
+                sz = size(V);
+            end
+
+            conf = getSCconfig('wire', synTh, fwSth);
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), SR{k}(1)*100, epsilon, minpts, SR{k}(2)*100);
     
             countMat = []; weightMat = []; scver = 5;
         end
@@ -443,7 +633,8 @@ function makeStructConnectivity
         primaryIds = 1:roimax;
         roiNum = length(primaryIds);
 
-        [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrixFw(roiIdxs, sz, fwSth, synTh, lower(idstr));
+        conf = getSCconfig('wire', synTh, fwSth);
+        [ncountMat, sycountMat, nweightMat, outweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr));
 
         countMat = []; weightMat = []; scver = 5;
     end
@@ -507,7 +698,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from branson 7065 k-means atlas by FlyWire EM data
     %
-%%{
+%{
     for k=[20 30 50 100 200 300 500 1000]
         idstr = ['hemiBranson7065km' num2str(k) '_fw'  num2str(synTh) 'sr' num2str(fwSth)];
         fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
@@ -524,11 +715,11 @@ function makeStructConnectivity
             for i=1:roimax
                 roiIdxs{i} = find(atlV==i);
             end
-    
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
+            conf = getSCconfig('wire', synTh, fwSth);
 
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, fwSth, synTh, lower(idstr));
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr));
 
             countMat = []; weightMat = []; scver = 5;
         end
@@ -618,11 +809,11 @@ function makeStructConnectivity
             for i=1:roimax
                 roiIdxs{i} = find(atlV==i);
             end
-    
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
+            conf = getSCconfig('wire', synTh, fwSth);
 
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, fwSth, synTh, lower(idstr));
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr));
 
             countMat = []; weightMat = []; scver = 5;
         end
@@ -993,14 +1184,14 @@ function makeStructConnectivity
             for i=1:roimax
                 roiIdxs{i} = find(atlV==i);
             end
-    
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
+            conf = getSCconfig('wire', synTh, fwSth);
 
             if k <= 1000
-                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, fwSth, synTh, lower(idstr));
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr));
             else
-                [ncountMat, sycountMat] = makeSCcountMatrixFw(roiIdxs, sz, fwSth, synTh, lower(idstr));
+                [ncountMat, sycountMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr));
                 nweightMat = []; outweightMat = []; syweightMat = [];
             end
 
@@ -1173,8 +1364,8 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from distance based k-means atlas by FlyWire EM data.
     %
-%%{
-    for k=[20 30 50 100 200 300 500 1000]% 5000 10000]
+%{
+    for k=[20 30 50 100 200 300 500 1000 5000 10000]
         idstr = ['hemiDistKm' num2str(k) '_fw' num2str(synTh) 'sr' num2str(fwSth)];
         fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
@@ -1190,14 +1381,14 @@ function makeStructConnectivity
             for i=1:roimax
                 roiIdxs{i} = find(atlV==i);
             end
-    
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
+            conf = getSCconfig('wire', synTh, fwSth);
 
             if k <= 1000
-                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, fwSth, synTh, lower(idstr));
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr));
             else
-                [ncountMat, sycountMat] = makeSCcountMatrixFw(roiIdxs, sz, fwSth, synTh, lower(idstr));
+                [ncountMat, sycountMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr));
                 nweightMat = []; outweightMat = []; syweightMat = [];
             end
 
@@ -1225,7 +1416,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from distance based k-means atlas
     % pre-post synapse separation index is applied for threshold
-%%{
+%{
     for k=[5 10 15 20 30]
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         idstr = ['hemiDistKm500_hb'  num2str(synTh) 'sr' num2str(hbSth) '_sp' num2str(k) 'db' num2str(epsilon) 'mi' num2str(minpts)];
@@ -1268,7 +1459,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from distance based k-means atlas by FlyWire EM data.
     % pre-post synapse separation index is applied for threshold
-%%{
+%{
     for k=[5 10 15 20 30]
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         idstr = ['hemiDistKm500_fw'  num2str(synTh) 'sr' num2str(fwSth) '_sp' num2str(k) 'db' num2str(epsilon) 'mi' num2str(minpts)];
@@ -1286,8 +1477,96 @@ function makeStructConnectivity
             end
             primaryIds = 1:roimax;
             roiNum = length(primaryIds);
+            conf = getSCconfig('wire', synTh, fwSth);
+
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), k*100, epsilon, minpts);
     
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, fwSth, synTh, lower(idstr), k*100, epsilon, minpts);
+            countMat = []; weightMat = []; scver = 5;
+        end
+        if scver <= SCVER
+            % set same order of FlyEM hemibrain.
+            str = split(idstr,'_');
+            flyemname = ['results/sc/' lower(str{1}) '_connectlist.mat'];
+            cl = load(flyemname);
+            primaryIds = cl.primaryIds;
+            clear cl;
+        end
+        if scver <= SCVER
+            scver = scver + 0.1;
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+        end
+        ids = primaryIds; CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
+    end
+%}
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix from distance based k-means atlas
+    % reciprocal synapse distance is applied for threshold
+%%{
+    for k=[20 40 100 500 1000 10000]
+        clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
+        idstr = ['hemiDistKm500_hb'  num2str(synTh) 'sr' num2str(hbSth) '_rc' num2str(k)];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
+        if exist(fname,'file')
+            load(fname);
+        else
+            atlV = niftiread(['atlas/hemiDistKm' num2str(500) 'atlasCal.nii.gz']);
+            roimax = max(atlV(:));
+            sz = size(atlV);
+    
+            roiIdxs = {};
+            for i=1:roimax
+                roiIdxs{i} = find(atlV==i);
+            end
+            primaryIds = 1:roimax;
+            roiNum = length(primaryIds);
+    
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr), 0, epsilon, minpts, k*100);
+
+            countMat = []; weightMat = []; scver = 5;
+        end
+        if scver <= SCVER
+            % set same order of FlyEM hemibrain.
+            str = split(idstr,'_');
+            flyemname = ['results/sc/' lower(str{1}) '_connectlist.mat'];
+            cl = load(flyemname);
+            primaryIds = cl.primaryIds;
+            clear cl;
+        end
+        if scver <= SCVER
+            scver = scver + 0.1;
+            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+        end
+        ids = primaryIds; CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
+        figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
+    end
+%}
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix from distance based k-means atlas by FlyWire EM data.
+    % reciprocal synapse distance is applied for threshold
+%%{
+    for k=[20 40 100 500 1000 10000]
+        clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
+        idstr = ['hemiDistKm500_fw'  num2str(synTh) 'sr' num2str(fwSth) '_rc' num2str(k)];
+        fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
+        if exist(fname,'file')
+            load(fname);
+        else
+            atlV = niftiread(['atlas/hemiDistKm' num2str(500) 'atlasCal.nii.gz']);
+            roimax = max(atlV(:));
+            sz = size(atlV);
+    
+            roiIdxs = {};
+            for i=1:roimax
+                roiIdxs{i} = find(atlV==i);
+            end
+            primaryIds = 1:roimax;
+            roiNum = length(primaryIds);
+            conf = getSCconfig('wire', synTh, fwSth);
+
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), 0, epsilon, minpts, k*100);
     
             countMat = []; weightMat = []; scver = 5;
         end

@@ -27,7 +27,7 @@ function makeNeuralSC
 
     checkReciprocalSynapseDistanceFw(conf);
 
-%    checkReciprocalSynapseCountFw(conf, 1000:1000:3000); % three thresholds
+    checkReciprocalSynapseCountFw(conf, 1000:1000:3000); % three thresholds
 
 %{
     Cnames = {'SMP352'};
@@ -963,6 +963,7 @@ function checkReciprocalSynapseDistanceFw(conf)
 
     fname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalDistances.mat'];
     if exist(fname,'file'), return; end
+    syfname = [conf.syReciFile num2str(synTh) 'sr' num2str(scoreTh) '.mat'];
     rcfname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalConnections.mat'];
     rcpreSidx = {}; rcpostSidx = {}; rcNidx = {};
     load(rcfname);
@@ -981,9 +982,16 @@ function checkReciprocalSynapseDistanceFw(conf)
     load(conf.sypostlocFile);
     load(conf.syprelocFile);
 
+    slen = length(Sidx);
     nlen = length(rcNidx);
-    rcCloseDist = cell(nlen,1);
-    rcCloseSidx = cell(nlen,1);
+    SrcpreCloseDist = nan(slen,1,'single');
+    SrcpreCloseSidx = zeros(slen,1,'int32');
+    SrcpostCloseDist = nan(slen,1,'single');
+    SrcpostCloseSidx = zeros(slen,1,'int32');
+    rcpreCloseDist = cell(nlen,1);
+    rcpreCloseSidx = cell(nlen,1);
+    rcpostCloseDist = cell(nlen,1);
+    rcpostCloseSidx = cell(nlen,1);
     for i=1:nlen
         nids = rcNidx{i};
         if isempty(nids), continue; end
@@ -1005,18 +1013,23 @@ function checkReciprocalSynapseDistanceFw(conf)
         clear rcNidx1; clear rcNidx2;
 
         % find minimum distance of pre and post (should be same reciprocal target neuron)
-        if size(D,1) > size(D,2)
-            [minD, idxD] = min(D,[],2,'omitnan');
-            rcCloseDist{i} = minD;
-            rcCloseSidx{i} = rcpostSidx{i}(idxD);
-        else
-            [minD2, idxD2] = min(D,[],1,'omitnan');
-            rcCloseDist{i} = minD2;
-            rcCloseSidx{i} = rcpreSidx{i}(idxD2);
-        end
+        [minD, idxD] = min(D,[],2,'omitnan');
+        rcpreCloseDist{i} = minD;
+        rcpreCloseSidx{i} = rcpostSidx{i}(idxD);
+
+        [minD2, idxD2] = min(D,[],1,'omitnan');
+        rcpostCloseDist{i} = minD2';
+        rcpostCloseSidx{i} = rcpreSidx{i}(idxD2');
+
+        % set synapse file data
+        SrcpreCloseDist(rcpreSidx{i}) = rcpreCloseDist{i};
+        SrcpreCloseSidx(rcpreSidx{i}) = rcpreCloseSidx{i};
+        SrcpostCloseDist(rcpostSidx{i}) = rcpostCloseDist{i};
+        SrcpostCloseSidx(rcpostSidx{i}) = rcpostCloseSidx{i};
         disp(['find closest reciprocal synapses (' num2str(i) ') nid=' num2str(Nid(i))]);
     end
-    save(fname,'rcCloseDist','rcCloseSidx','-v7.3');
+    save(fname,'rcpreCloseDist','rcpreCloseSidx','rcpostCloseDist','rcpostCloseSidx','-v7.3');
+    save(syfname, 'SrcpreCloseDist', 'SrcpreCloseSidx', 'SrcpostCloseDist', 'SrcpostCloseSidx', '-v7.3');
 end
 
 function checkReciprocalSynapseCountFw(conf, rcDistThs)
@@ -1026,7 +1039,7 @@ function checkReciprocalSynapseCountFw(conf, rcDistThs)
 
     fname = [conf.neuReciFile num2str(synTh) 'sr' num2str(scoreTh) '.mat'];
     if exist(fname,'file'), return; end
-    rcpreSidx = {}; rcpostSidx = {}; rcCloseSidx = {}; rcCloseDist = {};
+    rcpreSidx = {}; rcpostSidx = {}; rcpreCloseSidx = {}; rcpostCloseSidx = {}; rcpreCloseDist = {}; rcpostCloseDist = {};
     load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalConnections.mat']);
     load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalDistances.mat']);
 
@@ -1055,33 +1068,23 @@ function checkReciprocalSynapseCountFw(conf, rcDistThs)
 
         if isempty(rcpreSidx{i}), continue; end
 
-        rcDs = rcCloseDist{i};
-        if size(rcDs,1) > size(rcDs,2)
-            % close from reciprocal pre-synapse on Nid(i)
-            rcprenum = length(unique(rcpreSidx{i})); rcpostnum = length(unique(rcCloseSidx{i}));
-        else
-            % close from reciprocal post-synapse on Nid(i)
-            rcprenum = length(unique(rcCloseSidx{i})); rcpostnum = length(unique(rcpostSidx{i}));
-        end
+        rcprenum = length(unique(rcpreSidx{i})); rcpostnum = length(unique(rcpostSidx{i}));
         Nrcsycount(i,:) = [rcprenum rcpostnum];
 
         % show neuron and thresholded distance synapses
         rcthprenum = 0; rcthpostnum = 0; % init
         thrcsycount = zeros(length(rcDistThs),2,'int32');
-        [md, didx] = sort(rcDs);
         for j = 1:length(rcDistThs)
             dth = rcDistThs(j);
-            idx = find(md<dth); % thresholded (reciprocal-synapse)
-            rcthidx = didx(idx);
-            if size(rcDs,1) > size(rcDs,2)
-                rcthprenum = length(unique(rcpreSidx{i}(rcthidx))); rcthpostnum = length(unique(rcCloseSidx{i}(rcthidx)));
-            else
-                rcthprenum = length(unique(rcCloseSidx{i}(rcthidx))); rcthpostnum = length(unique(rcpostSidx{i}(rcthidx)));
-            end
+            idx = find(rcpreCloseDist{i} <= dth); % thresholded (reciprocal-synapse)
+            rcthprenum = length(unique(rcpreSidx{i}(idx))); 
+
+            idx = find(rcpostCloseDist{i} <= dth); % thresholded (reciprocal-synapse)
+            rcthpostnum = length(unique(rcpostSidx{i}(idx)));
             thrcsycount(j,:) = [rcthprenum rcthpostnum];
         end
         Nthrcsycount(i,:,:) = thrcsycount;
-        disp([num2str(i) ') nids=' num2str(Nid(i)) ' close reci synapses=' num2str(rcthprenum+rcthpostnum) '/' num2str(rcprenum+rcpostnum) '/' num2str(sprenum+spostnum)]);
+        disp(['count reciprocal synapses (' num2str(i) ') nids=' num2str(Nid(i)) ' close reci synapses=' num2str(rcthprenum+rcthpostnum) '/' num2str(rcprenum+rcpostnum) '/' num2str(sprenum+spostnum)]);
     end
     save(fname, 'Nsycount', 'Nrcsycount', 'Nthrcsycount', '-v7.3');
 end

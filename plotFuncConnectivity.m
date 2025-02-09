@@ -30,7 +30,7 @@ function plotFuncConnectivity
 
     % check smoothing result around 50 ROIs (s0 to s80)
     % roitype: FlyEM,FlyEMFw,Branson,BransonFw,Cm,CmFw,CmR1w1,Dist,Rand,Vrand
-%    checkSmoothingResult50(vslabels);
+    checkSmoothingResult50(vslabels);
 
     % check smoothing result in several ROI nums (s0 to s80, roi 20 to 1000)
     % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
@@ -83,10 +83,21 @@ function plotFuncConnectivity
     % roitype: Cm,CmFw,Branson,BransonFw,Dist,DistFw
     checkSmoothingFlyWireByRoinum(vslabels);
 
-    % check synapse separation index of FlyEM vs. FlyWire (s0, poltcomp)
+    % check synapse separation index thresholds of FlyEM vs. FlyWire (s0, poltcomp)
     % roitype: hemiroi
-    checkSeparationFlyWireByRoinum(vslabels);
+    checkSeparationFlyWireByHemiroi(vslabels);
 
+    % check synapse separation index thresholds of FlyEM vs. FlyWire (poltcomp)
+    % roitype: DistKm50
+    checkSeparationFlyWireByDistKm(vslabels);
+
+    % check reciprocal synapse distance thresholds of FlyEM vs. FlyWire (s0, poltcomp)
+    % roitype: hemiroi
+    checkReciprocalDistanceFlyWireByHemiroi(vslabels);
+
+    % check reciprocal synapse distance thresholds of FlyEM vs. FlyWire (poltcomp)
+    % roitype: DistKm500
+    checkReciprocalDistanceFlyWireByDistKm(vslabels);
 end
 
 function checkSmoothingByRoinum(vslabels)
@@ -388,14 +399,188 @@ function checkSmoothingFlyWireByRoinum(vslabels)
     figure; plot(B(I,:)'); legend(ylabels(I)); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
 end
 
-function checkSeparationFlyWireByRoinum(vslabels)
+function checkSeparationFlyWireByHemiroi(vslabels)
     preproc = 'ar'; % for move correct, slice time correct
     hpfTh = [0]; % high-pass filter threshold
     smooth = {''};
     nuisance = {'poltcomp'};
-    roitypes = {{'hemiroi','_hb0sr80'},{'hemiroi','_hb0sr80_sp5db3000mi1'},{'hemiroi','_hb0sr80_sp10db3000mi1'},{'hemiroi','_hb0sr80_sp15db3000mi1'},{'hemiroi','_hb0sr80_sp20db3000mi1'},{'hemiroi','_hb0sr80_sp30db3000mi1'}, ...
+    % this comparison is bad. hemiroi_fw0sr140 has 63 ROIs. but hemiroi_fw0sr140_sp5db3000mi1 has 52 ROIs. hmm...
+    roitypes = {{'hemiroi',''},{'hemiroi','_hb0sr80_sp5db3000mi1'},{'hemiroi','_hb0sr80_sp10db3000mi1'},{'hemiroi','_hb0sr80_sp15db3000mi1'},{'hemiroi','_hb0sr80_sp20db3000mi1'},{'hemiroi','_hb0sr80_sp30db3000mi1'}, ...
         {'hemiroi','_fw0sr140'},{'hemiroi','_fw0sr140_sp5db3000mi1'},{'hemiroi','_fw0sr140_sp10db3000mi1'},{'hemiroi','_fw0sr140_sp15db3000mi1'},{'hemiroi','_fw0sr140_sp20db3000mi1'},{'hemiroi','_fw0sr140_sp30db3000mi1'}};
     roitypelabels = {'HbSp0','HbSp5','HbSp10','HbSp15','HbSp20','HbSp30','FwSp0','FwSp5','FwSp10','FwSp15','FwSp20','FwSp30'};
+
+    R3 = []; A3 = [];
+    for r = 1:length(roitypes)
+        Am = []; Rm = []; ii=1; xlabels = {};
+        for h=1:length(hpfTh)
+            hpfstr = '';
+            if hpfTh(h) > 0, hpfstr = ['hf' num2str(round(1/hpfTh(h)))]; end
+            for k=1:length(smooth)
+                for n=1:length(nuisance)
+                    pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}{1} roitypes{r}{2}];
+                    xlabels{ii} = [smooth{k} nuisance{n}]; ii=ii+1;
+                    aucmat = ['results/auc/' pftype '-fcauc.mat'];
+                    if exist(aucmat,'file')
+                        load(aucmat);
+                    else
+                        A = nan(size(A3,1),100);
+                        R = nan(size(R3,1),1);
+                    end
+                    Am = [Am,nanmean(A,2)];
+                    Rm = [Rm,R(:)];
+                end
+            end
+        end
+
+        R3 = [R3,Rm]; A3 = [A3,Am];
+    end
+
+    % FC-SC correlation (all)
+    I = [7 9 19 21];
+    figure; imagescLabel2(R3(I,:),roitypelabels,vslabels(I),[0.2 0.9]); colorbar; title(['FC-SC correlation (All) ']); colormap(hot);
+    
+    % FC-SC correlation Traced neuron vs synapse
+    figure; plot(R3(I,:)'); legend(vslabels(I)); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % FC-SC detection (all)
+    figure; imagescLabel2(A3(I,:),roitypelabels,vslabels(I),[0.5 1]); colorbar; title(['FC-SC detection (All) ']); colormap(hot);
+
+    % FC-SC detection Traced neuron vs synapse
+    figure; plot(A3(I,:)'); legend(vslabels(I)); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % both FC-SC correlation & detection (all)
+    B = abs(R3) + abs(A3-0.5)*2;
+    figure; imagescLabel2(B(I,:),roitypelabels,vslabels(I),[0 1.5]); colorbar; title('FC-SC correlation & detection'); colormap(hot);
+
+    % FC-SC correlation & detection Traced neuron vs synapse (which is best?)
+    figure; plot(B(I,:)'); legend(vslabels(I)); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
+end
+
+function checkSeparationFlyWireByDistKm(vslabels)
+    preproc = 'ar'; % for move correct, slice time correct
+    hpfTh = [0]; % high-pass filter threshold
+    smooth = {'s80'};
+    nuisance = {''};%{'poltcomp'};
+    roitypes = {{'hemicmkm50','_hb0sr80'},{'hemicmkm50','_hb0sr80_sp5db3000mi1'},...%{'hemidistkm500','_hb0sr80_sp10db3000mi1'},{'hemidistkm500','_hb0sr80_sp15db3000mi1'},{'hemidistkm500','_hb0sr80_sp20db3000mi1'},{'hemidistkm500','_hb0sr80_sp30db3000mi1'}, ...
+        {'hemicmkm50','_fw0sr140'},{'hemicmkm50','_fw0sr140_sp5db3000mi1'}};%,{'hemidistkm500','_fw0sr140_sp10db3000mi1'},{'hemidistkm500','_fw0sr140_sp15db3000mi1'},{'hemidistkm500','_fw0sr140_sp20db3000mi1'},{'hemidistkm500','_fw0sr140_sp30db3000mi1'}};
+    roitypelabels = {'HbSp0','HbSp5','HbSp10','HbSp15','HbSp20','HbSp30','FwSp0','FwSp5','FwSp10','FwSp15','FwSp20','FwSp30'};
+
+    R3 = []; A3 = [];
+    for r = 1:length(roitypes)
+        Am = []; Rm = []; ii=1; xlabels = {};
+        for h=1:length(hpfTh)
+            hpfstr = '';
+            if hpfTh(h) > 0, hpfstr = ['hf' num2str(round(1/hpfTh(h)))]; end
+            for k=1:length(smooth)
+                for n=1:length(nuisance)
+                    pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}{1} roitypes{r}{2}];
+                    xlabels{ii} = [smooth{k} nuisance{n}]; ii=ii+1;
+                    aucmat = ['results/auc/' pftype '-fcauc.mat'];
+                    if exist(aucmat,'file')
+                        load(aucmat);
+                    else
+                        A = nan(size(A3,1),100);
+                        R = nan(size(R3,1),1);
+                    end
+                    Am = [Am,nanmean(A,2)];
+                    Rm = [Rm,R(:)];
+                end
+            end
+        end
+
+        R3 = [R3,Rm]; A3 = [A3,Am];
+    end
+
+    % FC-SC correlation (all)
+    I = [7 9 19 21];
+    figure; imagescLabel2(R3(I,:),roitypelabels,vslabels(I),[0.2 0.9]); colorbar; title(['FC-SC correlation (All) ']); colormap(hot);
+    
+    % FC-SC correlation Traced neuron vs synapse
+    figure; plot(R3(I,:)'); legend(vslabels(I)); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % FC-SC detection (all)
+    figure; imagescLabel2(A3(I,:),roitypelabels,vslabels(I),[0.5 1]); colorbar; title(['FC-SC detection (All) ']); colormap(hot);
+
+    % FC-SC detection Traced neuron vs synapse
+    figure; plot(A3(I,:)'); legend(vslabels(I)); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % both FC-SC correlation & detection (all)
+    B = abs(R3) + abs(A3-0.5)*2;
+    figure; imagescLabel2(B(I,:),roitypelabels,vslabels(I),[0 1.5]); colorbar; title('FC-SC correlation & detection'); colormap(hot);
+
+    % FC-SC correlation & detection Traced neuron vs synapse (which is best?)
+    figure; plot(B(I,:)'); legend(vslabels(I)); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
+end
+
+function checkReciprocalDistanceFlyWireByHemiroi(vslabels)
+    preproc = 'ar'; % for move correct, slice time correct
+    hpfTh = [0]; % high-pass filter threshold
+    smooth = {''};
+    nuisance = {'poltcomp'};
+    % this comparison is bad. hemiroi_fw0sr140 has 63 ROIs. but hemiroi_fw0sr140_sp5db3000mi1 has 52 ROIs. hmm...
+    roitypes = {{'hemiroi','_hb0sr80'},{'hemiroi','_hb0sr80_rc20'},{'hemiroi','_hb0sr80_rc40'},{'hemiroi','_hb0sr80_rc100'},{'hemiroi','_hb0sr80_rc500'},{'hemiroi','_hb0sr80_rc1000'},{'hemiroi','_hb0sr80_rc10000'}, ...
+        {'hemiroi','_hb0sr80_sp5db3000mi1_rc40'},{'hemiroi','_hb0sr80_sp5db3000mi1_rc10000'}, ...
+        {'hemiroi','_fw0sr140'},{'hemiroi','_fw0sr140_rc20'},{'hemiroi','_fw0sr140_rc40'},{'hemiroi','_fw0sr140_rc100'},{'hemiroi','_fw0sr140_rc500'},{'hemiroi','_fw0sr140_rc1000'},{'hemiroi','_fw0sr140_rc10000'}, ...
+        {'hemiroi','_fw0sr140_sp5db3000mi1_rc40'},{'hemiroi','_fw0sr140_sp5db3000mi1_rc10000'}, ...
+        };
+    roitypelabels = {'HbRc0','HbRc20','HbRc40','HbRc100','HbRc500','HbRc1000','HbRc10000','HbSp5Rc40','HbSp5Rc10000','FwRc0','FwRc20','FwRc40','FwRc100','FwRc500','FwRc1000','FwRc10000','FwSp5Rc40','FwSp5Rc10000'};
+
+    R3 = []; A3 = [];
+    for r = 1:length(roitypes)
+        Am = []; Rm = []; ii=1; xlabels = {};
+        for h=1:length(hpfTh)
+            hpfstr = '';
+            if hpfTh(h) > 0, hpfstr = ['hf' num2str(round(1/hpfTh(h)))]; end
+            for k=1:length(smooth)
+                for n=1:length(nuisance)
+                    pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}{1} roitypes{r}{2}];
+                    xlabels{ii} = [smooth{k} nuisance{n}]; ii=ii+1;
+                    aucmat = ['results/auc/' pftype '-fcauc.mat'];
+                    if exist(aucmat,'file')
+                        load(aucmat);
+                    else
+                        A = nan(size(A3,1),100);
+                        R = nan(size(R3,1),1);
+                    end
+                    Am = [Am,nanmean(A,2)];
+                    Rm = [Rm,R(:)];
+                end
+            end
+        end
+
+        R3 = [R3,Rm]; A3 = [A3,Am];
+    end
+
+    % FC-SC correlation (all)
+    I = [7 9 19 21];
+    figure; imagescLabel2(R3(I,:),roitypelabels,vslabels(I),[0.2 0.9]); colorbar; title(['FC-SC correlation (All) ']); colormap(hot);
+    
+    % FC-SC correlation Traced neuron vs synapse
+    figure; plot(R3(I,:)'); legend(vslabels(I)); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % FC-SC detection (all)
+    figure; imagescLabel2(A3(I,:),roitypelabels,vslabels(I),[0.5 1]); colorbar; title(['FC-SC detection (All) ']); colormap(hot);
+
+    % FC-SC detection Traced neuron vs synapse
+    figure; plot(A3(I,:)'); legend(vslabels(I)); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % both FC-SC correlation & detection (all)
+    B = abs(R3) + abs(A3-0.5)*2;
+    figure; imagescLabel2(B(I,:),roitypelabels,vslabels(I),[0 1.5]); colorbar; title('FC-SC correlation & detection'); colormap(hot);
+
+    % FC-SC correlation & detection Traced neuron vs synapse (which is best?)
+    figure; plot(B(I,:)'); legend(vslabels(I)); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
+end
+
+function checkReciprocalDistanceFlyWireByDistKm(vslabels)
+    preproc = 'ar'; % for move correct, slice time correct
+    hpfTh = [0]; % high-pass filter threshold
+    smooth = {''};
+    nuisance = {'poltcomp'};
+    roitypes = {{'hemidistkm500','_hb0sr80'},{'hemidistkm500','_hb0sr80_rc20'},{'hemidistkm500','_hb0sr80_rc40'},{'hemidistkm500','_hb0sr80_rc100'},{'hemidistkm500','_hb0sr80_rc500'},{'hemidistkm500','_hb0sr80_rc1000'},{'hemidistkm500','_hb0sr80_rc10000'}, ...
+        {'hemidistkm500','_fw0sr140'},{'hemidistkm500','_fw0sr140_rc20'},{'hemidistkm500','_fw0sr140_rc40'},{'hemidistkm500','_fw0sr140_rc100'},{'hemidistkm500','_fw0sr140_rc500'},{'hemidistkm500','_fw0sr140_rc1000'},{'hemidistkm500','_fw0sr140_rc10000'}, ...
+        };
+    roitypelabels = {'HbRc0','HbRc20','HbRc40','HbRc100','HbRc500','HbRc1000','HbRc10000','HbSp5Rc40','HbSp5Rc10000','FwRc0','FwRc20','FwRc40','FwRc100','FwRc500','FwRc1000','FwRc10000','FwSp5Rc40','FwSp5Rc10000'};
 
     R3 = []; A3 = [];
     for r = 1:length(roitypes)

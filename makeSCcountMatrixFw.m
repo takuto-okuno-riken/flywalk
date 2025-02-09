@@ -1,31 +1,41 @@
 % make SC neuron & synapse count matrix by FlyWire structure data.
 
-function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrixFw(roiIdxs, sz, scoreTh, synTh, type, spiTh, epsilon, minpts)
-    if nargin < 8, minpts = 1; end
-    if nargin < 7, epsilon = 3000; end
-    if nargin < 6, spiTh = 0; end
+function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrixFw(roiIdxs, sz, conf, type, spiTh, epsilon, minpts, rcdistTh)
+    if nargin < 8, rcdistTh = 0; end
+    if nargin < 7, minpts = 1; end
+    if nargin < 6, epsilon = 3000; end
+    if nargin < 5, spiTh = 0; end
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
 
     % read neuron info (id, type)
-%    load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+%    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
 %    clear Nid; clear Nscore; clear Ntype; 
 
     % read synapse info
     Sid = []; postNidx = []; preNidx = [];
-    load('data/flywire783_synapse.mat');
+    load(conf.synapseFile);
     score = (cleftScore >= scoreTh);
     Sidx = int32(1:length(Sid))';
     valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
 
     % read synapse location in FDA
     SpostlocFc = [];
-    load('data/flywire783i_sypostloc_fdacal.mat');
+    load(conf.sypostlocFdaFile);
 
     % read synapse separation index
     if spiTh > 0
-        load(['data/flywire783_synapse_sepidx' num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+        load([conf.sySepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
         spidx = (postSpidx>=spiTh & preSpidx>=spiTh);
     else
-        spidx = valid; % no separation index threshold
+        spidx = (valid | true); % no separation index threshold
+    end
+
+    if rcdistTh > 0
+        load([conf.syReciFile num2str(synTh) 'sr' num2str(scoreTh) '.mat']);
+        rcdist = ~(SrcpreCloseDist<rcdistTh | SrcpostCloseDist<rcdistTh); % nan should be ignored by <.
+    else
+        rcdist = (valid | true); % no reciprocal distance threshold
     end
 
     % make presynapse index
@@ -69,7 +79,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                 sididx = [sididx, D{j}]; % get pre-post synapse set in this ROI
             end
             logis = ismember(Sidx, sididx); % get valid post-synapse ids in this ROI
-            rsidx = Sidx(logis & valid & score & spidx);
+            rsidx = Sidx(logis & valid & score & spidx & rcdist);
 
             nidx = postNidx(rsidx);
             numsyn = groupcounts(nidx); % number of synapse in each neuron
@@ -138,7 +148,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
 
             % ROI(i) output all cells to pre-synapses for other ROIs
             logi = ismember(preNidx,outnidx); % find synapses which belong to ROI(i) output neurons
-            sidx = Sidx(logi & valid & score & spidx);
+            sidx = Sidx(logi & valid & score & spidx & rcdist);
 
             % get connected synapse counts in each ROI (from ROI to connected ROI)
             conSlocFc = SpostlocFc(sidx,:); % get (pre-post) 3D location in FDA Cal template.

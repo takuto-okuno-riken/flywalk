@@ -1,6 +1,7 @@
 % make SC neuron & synapse count matrix by hemibrain FlyEM structure data.
 
-function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, rateTh, synTh, type, spiTh, epsilon, minpts)
+function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, rateTh, synTh, type, spiTh, epsilon, minpts, rcdistTh)
+    if nargin < 9, rcdistTh = 0; end
     if nargin < 8, minpts = 1; end
     if nargin < 7, epsilon = 3000; end
     if nargin < 6, spiTh = 0; end
@@ -37,7 +38,18 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
         s2spidx = ismember(StoS(:,2),Sid(splogi));
         ssspidx = (s1spidx & s2spidx);
     else
-        ssspidx = ssrate; % no separation index threshold
+        ssspidx = (ssrate | true); % no separation index threshold
+    end
+
+    if rcdistTh > 0
+        load(['data/hemibrain_v1_2_synapses_reci'  num2str(synTh) 'sr' num2str(rateTh*100) '.mat']);
+        clear SrcCloseSid;
+        rclogi = ~(SrcCloseDist < rcdistTh); % nan should be ignored by <.
+        s1rcdist = ismember(StoS(:,1),Sid(rclogi));
+        s2rcdist = ismember(StoS(:,2),Sid(rclogi));
+        ssrcdist = (s1rcdist & s2rcdist);
+    else
+        ssrcdist = (ssrate | true); % no reciprocal distance threshold
     end
 
     % make presynapse index
@@ -64,6 +76,10 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     if spiTh > 0
         Sdir((Spidx >= 0) & (Spidx < spiTh)) = 0;  
         clear Spidx;
+    end
+    if rcdistTh > 0
+        Sdir(SrcCloseDist < rcdistTh) = 0;  
+        clear SrcCloseDist;
     end
 
     if ~exist('results/cache','dir'), mkdir('results/cache'); end
@@ -183,11 +199,11 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             presids = Sid(slogi & Sdir==1); % get pre-synapse ids of output neurons
             sslogi = ismember(StoS(:,1),presids); % get pre-synapse to connected post-synapse
             if p==1
-                cpresids = StoS(sslogi & ssrate & ssspidx,1);
-                cpostsids = StoS(sslogi & ssrate & ssspidx,2);
+                cpresids = StoS(sslogi & ssrate & ssspidx & ssrcdist,1);
+                cpostsids = StoS(sslogi & ssrate & ssspidx & ssrcdist,2);
             else
-                cpresids = StoS(sslogi & ssrate & sstraced & ssspidx,1);
-                cpostsids = StoS(sslogi & ssrate & sstraced & ssspidx,2);
+                cpresids = StoS(sslogi & ssrate & sstraced & ssspidx & ssrcdist,1);
+                cpostsids = StoS(sslogi & ssrate & sstraced & ssspidx & ssrcdist,2);
             end
             [cpostsids, ia] = unique(cpostsids);
             cpresids = cpresids(ia);
