@@ -108,8 +108,8 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             for j=1:length(D)
                 sididx = [sididx, D{j}]; % get pre-post synapse set in this ROI
             end
-            logis = ismember(Sidx, sididx); % get valid post-synapse ids in this ROI
-            rsidx = Sidx(logis & valid & score & spidx & rcdist);
+            slogi = ismember(Sidx, sididx); % get valid post-synapse ids in this ROI
+            rsidx = Sidx(slogi & valid & score & spidx & rcdist);
 
             nidx = postNidx(rsidx);
             numsyn = groupcounts(nidx); % number of synapse in each neuron
@@ -133,8 +133,8 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             % syweightMat is heavy. calculate is if only it is required.
             if issyweight
                 logis = ismember(preNidx,Nin{i}{2});
-                logis = ismember(sididx,Sidx(logis)); % find may be slow, but Sid will consume memory.
-                Sin{i}{2} = sididx(logis); % output traced synapses in ROI(i)
+                logis = ismember(rsidx,Sidx(logis)); % find may be slow, but Sid will consume memory.
+                Sin{i}{2} = rsidx(logis); % output traced synapses in ROI(i)
             end
         end
         if issyweight
