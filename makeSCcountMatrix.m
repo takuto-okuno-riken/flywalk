@@ -57,14 +57,14 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     if rcdistTh > 0
         load(['data/hemibrain_v1_2_synapses_reci'  num2str(synTh) 'sr' num2str(rateTh*100) '.mat']);
         clear SrcCloseSid;
-        rclogi = ~(SrcCloseDist < rcdistTh); % nan should be ignored by <.
+        rclogi = (SrcCloseDist < rcdistTh); % nan should be ignored by <.
         switch(rtype)
         case {1,2,4,5}
-            rnum = sum(SrcCloseDist < rcdistTh);
+            rnum = sum(rclogi);
             if rtype==1 || rtype==4
                 slogi = srate & straced; % full random
             else
-                slogi = srate & straced & rclogi; % exclusive random
+                slogi = srate & straced & ~rclogi; % exclusive random
             end
             idx = find(slogi);
             pidx = randperm(length(idx));
@@ -75,11 +75,15 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                 rclogi = slogi;
             end
         case 3
+            s1rcdist = ismember(StoS(:,1),Sid(rclogi));
+            s2rcdist = ismember(StoS(:,2),Sid(rclogi));
+            ssrcdist = (s1rcdist & s2rcdist);
+        otherwise
             rclogi = (SrcCloseDist < rcdistTh); % nan should be ignored by <.
+            s1rcdist = ismember(StoS(:,1),Sid(rclogi));
+            s2rcdist = ismember(StoS(:,2),Sid(rclogi));
+            ssrcdist = ~(s1rcdist & s2rcdist);
         end
-        s1rcdist = ismember(StoS(:,1),Sid(rclogi));
-        s2rcdist = ismember(StoS(:,2),Sid(rclogi));
-        ssrcdist = (s1rcdist & s2rcdist);
     else
         ssrcdist = (ssrate | true); % no reciprocal distance threshold
     end

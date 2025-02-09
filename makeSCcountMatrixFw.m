@@ -43,14 +43,14 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
 
     if rcdistTh > 0
         load([conf.syReciFile num2str(synTh) 'sr' num2str(scoreTh) '.mat']);
-        rcdist = ~(SrcpreCloseDist<rcdistTh | SrcpostCloseDist<rcdistTh); % nan should be ignored by <.
+        rcdist = (SrcpreCloseDist<rcdistTh & SrcpostCloseDist<rcdistTh); % nan should be ignored by <.
         switch(rtype)
         case {1,2,4,5}
-            rnum = sum(SrcpreCloseDist<rcdistTh | SrcpostCloseDist<rcdistTh);
+            rnum = sum(rcdist);
             if rtype==1 || rtype==4
                 slogi = (valid & score); % full random
             else
-                slogi = (valid & score & rcdist); % exclusive random
+                slogi = (valid & score & ~rcdist); % exclusive random
             end
             
             idx = find(slogi);
@@ -62,7 +62,9 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                 rcdist = slogi;
             end
         case 3
-            rcdist = (SrcpreCloseDist<rcdistTh | SrcpostCloseDist<rcdistTh); % nan should be ignored by <.
+            % nothing to do
+        otherwise
+            rcdist = ~rcdist;
         end
     else
         rcdist = (valid | true); % no reciprocal distance threshold
