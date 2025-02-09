@@ -30,7 +30,7 @@ function plotFuncConnectivity
 
     % check smoothing result around 50 ROIs (s0 to s80)
     % roitype: FlyEM,FlyEMFw,Branson,BransonFw,Cm,CmFw,CmR1w1,Dist,Rand,Vrand
-    checkSmoothingResult50(vslabels);
+%    checkSmoothingResult50(vslabels);
 
     % check smoothing result in several ROI nums (s0 to s80, roi 20 to 1000)
     % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
@@ -53,7 +53,7 @@ function plotFuncConnectivity
     % to check inside neuropil FC-SC relation at 1 voxel resolution based
     % on checkNuisanceResultHemiROIs result (poltcomp may not be the best).
     % roitype: hemiroi68-59-87-106-50-27-54 (mushroom body)
-    checkSmoothingNuisanceMushroomBody(vslabels);
+%    checkSmoothingNuisanceMushroomBody(vslabels);
 
     % check large smoothing size in several ROI nums and poltcomp (s0 to 300, roi 50 to 500, '' & poltcomp)
     % roitype: Cm,Dist
@@ -73,7 +73,7 @@ function plotFuncConnectivity
     % In 1 voxel resolution, DistKm1000vox1 (very sparce) with s230poltcomp shows still
     % high correlation & detection result. Thus, high density neuropil needs different solution.
     % roitype: DistKm1000vox128,64,32,16,8,4,2,1
-    checkSmoothingNuisanceByDistKm1000vox(vslabels);
+%    checkSmoothingNuisanceByDistKm1000vox(vslabels);
 
     % check smoothing result of FlyEM vs. FlyWire around 50 ROIs (s0 to s80, no nuisance)
     % roitype: FlyEM,FlyEMFw,DistKm50,DistKm50Fw,DistKm50Avg
@@ -85,19 +85,23 @@ function plotFuncConnectivity
 
     % check synapse separation index thresholds of FlyEM vs. FlyWire (s0, poltcomp)
     % roitype: hemiroi
-    checkSeparationFlyWireByHemiroi(vslabels);
+%    checkSeparationFlyWireByHemiroi(vslabels);
 
     % check synapse separation index thresholds of FlyEM vs. FlyWire (poltcomp)
     % roitype: DistKm50
-    checkSeparationFlyWireByDistKm(vslabels);
+%    checkSeparationFlyWireByDistKm(vslabels);
 
     % check reciprocal synapse distance thresholds of FlyEM vs. FlyWire (s0, poltcomp)
     % roitype: hemiroi
-    checkReciprocalDistanceFlyWireByHemiroi(vslabels);
+%    checkReciprocalDistanceFlyWireByHemiroi(vslabels);
 
     % check reciprocal synapse distance thresholds of FlyEM vs. FlyWire (poltcomp)
     % roitype: DistKm500
-    checkReciprocalDistanceFlyWireByDistKm(vslabels);
+%    checkReciprocalDistanceFlyWireByDistKm(vslabels);
+
+    % check reciprocal synapse distance thresholds of FlyEM vs. FlyWire (s0, poltcomp)
+    % roitype: hemiroi
+    checkReciprocalDistanceRandFlyWireByHemiroi(vslabels);
 end
 
 function checkSmoothingByRoinum(vslabels)
@@ -524,6 +528,64 @@ function checkReciprocalDistanceFlyWireByHemiroi(vslabels)
         {'hemiroi','_fw0sr140_sp5db3000mi1_rc40'},{'hemiroi','_fw0sr140_sp5db3000mi1_rc10000'}, ...
         };
     roitypelabels = {'HbRc0','HbRc20','HbRc40','HbRc100','HbRc500','HbRc1000','HbRc10000','HbSp5Rc40','HbSp5Rc10000','FwRc0','FwRc20','FwRc40','FwRc100','FwRc500','FwRc1000','FwRc10000','FwSp5Rc40','FwSp5Rc10000'};
+
+    R3 = []; A3 = [];
+    for r = 1:length(roitypes)
+        Am = []; Rm = []; ii=1; xlabels = {};
+        for h=1:length(hpfTh)
+            hpfstr = '';
+            if hpfTh(h) > 0, hpfstr = ['hf' num2str(round(1/hpfTh(h)))]; end
+            for k=1:length(smooth)
+                for n=1:length(nuisance)
+                    pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}{1} roitypes{r}{2}];
+                    xlabels{ii} = [smooth{k} nuisance{n}]; ii=ii+1;
+                    aucmat = ['results/auc/' pftype '-fcauc.mat'];
+                    if exist(aucmat,'file')
+                        load(aucmat);
+                    else
+                        A = nan(size(A3,1),100);
+                        R = nan(size(R3,1),1);
+                    end
+                    Am = [Am,nanmean(A,2)];
+                    Rm = [Rm,R(:)];
+                end
+            end
+        end
+
+        R3 = [R3,Rm]; A3 = [A3,Am];
+    end
+
+    % FC-SC correlation (all)
+    I = [7 9 19 21];
+    figure; imagescLabel2(R3(I,:),roitypelabels,vslabels(I),[0.2 0.9]); colorbar; title(['FC-SC correlation (All) ']); colormap(hot);
+    
+    % FC-SC correlation Traced neuron vs synapse
+    figure; plot(R3(I,:)'); legend(vslabels(I)); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % FC-SC detection (all)
+    figure; imagescLabel2(A3(I,:),roitypelabels,vslabels(I),[0.5 1]); colorbar; title(['FC-SC detection (All) ']); colormap(hot);
+
+    % FC-SC detection Traced neuron vs synapse
+    figure; plot(A3(I,:)'); legend(vslabels(I)); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % both FC-SC correlation & detection (all)
+    B = abs(R3) + abs(A3-0.5)*2;
+    figure; imagescLabel2(B(I,:),roitypelabels,vslabels(I),[0 1.5]); colorbar; title('FC-SC correlation & detection'); colormap(hot);
+
+    % FC-SC correlation & detection Traced neuron vs synapse (which is best?)
+    figure; plot(B(I,:)'); legend(vslabels(I)); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
+end
+
+function checkReciprocalDistanceRandFlyWireByHemiroi(vslabels)
+    preproc = 'ar'; % for move correct, slice time correct
+    hpfTh = [0]; % high-pass filter threshold
+    smooth = {''};
+    nuisance = {'poltcomp'};
+    % !caution! hemiroi has 63 ROIs. but hemiroi_hb0sr80 has 52 ROIs. 52 ROIs should be used.
+    roitypes = {{'hemiroi','_hb0sr80'},{'hemiroi','_hb0sr80_rc10000'},{'hemiroi','_hb0sr80_rc10000_rand1'},{'hemiroi','_hb0sr80_rc10000_rand2'}, ...
+        {'hemiroi','_fw0sr140'},{'hemiroi','_fw0sr140_rc10000'},{'hemiroi','_fw0sr140_rc10000_rand1'} ...
+        };
+    roitypelabels = {'HbRc0','HbRc10000','HbRc10000r1','FwRc0','FwRc10000','FwRc10000r1'};
 
     R3 = []; A3 = [];
     for r = 1:length(roitypes)

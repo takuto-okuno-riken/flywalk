@@ -1,6 +1,7 @@
 % make SC neuron & synapse count matrix by FlyWire structure data.
 
-function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrixFw(roiIdxs, sz, conf, type, spiTh, epsilon, minpts, rcdistTh)
+function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrixFw(roiIdxs, sz, conf, type, spiTh, epsilon, minpts, rcdistTh, isrand)
+    if nargin < 9, isrand = false; end
     if nargin < 8, rcdistTh = 0; end
     if nargin < 7, minpts = 1; end
     if nargin < 6, epsilon = 3000; end
@@ -27,6 +28,14 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     if spiTh > 0
         load([conf.sySepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
         spidx = (postSpidx>=spiTh & preSpidx>=spiTh);
+        if isrand
+            rnum = sum(spidx);
+            slogi = (valid & score);
+            idx = find(slogi);
+            pidx = randperm(length(idx));
+            slogi(idx(pidx(rnum+1:end))) = 0;
+            spidx = slogi;
+        end
     else
         spidx = (valid | true); % no separation index threshold
     end
@@ -34,6 +43,14 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     if rcdistTh > 0
         load([conf.syReciFile num2str(synTh) 'sr' num2str(scoreTh) '.mat']);
         rcdist = ~(SrcpreCloseDist<rcdistTh | SrcpostCloseDist<rcdistTh); % nan should be ignored by <.
+        if isrand
+            rnum = sum(SrcpreCloseDist<rcdistTh | SrcpostCloseDist<rcdistTh);
+            slogi = (valid & score);
+            idx = find(slogi);
+            pidx = randperm(length(idx));
+            slogi(idx(pidx(rnum+1:end))) = 0;
+            rcdist = ~slogi;
+        end
     else
         rcdist = (valid | true); % no reciprocal distance threshold
     end

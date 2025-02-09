@@ -1,10 +1,14 @@
 % make SC neuron & synapse count matrix by hemibrain FlyEM structure data.
 
-function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, rateTh, synTh, type, spiTh, epsilon, minpts, rcdistTh)
+function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, rateTh, synTh, type, spiTh, epsilon, minpts, rcdistTh, isrand, calcRange)
+    if nargin < 11, calcRange = {1:3, 1:2}; end
+    if nargin < 10, isrand = false; end
     if nargin < 9, rcdistTh = 0; end
     if nargin < 8, minpts = 1; end
     if nargin < 7, epsilon = 3000; end
     if nargin < 6, spiTh = 0; end
+    calcRange1 = calcRange{1};
+    calcRange2 = calcRange{2};
 
     % read neuron info (id, connection number, size)
     Nid = []; Nstatus = [];
@@ -24,7 +28,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     s1traced = ismember(StoS(:,1),Sid(straced));
     s2traced = ismember(StoS(:,2),Sid(straced));
     sstraced = (s1traced & s2traced);
-    clear straced; clear s1rate; clear s2rate; clear s1traced; clear s2traced;
+    clear s1rate; clear s2rate; clear s1traced; clear s2traced;
 
     % read synapse location in FDA
     SlocFc = [];
@@ -34,6 +38,14 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     if spiTh > 0
         load(['data/hemibrain_v1_2_synapses_sepidx' num2str(synTh) 'sr' num2str(rateTh*100) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
         splogi = (Spidx >= spiTh);
+        if isrand
+            rnum = sum(splogi);
+            slogi = (srate & straced);
+            idx = find(slogi);
+            pidx = randperm(length(idx));
+            slogi(idx(pidx(rnum+1:end))) = 0;
+            splogi = slogi;
+        end
         s1spidx = ismember(StoS(:,1),Sid(splogi));
         s2spidx = ismember(StoS(:,2),Sid(splogi));
         ssspidx = (s1spidx & s2spidx);
@@ -45,6 +57,14 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
         load(['data/hemibrain_v1_2_synapses_reci'  num2str(synTh) 'sr' num2str(rateTh*100) '.mat']);
         clear SrcCloseSid;
         rclogi = ~(SrcCloseDist < rcdistTh); % nan should be ignored by <.
+        if isrand
+            rnum = sum(SrcCloseDist < rcdistTh);
+            slogi = srate & straced;
+            idx = find(slogi);
+            pidx = randperm(length(idx));
+            slogi(idx(pidx(rnum+1:end))) = 0;
+            rclogi = ~slogi;
+        end
         s1rcdist = ismember(StoS(:,1),Sid(rclogi));
         s2rcdist = ismember(StoS(:,2),Sid(rclogi));
         ssrcdist = (s1rcdist & s2rcdist);
@@ -74,11 +94,11 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     clear Srate;
     % use only more separated synapse
     if spiTh > 0
-        Sdir((Spidx >= 0) & (Spidx < spiTh)) = 0;  
+        Sdir((Spidx >= 0) & ~splogi) = 0;  
         clear Spidx;
     end
     if rcdistTh > 0
-        Sdir(SrcCloseDist < rcdistTh) = 0;  
+        Sdir(~rclogi) = 0;  
         clear SrcCloseDist;
     end
 
@@ -191,7 +211,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
 
         % three patterns, full (including orphan, etc), neurons, others (orphan, etc)
         CX = cell(roimax,3);
-        for p=1:3
+        for p=calcRange1
             outnids = Nout{i}{p};
 
             % ROI(i) output all cells to pre-synapses for other ROIs
@@ -247,7 +267,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
 
     % calculate weight matrix (full, neurons, others)
     if nargout < 3, return; end
-    for p=1:2
+    for p=calcRange2
 %        for i=1:roimax
         parfor i=1:roimax
             if isempty(Nout{i}), continue; end
@@ -288,7 +308,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     % pure input and output cells (full, neurons, others count)
     if nargout < 6, return; end
     Ncount = zeros(roimax,2,3,'single');
-    for p=1:2
+    for p=calcRange2
         for i=1:roimax
             if ~isempty(Nin{i})
                 Ncount(i,1,p) = length(Nin{i}{p});
