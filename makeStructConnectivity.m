@@ -223,7 +223,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs
     % pre-post synapse separation index is applied for threshold
-%{
+%%{
     for k=[5 10 15 20 30]
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) '_sp' num2str(k) 'db' num2str(epsilon) 'mi' num2str(minpts)];
@@ -252,7 +252,7 @@ function makeStructConnectivity
         end
         if scver <= SCVER
             % set same order of FlyEM hemibrain.
-            flyemname = ['results/sc/hemiroi_connectlist.mat'];
+            flyemname = ['results/sc/hemiroi_hb0sr80_connectlist.mat']; % not 52 ROIs, but this one is 63 ROIs
             cl = load(flyemname);
             primaryIds = cl.primaryIds;
             clear cl;
@@ -269,7 +269,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs by FlyWire EM data.
     % pre-post synapse separation index is applied for threshold
-%{
+%%{
     for k=[5 10 15 20 30]
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth) '_sp' num2str(k) 'db' num2str(epsilon) 'mi' num2str(minpts)];
@@ -299,7 +299,7 @@ function makeStructConnectivity
         end
         if scver <= SCVER
             % set same order of FlyEM hemibrain.
-            flyemname = ['results/sc/hemiroi_connectlist.mat'];
+            flyemname = ['results/sc/hemiroi_hb0sr80_connectlist.mat']; % not 52 ROIs, but this one is 63 ROIs
             cl = load(flyemname);
             primaryIds = cl.primaryIds;
             clear cl;
@@ -409,7 +409,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs
     % separation index & reciprocal synapse distance are applied for threshold
-%{
+%%{
     SR = {[5 40],[5 10000]};
     for k=1:length(SR)
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
@@ -439,7 +439,7 @@ function makeStructConnectivity
         end
         if scver <= SCVER
             % set same order of FlyEM hemibrain.
-            flyemname = ['results/sc/hemiroi_connectlist.mat'];
+            flyemname = ['results/sc/hemiroi_hb0sr80_connectlist.mat']; % not 52 ROIs, but this one is 63 ROIs
             cl = load(flyemname);
             primaryIds = cl.primaryIds;
             clear cl;
@@ -456,7 +456,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs by FlyWire EM data.
     % separation index & reciprocal synapse distance are applied for threshold
-%{
+%%{
     SR = {[5 40],[5 10000]};
     for k=1:length(SR)
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
@@ -487,7 +487,7 @@ function makeStructConnectivity
         end
         if scver <= SCVER
             % set same order of FlyEM hemibrain.
-            flyemname = ['results/sc/hemiroi_connectlist.mat'];
+            flyemname = ['results/sc/hemiroi_hb0sr80_connectlist.mat']; % not 52 ROIs, but this one is 63 ROIs
             cl = load(flyemname);
             primaryIds = cl.primaryIds;
             clear cl;
