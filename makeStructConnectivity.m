@@ -317,10 +317,11 @@ function makeStructConnectivity
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs
     % reciprocal synapse distance is applied for threshold
 %%{
-%    for k=[20 40 100 500 1000 10000]
-    rtype = 5;
-    k = 10000;
-    for ii=1:10
+    rtype = 3;
+    ii = 1;
+    for k=[20 40 100 500 1000 10000]
+%    k = 10000;
+%    for ii=1:10
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) '_rc' num2str(k)];
         switch(rtype)
@@ -373,10 +374,11 @@ function makeStructConnectivity
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs by FlyWire EM data.
     % reciprocal synapse distance is applied for threshold
 %%{
-%    for k=[20 40 100 500 1000 10000]
-    rtype = 5;
-    k = 10000;
-    for ii=1:10
+    rtype = 3;
+    ii = 1;
+    for k=[20 40 100 500 1000 10000]
+%    k = 10000;
+%    for ii=1:10
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth) '_rc' num2str(k)];
         switch(rtype)
