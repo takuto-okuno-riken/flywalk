@@ -1,6 +1,7 @@
 % make SC neuron & synapse count matrix by FlyWire structure data.
 
-function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrixFw(roiIdxs, sz, conf, type, spiTh, epsilon, minpts, rcdistTh, rtype)
+function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrixFw(roiIdxs, sz, conf, type, spiTh, epsilon, minpts, rcdistTh, rtype, rnum)
+    if nargin < 10, rnum = 0; end
     if nargin < 9, rtype = 0; end
     if nargin < 8, rcdistTh = 0; end
     if nargin < 7, minpts = 1; end
@@ -24,54 +25,34 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     SpostlocFc = [];
     load(conf.sypostlocFdaFile);
 
-    % read synapse separation index
-    if spiTh > 0
-        load([conf.sySepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
-        spidx = (postSpidx>=spiTh & preSpidx>=spiTh);
-        switch(rtype)
-        case {1,2}
-            rnum = sum(spidx);
-            slogi = (valid & score);
-            idx = find(slogi);
-            pidx = randperm(length(idx));
-            slogi(idx(pidx(rnum+1:end))) = 0;
-            spidx = slogi;
-        end
-    else
-        spidx = (valid | true); % no separation index threshold
-    end
+    % read synapse separation index, reciprocal synapse distance (option, random sub sampling)
+    if ~exist('results/cache','dir'), mkdir('results/cache'); end
 
-    if rcdistTh > 0
-        load([conf.syReciFile num2str(synTh) 'sr' num2str(scoreTh) '.mat']);
-        rcdist = (SrcpreCloseDist<rcdistTh & SrcpostCloseDist<rcdistTh); % nan should be ignored by <.
-        switch(rtype)
-        case {1,2,4,5}
-            rnum = sum(rcdist);
-            if rtype==1 || rtype==4
-                slogi = (valid & score); % full random
-            else
-                slogi = (valid & score & ~rcdist); % exclusive random
+    spidx = (valid | true); rcdist = (valid | true); subsamp = (valid | true); % init logis
+    if spiTh > 0 || rcdistTh > 0 || rnum > 0
+        rfile = ['results/cache/' type '_subsample.mat'];
+        if exist(rfile,'file')
+            load(rfile);
+        else
+            if spiTh > 0
+                load([conf.sySepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+                spidx = randSubsampleFw((postSpidx>=spiTh & preSpidx>=spiTh), rtype, valid, score);
             end
-            
-            idx = find(slogi);
-            pidx = randperm(length(idx));
-            slogi(idx(pidx(rnum+1:end))) = 0;
-            if rtype==1 || rtype==2
-                rcdist = ~slogi;
-            else
-                rcdist = slogi;
+        
+            if rcdistTh > 0
+                load([conf.syReciFile num2str(synTh) 'sr' num2str(scoreTh) '.mat']);
+                rcdist = randSubsampleFw((SrcpreCloseDist<rcdistTh & SrcpostCloseDist<rcdistTh), rtype, valid, score); % nan should be ignored by <.
             end
-        case 3
-            % nothing to do
-        otherwise
-            rcdist = ~rcdist;
+            if rnum > 0
+                % TODO: subsampling
+                subsamp = [];
+            end
+            save(rfile, 'spidx','rcdist','subsamp','-v7.3');
         end
-    else
-        rcdist = (valid | true); % no reciprocal distance threshold
     end
 
     % make presynapse index
-    cfile = 'results/flywire783i_sypostCell.mat';
+    cfile = conf.sypostCellFile;
     if exist(cfile,'file')
         load(cfile);
     else
@@ -88,8 +69,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
         save(cfile,'C','-v7.3');
     end
 
-    if ~exist('results/cache','dir'), mkdir('results/cache'); end
-
+    % read or save regional neural (synapse) input & output
     isweight = (nargout >= 3);
     isoutweight = (nargout >= 4);
     issyweight = (nargout >= 5);
@@ -111,7 +91,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                 sididx = [sididx, D{j}]; % get pre-post synapse set in this ROI
             end
             slogi = ismember(Sidx, sididx); % get valid post-synapse ids in this ROI
-            rsidx = Sidx(slogi & valid & score & spidx & rcdist);
+            rsidx = Sidx(slogi & valid & score & spidx & rcdist & subsamp);
 
             nidx = postNidx(rsidx);
             numsyn = groupcounts(nidx); % number of synapse in each neuron
@@ -180,7 +160,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
 
             % ROI(i) output all cells to pre-synapses for other ROIs
             logi = ismember(preNidx,outnidx); % find synapses which belong to ROI(i) output neurons
-            sidx = Sidx(logi & valid & score & spidx & rcdist);
+            sidx = Sidx(logi & valid & score & spidx & rcdist & subsamp);
 
             % get connected synapse counts in each ROI (from ROI to connected ROI)
             conSlocFc = SpostlocFc(sidx,:); % get (pre-post) 3D location in FDA Cal template.
@@ -283,5 +263,30 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                 end
             end
         end
+    end
+end
+
+function [rslogi] = randSubsampleFw(rslogi, rtype, valid, score)
+    switch(rtype)
+    case {1,2,4,5}
+        rnum = sum(rslogi);
+        if rtype==1 || rtype==4
+            slogi = (valid & score); % full random
+        else
+            slogi = (valid & score & ~rslogi); % exclusive random
+        end
+        
+        idx = find(slogi);
+        pidx = randperm(length(idx));
+        slogi(idx(pidx(rnum+1:end))) = 0;
+        if rtype==1 || rtype==2
+            rslogi = ~slogi;
+        else
+            rslogi = slogi;
+        end
+    case 3
+        % nothing to do
+    otherwise
+        rslogi = ~rslogi;
     end
 end

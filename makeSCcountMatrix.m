@@ -1,7 +1,8 @@
 % make SC neuron & synapse count matrix by hemibrain FlyEM structure data.
 
-function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, rateTh, synTh, type, spiTh, epsilon, minpts, rcdistTh, rtype, calcRange)
-    if nargin < 11, calcRange = {1:3, 1:2}; end
+function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrix(roiIdxs, sz, rateTh, synTh, type, spiTh, epsilon, minpts, rcdistTh, rtype, rnum, calcRange)
+    if nargin < 12, calcRange = {1:3, 1:2}; end
+    if nargin < 11, rnum = 0; end
     if nargin < 10, rtype = 0; end
     if nargin < 9, rcdistTh = 0; end
     if nargin < 8, minpts = 1; end
@@ -28,64 +29,39 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     s1traced = ismember(StoS(:,1),Sid(straced));
     s2traced = ismember(StoS(:,2),Sid(straced));
     sstraced = (s1traced & s2traced);
-    clear s1rate; clear s2rate; clear s1traced; clear s2traced;
+    clear s1rate; clear s2rate; clear s1traced; clear s2traced; clear Srate;
 
     % read synapse location in FDA
     SlocFc = [];
     load('data/hemibrain_v1_2_synapseloc_fdacal.mat');
 
-    % read synapse separation index
-    if spiTh > 0
-        load(['data/hemibrain_v1_2_synapses_sepidx' num2str(synTh) 'sr' num2str(rateTh*100) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
-        splogi = (Spidx >= spiTh);
-        switch(rtype)
-        case {1,2}
-            rnum = sum(splogi);
-            slogi = (srate & straced);
-            idx = find(slogi);
-            pidx = randperm(length(idx));
-            slogi(idx(pidx(rnum+1:end))) = 0;
-            splogi = slogi;
-        end
-        s1spidx = ismember(StoS(:,1),Sid(splogi));
-        s2spidx = ismember(StoS(:,2),Sid(splogi));
-        ssspidx = (s1spidx & s2spidx);
-    else
-        ssspidx = (ssrate | true); % no separation index threshold
-    end
+    % read synapse separation index, reciprocal synapse distance (option, random sub sampling)
+    if ~exist('results/cache','dir'), mkdir('results/cache'); end
 
-    if rcdistTh > 0
-        load(['data/hemibrain_v1_2_synapses_reci'  num2str(synTh) 'sr' num2str(rateTh*100) '.mat']);
-        clear SrcCloseSid;
-        rclogi = (SrcCloseDist < rcdistTh); % nan should be ignored by <.
-        s1rcdist = ismember(StoS(:,1),Sid(rclogi));
-        s2rcdist = ismember(StoS(:,2),Sid(rclogi));
-        switch(rtype)
-        case {1,2,4,5}
-            ssrcdist = (s1rcdist & s2rcdist);
-            rnum = sum(ssrcdist);
-            if rtype==1 || rtype==4
-                sslogi = ssrate & sstraced; % full random
-            else
-                sslogi = ssrate & sstraced & ~ssrcdist; % exclusive random
+    splogi = (srate | true); rclogi = (srate | true); sublogi = (srate | true);         % init logis
+    ssspidx = (ssrate | true); ssrcdist = (ssrate | true); sssubsamp = (ssrate | true); % init logis
+    if spiTh > 0 || rcdistTh > 0 || rnum > 0
+        rfile = ['results/cache/' type '_subsample.mat'];
+        if exist(rfile,'file')
+            load(rfile);
+        else
+            if spiTh > 0
+                load(['data/hemibrain_v1_2_synapses_sepidx' num2str(synTh) 'sr' num2str(rateTh*100) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+                [ssspidx, splogi] = randSubsample((Spidx >= spiTh), rtype, StoS, Sid, ssrate, sstraced);
+                clear Spidx;
             end
-            idx = find(sslogi);
-            pidx = randperm(length(idx));
-            sslogi(idx(pidx(rnum+1:end))) = 0;
-            if rtype==1 || rtype==2
-                ssrcdist = ~sslogi;
-                rclogi = ~rclogi;
-            else
-                ssrcdist = sslogi;
+            if rcdistTh > 0
+                load(['data/hemibrain_v1_2_synapses_reci'  num2str(synTh) 'sr' num2str(rateTh*100) '.mat']);
+                [ssrcdist, rclogi] = randSubsample((SrcCloseDist < rcdistTh), rtype, StoS, Sid, ssrate, sstraced); % nan should be ignored by <.
+                clear SrcCloseSid; clear SrcCloseDist;
             end
-        case 3
-            ssrcdist = (s1rcdist & s2rcdist);
-        otherwise
-            ssrcdist = ~(s1rcdist & s2rcdist);
-            rclogi = ~rclogi;
+            if rnum > 0
+                % TODO: subsampling
+                sublogi = [];
+                sssubsamp = [];
+            end
+            save(rfile, 'ssspidx','ssrcdist','sssubsamp','splogi','rclogi','sublogi','-v7.3');
         end
-    else
-        ssrcdist = (ssrate | true); % no reciprocal distance threshold
     end
 
     % make presynapse index
@@ -105,21 +81,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
         save(cfile,'C','-v7.3');
     end
 
-    % use only accurate synapse more than 'rate'
-    Sdir(Srate < rateTh) = 0;  % use only accurate synapse more than 'rate'
-    clear Srate;
-    % use only more separated synapse
-    if spiTh > 0
-        Sdir((Spidx >= 0) & ~splogi) = 0;  
-        clear Spidx;
-    end
-    if rcdistTh > 0
-        Sdir(~rclogi) = 0;  
-        clear SrcCloseDist;
-    end
-
-    if ~exist('results/cache','dir'), mkdir('results/cache'); end
-
+    % read or save regional neural (synapse) input & output
     isweight = (nargout >= 3);
     isoutweight = (nargout >= 4);
     issyweight = (nargout >= 5);
@@ -143,7 +105,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                 sids = [sids, D{j}];
             end
             slogi = ismember(Sid,sids);
-            postsids = Sid(slogi & Sdir==2); % get valid post-synapse ids in this ROI
+            postsids = Sid(slogi & Sdir==2 & srate & splogi & rclogi & sublogi); % get valid post-synapse ids in this ROI (saparate Traced later)
 
             nids = StoN(postsids);
             numsyn = groupcounts(nids); % number of synapse in each neuron
@@ -158,7 +120,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             Nout{i}{3} = outnids(~logis); % output orphan bodys
     
             if isweight
-                presids = Sid(slogi & Sdir==1);  % get valid pre-synapse ids in this ROI
+                presids = Sid(slogi & Sdir==1 & srate & splogi & rclogi & sublogi);  % get valid pre-synapse ids in this ROI (saparate Traced later)
                 nids = StoN(presids);
                 numsyn = groupcounts(nids); % number of synapse in each neuron
                 nids = unique(nids);
@@ -232,14 +194,14 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
 
             % ROI(i) output all cells to pre-synapses for other ROIs
             slogi = ismember(StoN,outnids); % find synapses which belong to ROI(i) output neurons
-            presids = Sid(slogi & Sdir==1); % get pre-synapse ids of output neurons
+            presids = Sid(slogi & Sdir==1 & srate); % get pre-synapse ids of output neurons (saparate Traced later)
             sslogi = ismember(StoS(:,1),presids); % get pre-synapse to connected post-synapse
             if p==1
-                cpresids = StoS(sslogi & ssrate & ssspidx & ssrcdist,1);
-                cpostsids = StoS(sslogi & ssrate & ssspidx & ssrcdist,2);
+                cpresids = StoS(sslogi & ssrate & ssspidx & ssrcdist & sssubsamp,1);
+                cpostsids = StoS(sslogi & ssrate & ssspidx & ssrcdist & sssubsamp,2);
             else
-                cpresids = StoS(sslogi & ssrate & sstraced & ssspidx & ssrcdist,1);
-                cpostsids = StoS(sslogi & ssrate & sstraced & ssspidx & ssrcdist,2);
+                cpresids = StoS(sslogi & ssrate & sstraced & ssspidx & ssrcdist & sssubsamp,1);
+                cpostsids = StoS(sslogi & ssrate & sstraced & ssspidx & ssrcdist & sssubsamp,2);
             end
             [cpostsids, ia] = unique(cpostsids);
             cpresids = cpresids(ia);
@@ -346,5 +308,34 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                 end
             end
         end
+    end
+end
+
+function [ssrslogi, rslogi] = randSubsample(rslogi, rtype, StoS, Sid, ssrate, sstraced)
+    s1rslogi = ismember(StoS(:,1),Sid(rslogi));
+    s2rslogi = ismember(StoS(:,2),Sid(rslogi));
+    switch(rtype)
+    case {1,2,4,5}
+        ssrslogi = (s1rslogi & s2rslogi);
+        rnum = sum(ssrslogi);
+        if rtype==1 || rtype==4
+            sslogi = ssrate & sstraced; % full random
+        else
+            sslogi = ssrate & sstraced & ~ssrslogi; % exclusive random
+        end
+        idx = find(sslogi);
+        pidx = randperm(length(idx));
+        sslogi(idx(pidx(rnum+1:end))) = 0;
+        if rtype==1 || rtype==2
+            ssrslogi = ~sslogi;
+            rslogi = ~rslogi;
+        else
+            ssrslogi = sslogi;
+        end
+    case 3
+        ssrslogi = (s1rslogi & s2rslogi);
+    otherwise
+        ssrslogi = ~(s1rslogi & s2rslogi);
+        rslogi = ~rslogi;
     end
 end

@@ -317,13 +317,14 @@ function makeStructConnectivity
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs
     % reciprocal synapse distance is applied for threshold
 %%{
-    rtype = 3;
-    ii = 1;
-    for k=[20 40 100 500 1000 10000]
-%    k = 20;
-%    for ii=1:3
+    rtype = 5;
+    functype = 'fw'; %'';
+%    ii = 1;
+%    for k=[20 40 100 500 1000 10000]
+    k = 20;
+    for ii=1:3
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
-        idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) '_rc' num2str(k)];
+        idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) functype '_rc' num2str(k)];
         switch(rtype)
         case 1,  idstr = [idstr '_rand' num2str(ii)];
         case 2,  idstr = [idstr '_xrand' num2str(ii)];
@@ -350,7 +351,12 @@ function makeStructConnectivity
                 sz = size(V);
             end
     
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr), 0, epsilon, minpts, k*100, rtype, {2, 2});
+            if isempty(functype)
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr), 0, epsilon, minpts, k*100, rtype, 0, {2, 2});
+            else
+                conf = getSCconfig('hemi', synTh, hbSth);
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), 0, epsilon, minpts, k*100, rtype, 0);
+            end
 
             countMat = []; weightMat = []; scver = 5;
         end
