@@ -588,24 +588,25 @@ function checkReciprocalDistanceRandFlyWireByHemiroi(vslabels)
         {'hemiroi','_hb0sr80fw_rc20_xorand1'},{'hemiroi','_hb0sr80fw_rc20_xorand2'},{'hemiroi','_hb0sr80fw_rc20_xorand3'}, ...
         {'hemiroi','_hb0sr80_rc20_xorand1'},{'hemiroi','_hb0sr80_rc20_xorand2'},{'hemiroi','_hb0sr80_rc20_xorand3'}, ...
         {'hemiroi','_hb0sr80_rc10000_xorand1'},{'hemiroi','_hb0sr80_rc10000_xorand2'},{'hemiroi','_hb0sr80_rc10000_xorand3'}, ...
+        {'hemiroi','_hb0sr80_rn150_orand1'},{'hemiroi','_hb0sr80_rn150_orand2'},{'hemiroi','_hb0sr80_rn10_orand1'}, ...
         {'hemiroi','_fw0sr140'},{'hemiroi','_fw0sr140_rc10000'},{'hemiroi','_fw0sr140_rc10000_rand1'},{'hemiroi','_fw0sr140_rc10000_rand2'},{'hemiroi','_fw0sr140_rc10000_rand3'}, ...
         {'hemiroi','_fw0sr140_rc10000_xrand1'},{'hemiroi','_fw0sr140_rc10000_xrand2'},{'hemiroi','_fw0sr140_rc10000_xrand3'}, ...
         {'hemiroi','_fw0sr140_rc20_only1'},{'hemiroi','_fw0sr140_rc40_only1'},{'hemiroi','_fw0sr140_rc100_only1'},{'hemiroi','_fw0sr140_rc500_only1'},{'hemiroi','_fw0sr140_rc1000_only1'},{'hemiroi','_fw0sr140_rc10000_only1'}, ...
         {'hemiroi','_fw0sr140_rc20_xorand1'},{'hemiroi','_fw0sr140_rc20_xorand2'},{'hemiroi','_fw0sr140_rc20_xorand3'}, ...
         {'hemiroi','_fw0sr140_rc10000_xorand1'},{'hemiroi','_fw0sr140_rc10000_xorand2'},{'hemiroi','_fw0sr140_rc10000_xorand3'}, ...
+        {'hemiroi','_fw0sr140_rn10_orand1'},{'hemiroi','_fw0sr140_rn10_orand2'}, ...
         };
-    roitypelabels = {'HbRc0','HbRc10000','r1','r2','r3','xr1','xr2','xr3','o20','o40','o100','o500','o1000','o10000','xor1','xor2','xor3','FwRc0','FwRc10000','r1'};
+    roitypelabels = {'HbRc0','HbRc10000','r1','r2','r3','xr1','xr2','xr3','o20','o40','o100','o500','o1000','o10000','xor1f','xor2f','xor3f','xor1','xor2','xor3','150r1','150r2','10r1','FwRc0','FwRc10000','r1'};
 
-    R3 = []; A3 = [];
+    R3 = []; A3 = []; ii=1; rlabels = {}; ncounts = []; sycounts = [];
     for r = 1:length(roitypes)
-        Am = []; Rm = []; ii=1; xlabels = {};
+        Am = []; Rm = []; 
         for h=1:length(hpfTh)
             hpfstr = '';
             if hpfTh(h) > 0, hpfstr = ['hf' num2str(round(1/hpfTh(h)))]; end
             for k=1:length(smooth)
                 for n=1:length(nuisance)
                     pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}{1} roitypes{r}{2}];
-                    xlabels{ii} = [smooth{k} nuisance{n}]; ii=ii+1;
                     aucmat = ['results/auc/' pftype '-fcauc.mat'];
                     if exist(aucmat,'file')
                         load(aucmat);
@@ -618,9 +619,26 @@ function checkReciprocalDistanceRandFlyWireByHemiroi(vslabels)
                 end
             end
         end
+        rlabels{ii} = [roitypes{r}{1} roitypes{r}{2} ]; ii=ii+1;
+        conmat = ['results/sc/' roitypes{r}{1} roitypes{r}{2} '_connectlist.mat'];
+        if exist(conmat,'file')
+            load(conmat);
+            nn = sum(ncountMat(primaryIds,primaryIds,2),'all');
+            syn = sum(sycountMat(primaryIds,primaryIds,2),'all');
+            ncounts = [ncounts; nn];
+            sycounts = [sycounts; syn];
+        else
+            ncounts = [ncounts; NaN];
+            sycounts = [sycounts; NaN];
+        end
 
         R3 = [R3,Rm]; A3 = [A3,Am];
     end
+
+    % show synapse count in each ROI type.
+    cats=categorical(rlabels,rlabels);
+    figure; bar(cats,ncounts); title('neuron count matrix total')
+    figure; bar(cats,sycounts); title('synapse count matrix total')
 
     % FC-SC correlation (all)
     I = [7 9 19 21];

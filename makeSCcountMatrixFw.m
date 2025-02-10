@@ -36,16 +36,14 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
         else
             if spiTh > 0
                 load([conf.sySepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
-                spidx = randSubsampleFw((postSpidx>=spiTh & preSpidx>=spiTh), rtype, valid, score);
+                spidx = randSubsampleFw((postSpidx>=spiTh & preSpidx>=spiTh), rtype, valid, score, 0);
             end
-        
             if rcdistTh > 0
                 load([conf.syReciFile num2str(synTh) 'sr' num2str(scoreTh) '.mat']);
-                rcdist = randSubsampleFw((SrcpreCloseDist<rcdistTh & SrcpostCloseDist<rcdistTh), rtype, valid, score); % nan should be ignored by <.
+                rcdist = randSubsampleFw((SrcpreCloseDist<rcdistTh & SrcpostCloseDist<rcdistTh), rtype, valid, score, 0); % nan should be ignored by <.
             end
             if rnum > 0
-                % TODO: subsampling
-                subsamp = [];
+                subsamp = randSubsampleFw(subsamp, rtype, valid, score, rnum);
             end
             save(rfile, 'spidx','rcdist','subsamp','-v7.3');
         end
@@ -266,10 +264,12 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     end
 end
 
-function [rslogi] = randSubsampleFw(rslogi, rtype, valid, score)
+function [rslogi] = randSubsampleFw(rslogi, rtype, valid, score, rnum)
     switch(rtype)
     case {1,2,4,5}
-        rnum = sum(rslogi);
+        if rnum == 0
+            rnum = sum(rslogi);
+        end
         if rtype==1 || rtype==4
             slogi = (valid & score); % full random
         else

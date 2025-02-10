@@ -81,8 +81,8 @@ function analyzeFuncConnectivity
             'hemiroi_fw0sr140_sp5db3000mi1','hemiroi_fw0sr140_sp10db3000mi1','hemiroi_fw0sr140_sp15db3000mi1','hemiroi_fw0sr140_sp20db3000mi1','hemiroi_fw0sr140_sp30db3000mi1'};  % for s0, poltcomp
 %    roitypes = {'hemicmkm50','hemicmkm50_hb0sr80_sp5db3000mi1',...%'hemiDistKm500_hb0sr80_sp10db3000mi1','hemiDistKm500_hb0sr80_sp15db3000mi1','hemiDistKm500_hb0sr80_sp20db3000mi1','hemiDistKm500_hb0sr80_sp30db3000mi1', ...
 %            'hemicmkm50_fw0sr140','hemicmkm50_fw0sr140_sp5db3000mi1'};%,'hemiDistKm500_fw0sr140_sp10db3000mi1','hemiDistKm500_fw0sr140_sp15db3000mi1','hemiDistKm500_fw0sr140_sp20db3000mi1','hemiDistKm500_fw0sr140_sp30db3000mi1'};  % for s230, poltcomp
-%    roitypes = {'hemiroi_hb0sr80_rc20','hemiroi_hb0sr80_rc40','hemiroi_hb0sr80_rc100','hemiroi_hb0sr80_rc500', 'hemiroi_hb0sr80_rc1000','hemiroi_hb0sr80_rc10000', ...
-%            'hemiroi_fw0sr140_rc20','hemiroi_fw0sr140_rc40','hemiroi_fw0sr140_rc100','hemiroi_fw0sr140_rc500','hemiroi_fw0sr140_rc1000','hemiroi_fw0sr140_rc10000'};  % for s0, poltcomp
+    roitypes = {'hemiroi_hb0sr80_rc20','hemiroi_hb0sr80_rc40','hemiroi_hb0sr80_rc100','hemiroi_hb0sr80_rc500', 'hemiroi_hb0sr80_rc1000','hemiroi_hb0sr80_rc10000', ...
+            'hemiroi_fw0sr140_rc20','hemiroi_fw0sr140_rc40','hemiroi_fw0sr140_rc100','hemiroi_fw0sr140_rc500','hemiroi_fw0sr140_rc1000','hemiroi_fw0sr140_rc10000'};  % for s0, poltcomp
 %    roitypes = {'hemiDistKm500_hb0sr80_rc20',...%'hemiroi_hb0sr80_rc40','hemiroi_hb0sr80_rc100','hemiroi_hb0sr80_rc500', 'hemiroi_hb0sr80_rc1000','hemiroi_hb0sr80_rc10000', ...
 %            'hemiDistKm500_fw0sr140_rc20'};%,'hemiroi_fw0sr140_rc40','hemiroi_fw0sr140_rc100','hemiroi_fw0sr140_rc500','hemiroi_fw0sr140_rc1000','hemiroi_fw0sr140_rc10000'};  % for s230, poltcomp
 %    roitypes = {'hemiroi_hb0sr80_sp5db3000mi1_rc40','hemiroi_hb0sr80_sp5db3000mi1_rc10000', ...
@@ -95,9 +95,15 @@ function analyzeFuncConnectivity
 %            'hemiroi_fw0sr140_rc10000_xorand1','hemiroi_fw0sr140_rc10000_xorand2','hemiroi_fw0sr140_rc10000_xorand3'};  % for s0, poltcomp
 %    roitypes = {'hemiroi_hb0sr80_rc20_only1','hemiroi_hb0sr80_rc40_only1','hemiroi_hb0sr80_rc100_only1','hemiroi_hb0sr80_rc500_only1','hemiroi_hb0sr80_rc1000_only1','hemiroi_hb0sr80_rc10000_only1', ...
 %            'hemiroi_fw0sr140_rc20_only1','hemiroi_fw0sr140_rc40_only1','hemiroi_fw0sr140_rc100_only1','hemiroi_fw0sr140_rc500_only1','hemiroi_fw0sr140_rc1000_only1','hemiroi_fw0sr140_rc10000_only1'};  % for s0, poltcomp
-    roitypes = {'hemiroi_hb0sr80fw_rc20_xorand1'};%,'hemiroi_hb0sr80fw_rc20_xorand2','hemiroi_hb0sr80fw_rc20_xorand3', ...
+    roitypes = {'hemiroi_hb0sr80_rn150_orand1','hemiroi_hb0sr80_rn150_orand2','hemiroi_hb0sr80_rn10_orand1', ...
+          'hemiroi_fw0sr140_rn10_orand1','hemiroi_fw0sr140_rn10_orand2',};  % for s0, poltcomp
+%    roitypes = {'hemiroi_hb0sr80fw_rc20_xorand1','hemiroi_hb0sr80fw_rc20_xorand2','hemiroi_hb0sr80fw_rc20_xorand3', ...
 %            'hemiroi_hb0sr80_rc20_xorand1','hemiroi_hb0sr80_rc20_xorand2','hemiroi_hb0sr80_rc20_xorand3', ...
 %            'hemiroi_fw0sr140_rc20_xorand1','hemiroi_fw0sr140_rc20_xorand2','hemiroi_fw0sr140_rc20_xorand3'};  % for s0, poltcomp
+
+    % to check scatter and AUC graph (need to comment out plot lines)
+%    roitypes = {'hemiroi_hb0sr80','hemiroi_hb0sr80_rc20_only1','hemiroi_hb0sr80_rn150_orand1','hemiroi_hb0sr80_rn10_orand1', ...
+%            'hemiroi_fw0sr140','hemiroi_fw0sr140_rc20_only1','hemiroi_fw0sr140_rn10_orand1'};  % for s0, poltcomp
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -262,9 +268,10 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
 
                 R(7) = corr(lC2b(:),abs(mFz(:))); % Traced vs. m-FCz
                 disp(['prefix=' pftype ' : log10(neurons2b) vs. m-FCz = ' num2str(R(7))]);
-%                figure; scatter(lC2b(:),abs(mFz(:)),18,'x'); xlabel('log10(neurons2b)'); ylabel('m-FCz'); title(pftype); ylim([0 3]);
+%                figure; scatter(lC2b(:),abs(mFz(:)),18,'x'); xlabel('log10(neurons2b)'); ylabel('m-FCz'); title([pftype ' r='num2str(R(7))]); ylim([0 3]);
                 R(9) = corr(lSb(:),abs(mFz(:)));
                 disp(['prefix=' pftype ' : log10(synapses b) vs. m-FCz = ' num2str(R(9))]);
+%                figure; scatter(lSb(:),abs(mFz(:)),18,'x'); xlabel('log10(synapses b)'); ylabel('m-FCz'); title([pftype ' r=' num2str(R(9))]);
                 if isw2
                     R(8) = corr(lW2b(:),abs(mFz(:)));
                     disp(['prefix=' pftype ' : log10(synapse weight2b) vs. m-FCz = ' num2str(R(8))]);
@@ -287,7 +294,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                     disp(['prefix=' pftype ' : log10(synapse weight2) vs. FC-Tval = ' num2str(R(14))]);
                     R(16) = corr(W3(:),abs(T3(:)));
                     disp(['prefix=' pftype ' : ROI in-neuron weight vs. FC-Tval = ' num2str(R(16))]);
-%                    figure; scatter(W3(:),abs(T3(:))); xlabel('ROI in-neuron weight'); ylabel('FC-Tval'); title(pftype);
+%                    figure; scatter(W3(:),abs(T3(:))); xlabel('ROI in-neuron weight'); ylabel('FC-Tval'); title([pftype ' r=' num2str(R(16))]);
                     if issw 
                         R(17) = corr(Sw(:),abs(T3(:)));
                         disp(['prefix=' pftype ' : ROI in-synapse weight vs. FC-Tval = ' num2str(R(17))]);
@@ -316,15 +323,16 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
 
                 % calculate AUC
                 aucmat = ['results/auc/' pftype '-fcauc.mat'];
-                if exist(aucmat,'file')
+                if false %exist(aucmat,'file')
                     % load beta volumes
                     load(aucmat);
                 else
                     thN = 100;
                     aths = cell(thN,1);
                     XY = cell(thN,1);
-%                    for th = 1:thN
-                    parfor th = 1:thN
+                    sbths = [];
+                    for th = 1:thN
+%                    parfor th = 1:thN
                         % include injection voxel in ground truth
                         c2th = prctile(C2(C2>0),th-1);
                         ct2 = C2; ct2(ct2<c2th) = 0; ct2(ct2>0) = 1;
@@ -342,7 +350,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                         c2bth = prctile(C2b(C2b>0),th-1);
                         ct2b = C2b; ct2b(ct2b<c2bth) = 0; ct2b(ct2b>0) = 1;
                         sbth = prctile(Sb(Sb>0),th-1);
-                        stb = Sb; stb(stb<sbth) = 0; stb(stb>0) = 1;
+                        stb = Sb; stb(stb<sbth) = 0; stb(stb>0) = 1; sbths(th) = sbth;
                         w2bth = prctile(W2b(W2b>0),th-1);
                         wt2b = W2b; wt2b(wt2b<w2bth) = 0; wt2b(wt2b>0) = 1;
                         w3bth = prctile(W3b(W3b>0),th-1);
@@ -373,7 +381,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
 
                         [X, Y, auc] = calcShowGroupROCcurve(ct2b(:)', abs(mFz(:)'), ['m-FCz vs. neurons2b th=' num2str(th-1)], false);
                         aucs{7} = single(auc); % input node is one, so it is not vector.
-                        [~, ~, auc] = calcShowGroupROCcurve(stb(:)', abs(mFz(:)'), ['m-FCz vs. synapses b th=' num2str(th-1)], false);
+                        [X, Y, auc] = calcShowGroupROCcurve(stb(:)', abs(mFz(:)'), ['m-FCz vs. synapses b th=' num2str(th-1)], false);
                         aucs{9} = single(auc);
                         if isw2
                             [~, ~, auc] = calcShowGroupROCcurve(wt2b(:)', abs(mFz(:)'), ['m-FCz vs. synapse weight2b th=' num2str(th-1)], false);
@@ -430,7 +438,14 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                         c = 0.95 - th*0.8/100;
                         hold on; plot(XY{th}(1,:),XY{th}(2,:),'Color',[c c c 0.7]); hold off;
                     end
-                    title([pftype 'log10(neurons2b) vs. m-FCz ROC curve']); xlabel('False Positive Rate'); ylabel('True Positive Rate');
+                    title([pftype 'log10(synapses b) vs. m-FCz ROC curve']); xlabel('False Positive Rate'); ylabel('True Positive Rate');
+%}
+%{
+                    figure; plot(sbths); xlabel('percentile'); ylabel('threshold number');
+                    title([pftype ' (synapses b) thresholds']);
+
+                    figure; histogram(Sb(Sb>0)); ylabel('element count');
+                    title([pftype ' (synapses b) histogram']);
 %}
                     A = nan(24,thN,'single');
                     for th = 1:thN
@@ -447,8 +462,9 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                 end
                 AUC = cat(3,AUC,A);
 
-%                figure; plot(A'); title(['prefix=' pftype ' : FC AUC result vs. ground truth SC']);
-%                xlabel('percentile');
+%                I=[7 9]; 
+%                figure; plot(A(I,:)'); title([pftype ' : FC AUC result vs. ground truth SC']);
+%                xlabel('percentile'); legend({'log10(neurons) vs. m-FCz','log10(synapses) vs. m-FCz'});
             end
         end
     end

@@ -47,18 +47,19 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
         else
             if spiTh > 0
                 load(['data/hemibrain_v1_2_synapses_sepidx' num2str(synTh) 'sr' num2str(rateTh*100) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
-                [ssspidx, splogi] = randSubsample((Spidx >= spiTh), rtype, StoS, Sid, ssrate, sstraced);
+                [ssspidx, splogi] = randSubsample((Spidx >= spiTh), rtype, StoS, Sid, ssrate, sstraced, 0);
                 clear Spidx;
             end
             if rcdistTh > 0
                 load(['data/hemibrain_v1_2_synapses_reci'  num2str(synTh) 'sr' num2str(rateTh*100) '.mat']);
-                [ssrcdist, rclogi] = randSubsample((SrcCloseDist < rcdistTh), rtype, StoS, Sid, ssrate, sstraced); % nan should be ignored by <.
+                [ssrcdist, rclogi] = randSubsample((SrcCloseDist < rcdistTh), rtype, StoS, Sid, ssrate, sstraced, 0); % nan should be ignored by <.
                 clear SrcCloseSid; clear SrcCloseDist;
             end
             if rnum > 0
-                % TODO: subsampling
-                sublogi = [];
-                sssubsamp = [];
+                [sssubsamp, sublogi] = randSubsample(sublogi, rtype, StoS, Sid, ssrate, sstraced, rnum);
+                s1logi = ismember(Sid,StoS(sssubsamp,1));
+                s2logi = ismember(Sid,StoS(sssubsamp,2));
+                sublogi = (s1logi | s2logi);
             end
             save(rfile, 'ssspidx','ssrcdist','sssubsamp','splogi','rclogi','sublogi','-v7.3');
         end
@@ -311,13 +312,15 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     end
 end
 
-function [ssrslogi, rslogi] = randSubsample(rslogi, rtype, StoS, Sid, ssrate, sstraced)
+function [ssrslogi, rslogi] = randSubsample(rslogi, rtype, StoS, Sid, ssrate, sstraced, rnum)
     s1rslogi = ismember(StoS(:,1),Sid(rslogi));
     s2rslogi = ismember(StoS(:,2),Sid(rslogi));
     switch(rtype)
     case {1,2,4,5}
         ssrslogi = (s1rslogi & s2rslogi);
-        rnum = sum(ssrslogi);
+        if rnum == 0
+            rnum = sum(ssrslogi);
+        end
         if rtype==1 || rtype==4
             sslogi = ssrate & sstraced; % full random
         else
