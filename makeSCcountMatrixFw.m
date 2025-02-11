@@ -36,7 +36,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
         else
             if spiTh > 0
                 load([conf.sySepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
-                spidx = randSubsampleFw((postSpidx>=spiTh & preSpidx>=spiTh), rtype, valid, score, 0);
+                spidx = randSubsampleFw(((postSpidx>=0 & postSpidx<spiTh) & (preSpidx>=0 & preSpidx<spiTh)), rtype, valid, score, 0);
             end
             if rcdistTh > 0
                 load([conf.syReciFile num2str(synTh) 'sr' num2str(scoreTh) '.mat']);

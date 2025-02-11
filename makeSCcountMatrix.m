@@ -47,7 +47,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
         else
             if spiTh > 0
                 load(['data/hemibrain_v1_2_synapses_sepidx' num2str(synTh) 'sr' num2str(rateTh*100) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
-                [ssspidx, splogi] = randSubsample((Spidx >= spiTh), rtype, StoS, Sid, ssrate, sstraced, 0);
+                [ssspidx, splogi] = randSubsample((Spidx >= 0 & Spidx < spiTh), rtype, StoS, Sid, ssrate, sstraced, 0); % -1 should be ignored
                 clear Spidx;
             end
             if rcdistTh > 0
