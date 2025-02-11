@@ -223,10 +223,39 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs
     % pre-post synapse separation index is applied for threshold
+%%{
+    functype = ''; %'fw'; %
+%%{
+    rnum = 0;
+    rtype = 0;
+    ii = 0;
+    for k=[10 20 40 60 80 90]
+%}
 %{
-    for k=[5 10 15 20 30]
+    rnum = 0;
+    rtype = 5;
+    k = 20;
+    for ii=1:3
+%}
+%{
+    rnum = 100000;
+    rtype = 4;
+    k = 0;
+    for ii=1:3
+%}
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
-        idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) '_sp' num2str(k) 'db' num2str(epsilon) 'mi' num2str(minpts)];
+        if rnum > 0
+            idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) functype '_rn' num2str(rnum/10000)];
+        else
+            idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) '_sp' num2str(k) 'db' num2str(epsilon) 'mi' num2str(minpts)];
+        end
+        switch(rtype)
+        case 1,  idstr = [idstr '_rand' num2str(ii)];
+        case 2,  idstr = [idstr '_xrand' num2str(ii)];
+        case 3,  idstr = [idstr '_only' num2str(ii)];
+        case 4,  idstr = [idstr '_orand' num2str(ii)];
+        case 5,  idstr = [idstr '_xorand' num2str(ii)];
+        end
         fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
         if exist(fname,'file')
             load(fname);
@@ -245,9 +274,13 @@ function makeStructConnectivity
                 end
                 sz = size(V);
             end
-    
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr), k*100, epsilon, minpts);
-    
+
+            if isempty(functype)
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr), k*100, epsilon, minpts, 0, rtype, rnum, {2, 2});
+            else
+                conf = getSCconfig('hemi', synTh, hbSth);
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), k*100, epsilon, minpts, 0, rtype, rnum);
+            end
             countMat = []; weightMat = []; scver = 5;
         end
         if scver <= SCVER
@@ -269,10 +302,38 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs by FlyWire EM data.
     % pre-post synapse separation index is applied for threshold
+%%{
+%%{
+    rnum = 0;
+    rtype = 0;
+    ii = 0;
+    for k=[10 20 40 60 80 90]
+%}
 %{
-    for k=[5 10 15 20 30]
+    rnum = 0;
+    rtype = 5;
+    k = 20;
+    for ii=1:3
+%}
+%{
+    rnum = 100000;
+    rtype = 4;
+    k = 0;
+    for ii=1:3
+%}
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
-        idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth) '_sp' num2str(k) 'db' num2str(epsilon) 'mi' num2str(minpts)];
+        if rnum > 0
+            idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth) '_rn' num2str(rnum/10000)];
+        else
+            idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth) '_sp' num2str(k) 'db' num2str(epsilon) 'mi' num2str(minpts)];
+        end
+        switch(rtype)
+        case 1,  idstr = [idstr '_rand' num2str(ii)];
+        case 2,  idstr = [idstr '_xrand' num2str(ii)];
+        case 3,  idstr = [idstr '_only' num2str(ii)];
+        case 4,  idstr = [idstr '_orand' num2str(ii)];
+        case 5,  idstr = [idstr '_xorand' num2str(ii)];
+        end
         fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
         if exist(fname,'file')
             load(fname);
@@ -293,8 +354,8 @@ function makeStructConnectivity
             end
 
             conf = getSCconfig('wire', synTh, fwSth);
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), k*100, epsilon, minpts);
-    
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), k*100, epsilon, minpts, 0, rtype, rnum);
+
             countMat = []; weightMat = []; scver = 5;
         end
         if scver <= SCVER
@@ -1562,15 +1623,15 @@ function makeStructConnectivity
     % make structural connectivity matrix from distance based k-means atlas
     % reciprocal synapse distance is applied for threshold
 %%{
-    roisz = 50;
+    roisz = 500;
     functype = ''; %'fw'; %
-%%{
+%{
     rnum = 0;
     rtype = 3;
     ii = 1;
     for k=[20 40 100 500 1000 10000]
 %}
-%{
+%%{
     rnum = 0;
     rtype = 5;
     k = 20;
@@ -1640,13 +1701,13 @@ function makeStructConnectivity
     % make structural connectivity matrix from distance based k-means atlas by FlyWire EM data.
     % reciprocal synapse distance is applied for threshold
     roisz = 50;
-%%{
+%{
     rnum = 0;
     rtype = 3;
     ii = 1;
     for k=[20 40 100 500 1000 10000]
 %}
-%{
+%%{
     rnum = 0;
     rtype = 5;
     k = 20;
