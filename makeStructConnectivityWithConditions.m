@@ -4,7 +4,6 @@
 % this script should run after makeVoxelROIatlas.m
 
 function makeStructConnectivityWithConditions
-    SCVER = 5;
     % ---------------------------------------------------------------------
     % make structural connectivity matrix of hemibrain primary ROI atlas.
 
@@ -29,28 +28,13 @@ function makeStructConnectivityWithConditions
             if exist(fname,'file')
                 load(fname);
             else
-                roiIdxs = {};
-                listing = dir(['atlas/hemiroi/*.nii.gz']);
-                for i=1:length(listing)
-                    V = niftiread(['atlas/hemiroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
-                    idx = find(V>0);
-                    roiIdxs{i} = idx;
-                    sz = size(V);
-                end
+                [roiIdxs, sz] = getHemiroiRoiIdxs();
         
                 [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, rateTh/100, synTh, lower(idstr));
         
                 countMat = []; weightMat = []; scver = 5;
             end
-            if scver <= SCVER
-                scver = scver + 0.1;
-                save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
-            end
-        
-            ids = primaryIds;
-            CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
-            figure; imagesc(log10(CM)); colorbar; title([idstr ' neurons matrix']);
-            figure; imagesc(log10(SM)); colorbar; title([idstr ' synapses matrix']);
+            checkScverAndSave(idstr, fname, [], countMat, weightMat, ncountMat, sycountMat, nweightMat, outweightMat, syweightMat, primaryIds, roiNum, scver);
         end
     end
 %}
@@ -72,27 +56,13 @@ function makeStructConnectivityWithConditions
             if exist(fname,'file')
                 load(fname);
             else
-                roiIdxs = {};
-                listing = dir(['atlas/hemiroi/*.nii.gz']);
-                for i=1:length(listing)
-                    V = niftiread(['atlas/hemiroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
-                    idx = find(V>0);
-                    roiIdxs{i} = idx;
-                    sz = size(V);
-                end
+                [roiIdxs, sz] = getHemiroiRoiIdxs();
 
                 [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, rateTh, synTh, lower(idstr));
 
                 countMat = []; weightMat = []; scver = 5;
             end
-            if scver <= SCVER
-                scver = scver + 0.1;
-                save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
-            end
-            ids = primaryIds;
-            CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
-            figure; imagesc(log10(CM)); colorbar; title([idstr ' neurons matrix']);
-            figure; imagesc(log10(SM)); colorbar; title([idstr ' synapses matrix']);
+            checkScverAndSave(idstr, fname, [], countMat, weightMat, ncountMat, sycountMat, nweightMat, outweightMat, syweightMat, primaryIds, roiNum, scver);
         end
     end
 %}
@@ -120,14 +90,7 @@ function makeStructConnectivityWithConditions
 
             countMat = []; weightMat = []; scver = 5;
         end
-        if scver <= SCVER
-            scver = scver + 0.1;
-            save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
-        end
-        ids = primaryIds;
-        CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
-        figure; imagesc(log10(CM)); colorbar; title(['fly average scTh' num2str(synTh) 'srTh' num2str(rateTh) ' neurons matrix']);
-        figure; imagesc(log10(SM)); colorbar; title(['fly average scTh' num2str(synTh) 'srTh' num2str(rateTh) ' synapses matrix']);
+        checkScverAndSave(idstr, fname, [], countMat, weightMat, ncountMat, sycountMat, nweightMat, outweightMat, syweightMat, primaryIds, roiNum, scver);
     end
 %}
     % ---------------------------------------------------------------------
@@ -148,38 +111,15 @@ function makeStructConnectivityWithConditions
             if exist(fname,'file')
                 load(fname);
             else
-                atlV = niftiread(['atlas/hemiDistKm' num2str(k) 'atlasCal.nii.gz']);
-                roimax = max(atlV(:));
-                sz = size(atlV);
-        
-                roiIdxs = {};
-                for i=1:roimax
-                    roiIdxs{i} = find(atlV==i);
-                end
-        
-                primaryIds = 1:roimax;
-                roiNum = length(primaryIds);
-        
+                [roiIdxs, sz, primaryIds, roiNum] = getRoiIdxs(['atlas/hemiDistKm' num2str(k) 'atlasCal.nii.gz']);
+
                 [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, rateTh/100, synTh, lower(idstr));
 
                 countMat = []; weightMat = []; scver = 5;
             end
-            if scver <= SCVER
-                % set same order of FlyEM hemibrain (sc0sr80)
-                str = split(idstr,'_');
-                flyemname = ['results/sc/' lower(str{1}) '_connectlist.mat'];
-                cl = load(flyemname);
-                primaryIds = cl.primaryIds;
-                clear cl;
-            end
-            if scver <= SCVER
-                scver = scver + 0.1;
-                save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
-            end
-            ids = primaryIds;
-            CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
-            figure; imagesc(log10(CM)); colorbar; title([idstr ' neurons matrix']);
-            figure; imagesc(log10(SM)); colorbar; title([idstr ' synapses matrix']);
+            % set same order of FlyEM hemibrain (sc0sr80)
+            str = split(idstr,'_');
+            checkScverAndSave(idstr, fname, ['results/sc/' lower(str{1}) '_connectlist.mat'], countMat, weightMat, ncountMat, sycountMat, nweightMat, outweightMat, syweightMat, primaryIds, roiNum, scver);
         end
     end
 %}
@@ -203,39 +143,70 @@ function makeStructConnectivityWithConditions
             if exist(fname,'file')
                 load(fname);
             else
-                atlV = niftiread(['atlas/hemiDistKm' num2str(k) 'atlasCal.nii.gz']);
-                roimax = max(atlV(:));
-                sz = size(atlV);
-        
-                roiIdxs = {};
-                for i=1:roimax
-                    roiIdxs{i} = find(atlV==i);
-                end
-        
-                primaryIds = 1:roimax;
-                roiNum = length(primaryIds);
+                [roiIdxs, sz, primaryIds, roiNum] = getRoiIdxs(['atlas/hemiDistKm' num2str(k) 'atlasCal.nii.gz']);
         
                 [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, rateTh, synTh, lower(idstr));
 
                 countMat = []; weightMat = []; scver = 5;
             end
-            if scver <= SCVER
-                % set same order of FlyEM hemibrain (sc0sr80)
-                str = split(idstr,'_');
-                flyemname = ['results/sc/' lower(str{1}) '_connectlist.mat'];
-                cl = load(flyemname);
-                primaryIds = cl.primaryIds;
-                clear cl;
-            end
-            if scver <= SCVER
-                scver = scver + 0.1;
-                save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
-            end
-            ids = primaryIds;
-            CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
-            figure; imagesc(log10(CM)); colorbar; title([idstr ' neurons matrix']);
-            figure; imagesc(log10(SM)); colorbar; title([idstr ' synapses matrix']);
+            % set same order of FlyEM hemibrain (sc0sr80)
+            str = split(idstr,'_');
+            checkScverAndSave(idstr, fname, ['results/sc/' lower(str{1}) '_connectlist.mat'], countMat, weightMat, ncountMat, sycountMat, nweightMat, outweightMat, syweightMat, primaryIds, roiNum, scver);
         end
     end
 %}
+end
+
+function [roiIdxs, sz, primaryIds, roiNum] = getRoiIdxs(fname)
+    atlV = niftiread(fname);
+    roimax = max(atlV(:));
+    sz = size(atlV);
+
+    roiIdxs = {};
+    for i=1:roimax
+        roiIdxs{i} = find(atlV==i);
+    end
+
+    primaryIds = 1:roimax;
+    roiNum = length(primaryIds);
+end
+
+function [roiIdxs, sz, aV] = getHemiroiRoiIdxs(ids)
+    if nargin < 1, ids = []; end
+    info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
+    aV = niftiread(info); aV(:) = 0;
+    cnt = 1;
+    roiIdxs = {};
+    listing = dir(['atlas/hemiroi/*.nii.gz']);
+    for i=1:length(listing)
+        V = niftiread(['atlas/hemiroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+        idx = find(V>0);
+        roiIdxs{i} = idx;
+        if any(ismember(ids,i))
+            aV(idx) = cnt; cnt = cnt + 1;
+        end
+        sz = size(V);
+    end
+end
+
+function checkScverAndSave(idstr, fname, ordertemp, countMat, weightMat, ncountMat, sycountMat, nweightMat, outweightMat, syweightMat, primaryIds, roiNum, scver)
+    SCVER = 5;
+    if scver <= SCVER && ~isempty(ordertemp)
+        % set same order based on template file.
+        cl = load(ordertemp);
+        primaryIds = cl.primaryIds;
+        clear cl;
+    end
+    if scver <= SCVER
+        scver = scver + 0.1;
+        save(fname,'countMat','weightMat','ncountMat','nweightMat','sycountMat','outweightMat','syweightMat','primaryIds','roiNum','scver','-v7.3');
+    end
+%{
+    ids = primaryIds; CM = ncountMat(ids,ids,1); WM = sycountMat(ids,ids,1);
+    figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix full']);
+    figure; imagesc(log(WM)); colorbar; title([idstr ' synapses matrix full']);
+%}
+    ids = primaryIds; CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
+    figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
+    figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
 end
