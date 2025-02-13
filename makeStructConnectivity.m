@@ -296,7 +296,7 @@ function makeStructConnectivity
     randrange = {[6.5e5, 1e5]};
     for ii=1:length(randrange)
         param = randrange{ii};
-        for k=1:49
+        for k=1:99
             clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
 
             idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) functype '_rd' num2str(param(1)/10000) '-' num2str(param(2)/10000) '-' num2str(k)];
@@ -313,6 +313,31 @@ function makeStructConnectivity
                     conf = getSCconfig('hemi', synTh, hbSth);
                     [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), 0, epsilon, minpts, 0, 4, rnum);
                 end
+                countMat = []; weightMat = []; scver = 5;
+            end
+            % not 52 ROIs, but this one is 63 ROIs
+            checkScverAndSave(idstr, fname, 'results/sc/hemiroi_hb0sr80_connectlist.mat', countMat, weightMat, ncountMat, sycountMat, nweightMat, outweightMat, syweightMat, primaryIds, roiNum, scver);
+        end
+    end
+
+    % make structural connectivity matrix of flyem hemibrain neuropil ROIs by FlyWire EM data.
+    randrange = {[13.5e5, 1e5]};
+    for ii=1:length(randrange)
+        param = randrange{ii};
+        for k=1:99
+            clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
+
+            idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth) '_rd' num2str(param(1)/10000) '-' num2str(param(2)/10000) '-' num2str(k)];
+            fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
+            if exist(fname,'file')
+                load(fname);
+            else
+                rnum = param(1) + randn() * param(2);
+                [roiIdxs, sz] = getHemiroiRoiIdxs();
+
+                conf = getSCconfig('wire', synTh, hbSth);
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), 0, epsilon, minpts, 0, 4, rnum);
+
                 countMat = []; weightMat = []; scver = 5;
             end
             % not 52 ROIs, but this one is 63 ROIs
