@@ -304,7 +304,7 @@ function makeStructConnectivity
             if exist(fname,'file')
                 load(fname);
             else
-                rnum = param(1) + (rand()*2-1) * param(2);
+                rnum = param(1) + randn() * param(2);
                 [roiIdxs, sz] = getHemiroiRoiIdxs();
 
                 if isempty(functype)
