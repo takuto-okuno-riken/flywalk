@@ -14,7 +14,8 @@ function analyzeFuncConnectivity
 %    smooth = {'s90', 's100', 's110', 's120', 's130', 's140', 's150', 's160', 's170', 's180', 's190', 's200', 's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
     smooth = {'', 's30', 's80'}; %, 's150','s230','s300'};
 %    smooth = {'', 's30', 's40', 's60', 's80', 's100', 's150'};
-    smooth = {''};
+%    smooth = {'s230'}; % DistKm
+    smooth = {''}; % hemiroi
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
         '6hmacomp','6hmgmacomp','6hmgmgsacomp','6hmtcomp','6hmtacomp', ... %22
@@ -26,7 +27,11 @@ function analyzeFuncConnectivity
 %    nuisance = {'','poltcomp'}; % good for DistKm
 %    nuisance = {'','6hm','tcomp','pol','poltcomp'}; % good for hemiRoiXX
 %    nuisance = {''};
-    nuisance = {'poltcomp'}; % good for DistKm
+    nuisance = {'poltcomp'}; % good for hemiroi, DistKm
+
+    % file number setting for random subsampling
+%    rNums = [0]; % no number setting
+    rNums = 1:49; % for random subsampling number
 
     % using subjects (flys). sbj 7 shows NaN row in FC matrix
     sbjids = [1 2 3 4 5 6 8 9];
@@ -77,14 +82,12 @@ function analyzeFuncConnectivity
 %    roitypes = {'hemiRoi68-59-87-106-50-27-54'};  % s30,80,150, 6hm,pol,tcomp,poltcomp
 %    roitypes = {'hemiRoi68-59-87-106-50-27-54DistKm200'};
 %    roitypes = {'hemiDistKm1000vox128','hemiDistKm1000vox64','hemiDistKm1000vox32','hemiDistKm1000vox16','hemiDistKm1000vox8','hemiDistKm1000vox4','hemiDistKm1000vox2','hemiDistKm1000vox1'};
-    roitypes = {'hemiroi_hb0sr80_sp5db3000mi1','hemiroi_hb0sr80_sp10db3000mi1','hemiroi_hb0sr80_sp15db3000mi1','hemiroi_hb0sr80_sp20db3000mi1','hemiroi_hb0sr80_sp30db3000mi1', ...
-            'hemiroi_fw0sr140_sp5db3000mi1','hemiroi_fw0sr140_sp10db3000mi1','hemiroi_fw0sr140_sp15db3000mi1','hemiroi_fw0sr140_sp20db3000mi1','hemiroi_fw0sr140_sp30db3000mi1'};  % for s0, poltcomp
-%    roitypes = {'hemicmkm50','hemicmkm50_hb0sr80_sp5db3000mi1',...%'hemiDistKm500_hb0sr80_sp10db3000mi1','hemiDistKm500_hb0sr80_sp15db3000mi1','hemiDistKm500_hb0sr80_sp20db3000mi1','hemiDistKm500_hb0sr80_sp30db3000mi1', ...
-%            'hemicmkm50_fw0sr140','hemicmkm50_fw0sr140_sp5db3000mi1'};%,'hemiDistKm500_fw0sr140_sp10db3000mi1','hemiDistKm500_fw0sr140_sp15db3000mi1','hemiDistKm500_fw0sr140_sp20db3000mi1','hemiDistKm500_fw0sr140_sp30db3000mi1'};  % for s230, poltcomp
-    roitypes = {'hemiroi_hb0sr80_rc20','hemiroi_hb0sr80_rc40','hemiroi_hb0sr80_rc100','hemiroi_hb0sr80_rc500', 'hemiroi_hb0sr80_rc1000','hemiroi_hb0sr80_rc10000', ...
-            'hemiroi_fw0sr140_rc20','hemiroi_fw0sr140_rc40','hemiroi_fw0sr140_rc100','hemiroi_fw0sr140_rc500','hemiroi_fw0sr140_rc1000','hemiroi_fw0sr140_rc10000'};  % for s0, poltcomp
-%    roitypes = {'hemiDistKm500_hb0sr80_rc20',...%'hemiroi_hb0sr80_rc40','hemiroi_hb0sr80_rc100','hemiroi_hb0sr80_rc500', 'hemiroi_hb0sr80_rc1000','hemiroi_hb0sr80_rc10000', ...
-%            'hemiDistKm500_fw0sr140_rc20'};%,'hemiroi_fw0sr140_rc40','hemiroi_fw0sr140_rc100','hemiroi_fw0sr140_rc500','hemiroi_fw0sr140_rc1000','hemiroi_fw0sr140_rc10000'};  % for s230, poltcomp
+    roitypes = {'hemiroi_hb0sr80_sp10db3000mi1','hemiroi_hb0sr80_sp20db3000mi1','hemiroi_hb0sr80_sp40db3000mi1','hemiroi_hb0sr80_sp60db3000mi1','hemiroi_hb0sr80_sp80db3000mi1','hemiroi_hb0sr80_sp90db3000mi1', ...
+            'hemiroi_fw0sr140_sp10db3000mi1','hemiroi_fw0sr140_sp20db3000mi1','hemiroi_fw0sr140_sp40db3000mi1','hemiroi_fw0sr140_sp60db3000mi1','hemiroi_fw0sr140_sp80db3000mi1','hemiroi_fw0sr140_sp90db3000mi1'};  % for s0, poltcomp
+    roitypes = {'hemiroi_hb0sr80_sp10db3000mi1_only1','hemiroi_hb0sr80_sp20db3000mi1_only1','hemiroi_hb0sr80_sp40db3000mi1_only1','hemiroi_hb0sr80_sp60db3000mi1_only1','hemiroi_hb0sr80_sp80db3000mi1_only1','hemiroi_hb0sr80_sp90db3000mi1_only1', ...
+            'hemiroi_fw0sr140_sp10db3000mi1_only1','hemiroi_fw0sr140_sp20db3000mi1_only1','hemiroi_fw0sr140_sp40db3000mi1_only1','hemiroi_fw0sr140_sp60db3000mi1_only1','hemiroi_fw0sr140_sp80db3000mi1_only1','hemiroi_fw0sr140_sp90db3000mi1_only1'};  % for s0, poltcomp
+%    roitypes = {'hemiroi_hb0sr80_rc20','hemiroi_hb0sr80_rc40','hemiroi_hb0sr80_rc100','hemiroi_hb0sr80_rc500', 'hemiroi_hb0sr80_rc1000','hemiroi_hb0sr80_rc10000', ...
+%            'hemiroi_fw0sr140_rc20','hemiroi_fw0sr140_rc40','hemiroi_fw0sr140_rc100','hemiroi_fw0sr140_rc500','hemiroi_fw0sr140_rc1000','hemiroi_fw0sr140_rc10000'};  % for s0, poltcomp
 %    roitypes = {'hemiroi_hb0sr80_sp5db3000mi1_rc40','hemiroi_hb0sr80_sp5db3000mi1_rc10000', ...
 %            'hemiroi_fw0sr140_sp5db3000mi1_rc40','hemiroi_fw0sr140_sp5db3000mi1_rc10000'};  % for s0, poltcomp
 %    roitypes = {'hemiroi_hb0sr80_rc10000_rand1','hemiroi_hb0sr80_rc10000_rand2','hemiroi_hb0sr80_rc10000_rand3', ...
@@ -93,13 +96,21 @@ function analyzeFuncConnectivity
 %            'hemiroi_fw0sr140_rc10000_rand1','hemiroi_fw0sr140_rc10000_rand2','hemiroi_fw0sr140_rc10000_rand3', ...
 %            'hemiroi_fw0sr140_rc10000_xrand1','hemiroi_fw0sr140_rc10000_xrand2','hemiroi_fw0sr140_rc10000_xrand3', ...
 %            'hemiroi_fw0sr140_rc10000_xorand1','hemiroi_fw0sr140_rc10000_xorand2','hemiroi_fw0sr140_rc10000_xorand3'};  % for s0, poltcomp
+%    roitypes = {'hemidistkm500_hb0sr80_rc20_xorand1','hemidistkm500_hb0sr80_rc20_xorand2','hemidistkm500_hb0sr80_rc20_xorand3', ...
+%            'hemidistkm500_fw0sr140_rc20_xorand1','hemidistkm500_fw0sr140_rc20_xorand2','hemidistkm500_fw0sr140_rc20_xorand3'};  % for s230, poltcomp
 %    roitypes = {'hemiroi_hb0sr80_rc20_only1','hemiroi_hb0sr80_rc40_only1','hemiroi_hb0sr80_rc100_only1','hemiroi_hb0sr80_rc500_only1','hemiroi_hb0sr80_rc1000_only1','hemiroi_hb0sr80_rc10000_only1', ...
 %            'hemiroi_fw0sr140_rc20_only1','hemiroi_fw0sr140_rc40_only1','hemiroi_fw0sr140_rc100_only1','hemiroi_fw0sr140_rc500_only1','hemiroi_fw0sr140_rc1000_only1','hemiroi_fw0sr140_rc10000_only1'};  % for s0, poltcomp
-    roitypes = {'hemiroi_hb0sr80_rn150_orand1','hemiroi_hb0sr80_rn150_orand2','hemiroi_hb0sr80_rn10_orand1', ...
-          'hemiroi_fw0sr140_rn10_orand1','hemiroi_fw0sr140_rn10_orand2',};  % for s0, poltcomp
+%    roitypes = {'hemidistkm500_hb0sr80_rc20_only1','hemidistkm500_hb0sr80_rc40_only1','hemidistkm500_hb0sr80_rc100_only1','hemidistkm500_hb0sr80_rc500_only1','hemidistkm500_hb0sr80_rc1000_only1','hemidistkm500_hb0sr80_rc10000_only1', ...
+%            'hemidistkm500_fw0sr140_rc20_only1','hemidistkm500_fw0sr140_rc40_only1','hemidistkm500_fw0sr140_rc100_only1','hemidistkm500_fw0sr140_rc500_only1','hemidistkm500_fw0sr140_rc1000_only1','hemidistkm500_fw0sr140_rc10000_only1'};  % for s230, poltcomp
+%    roitypes = {'hemiroi_hb0sr80_rn50_orand1','hemiroi_hb0sr80_rn150_orand1','hemiroi_hb0sr80_rn500_orand1','hemiroi_hb0sr80_rn1000_orand1', ...
+%            'hemiroi_hb0sr80fw_rn50_orand1','hemiroi_hb0sr80fw_rn60_orand1','hemiroi_hb0sr80fw_rn70_orand1','hemiroi_hb0sr80fw_rn130_orand1','hemiroi_hb0sr80fw_rn150_orand1', ...
+%            'hemiroi_hb0sr80fw_rn500_orand1','hemiroi_hb0sr80fw_rn600_orand1','hemiroi_hb0sr80fw_rn700_orand1','hemiroi_hb0sr80fw_rn710_orand1','hemiroi_hb0sr80fw_rn1000_orand1', ...
+%            'hemiroi_fw0sr140_rn50_orand1','hemiroi_fw0sr140_rn120_orand1','hemiroi_fw0sr140_rn130_orand1','hemiroi_fw0sr140_rn140_orand1','hemiroi_fw0sr140_rn150_orand1','hemiroi_fw0sr140_rn200_orand1','hemiroi_fw0sr140_rn250_orand1','hemiroi_fw0sr140_rn500_orand1', ...
+%            'hemiroi_fw0sr140_rn1000_orand1','hemiroi_fw0sr140_rn1530_orand1','hemiroi_fw0sr140_rn1550_orand1','hemiroi_fw0sr140_rn2000_orand1',};  % for s0, poltcomp
 %    roitypes = {'hemiroi_hb0sr80fw_rc20_xorand1','hemiroi_hb0sr80fw_rc20_xorand2','hemiroi_hb0sr80fw_rc20_xorand3', ...
 %            'hemiroi_hb0sr80_rc20_xorand1','hemiroi_hb0sr80_rc20_xorand2','hemiroi_hb0sr80_rc20_xorand3', ...
 %            'hemiroi_fw0sr140_rc20_xorand1','hemiroi_fw0sr140_rc20_xorand2','hemiroi_fw0sr140_rc20_xorand3'};  % for s0, poltcomp
+    roitypes = {'hemiroi_hb0sr80fw_rd65-10', };  % for s0, poltcomp, rNums
 
     % to check scatter and AUC graph (need to comment out plot lines)
 %    roitypes = {'hemiroi_hb0sr80','hemiroi_hb0sr80_rc20_only1','hemiroi_hb0sr80_rn150_orand1','hemiroi_hb0sr80_rn10_orand1', ...
@@ -108,7 +119,11 @@ function analyzeFuncConnectivity
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     for n = 1:length(roitypes)
-        analyzeFcROItype(roitypes{n}, preproc, hpfTh, smooth, nuisance, sbjids)
+        for r = 1:length(rNums)
+            rstr = '';
+            if rNums(r) > 0, rstr = ['-' num2str(rNums(r))]; end
+            analyzeFcROItype([roitypes{n} rstr], preproc, hpfTh, smooth, nuisance, sbjids)
+        end
     end
 end
 
@@ -323,7 +338,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
 
                 % calculate AUC
                 aucmat = ['results/auc/' pftype '-fcauc.mat'];
-                if false %exist(aucmat,'file')
+                if exist(aucmat,'file')
                     % load beta volumes
                     load(aucmat);
                 else
@@ -331,8 +346,8 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
                     aths = cell(thN,1);
                     XY = cell(thN,1);
                     sbths = [];
-                    for th = 1:thN
-%                    parfor th = 1:thN
+%                    for th = 1:thN
+                    parfor th = 1:thN
                         % include injection voxel in ground truth
                         c2th = prctile(C2(C2>0),th-1);
                         ct2 = C2; ct2(ct2<c2th) = 0; ct2(ct2>0) = 1;
