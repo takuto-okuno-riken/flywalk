@@ -573,7 +573,7 @@ function checkRandSubsampleRankTestByHemiroi(vslabels)
     smooth = {''};
     nuisance = {'poltcomp'};
     roitypes = {{'hemiroi','_hb0sr80fw_rd140-15'},{'hemiroi','_hb0sr80fw_rd705-40'},{'hemiroi','_hb0sr80fw_rd65-10'}, ...
-       {'hemiroi','_fw0sr140_rd185-20'},{'hemiroi','_fw0sr140_rd1537-80'},{'hemiroi','_fw0sr140_rd135-10'},};
+       {'hemiroi','_fw0sr140_rd185-20'},{'hemiroi','_fw0sr140_rd1537-80'},{'hemiroi','_fw0sr140_rd140-15'},};
     targets = {{'hemiroi','_hb0sr80_sp10db3000mi1_only1'},{'hemiroi','_hb0sr80_sp90db3000mi1'},{'hemiroi','_hb0sr80_rc20_only1'}, ...
         {'hemiroi','_fw0sr140_sp10db3000mi1_only1'},{'hemiroi','_fw0sr140_sp90db3000mi1'},{'hemiroi','_fw0sr140_rc20_only1'},};
     rNums = 1:99; % for random subsampling number
