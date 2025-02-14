@@ -13,7 +13,7 @@ function plotNeuralFC
 
 %    showNeuralFCFw(conf, epsilon, minpts); % no use
 
-%    showNeuralDBScanFw(conf, epsilon, minpts);
+    showNeuralDBScanFw(conf, epsilon, minpts);
 
     showReciprocalDistanceGraphFw(conf);
 
@@ -45,7 +45,7 @@ function plotNeuralFC
 
 %    showNeuralFCFw(conf, epsilon, minpts); % no use
 
-%    showNeuralDBScanFw(conf, epsilon, minpts);
+    showNeuralDBScanFw(conf, epsilon, minpts);
 
     showReciprocalDistanceGraphFw(conf);
 
