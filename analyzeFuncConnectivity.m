@@ -31,7 +31,7 @@ function analyzeFuncConnectivity
 
     % file number setting for random subsampling
 %    rNums = [0]; % no number setting
-    rNums = 1:49; % for random subsampling number
+    rNums = 1:99; % for random subsampling number
 
     % using subjects (flys). sbj 7 shows NaN row in FC matrix
     sbjids = [1 2 3 4 5 6 8 9];
@@ -110,9 +110,10 @@ function analyzeFuncConnectivity
 %    roitypes = {'hemiroi_hb0sr80fw_rc20_xorand1','hemiroi_hb0sr80fw_rc20_xorand2','hemiroi_hb0sr80fw_rc20_xorand3', ...
 %            'hemiroi_hb0sr80_rc20_xorand1','hemiroi_hb0sr80_rc20_xorand2','hemiroi_hb0sr80_rc20_xorand3', ...
 %            'hemiroi_fw0sr140_rc20_xorand1','hemiroi_fw0sr140_rc20_xorand2','hemiroi_fw0sr140_rc20_xorand3'};  % for s0, poltcomp
-    roitypes = {'hemiroi_hb0sr80fw_rd65-10', };  % for s0, poltcomp, rNums
+    roitypes = {'hemiroi_hb0sr80fw_rd65-10','hemiroi_hb0sr80fw_rd140-15','hemiroi_hb0sr80fw_rd705-40', ...
+            'hemiroi_fw0sr140_rd135-10','hemiroi_fw0sr140_rd185-20','hemiroi_fw0sr140_rd1537-80'};  % for s0, poltcomp, rNums
 
-    % to check scatter and AUC graph (need to comment out plot lines)
+    %to check scatter and AUC graph (need to comment out plot lines)
 %    roitypes = {'hemiroi_hb0sr80','hemiroi_hb0sr80_rc20_only1','hemiroi_hb0sr80_rn150_orand1','hemiroi_hb0sr80_rn10_orand1', ...
 %            'hemiroi_fw0sr140','hemiroi_fw0sr140_rc20_only1','hemiroi_fw0sr140_rn10_orand1'};  % for s0, poltcomp
 
@@ -122,12 +123,12 @@ function analyzeFuncConnectivity
         for r = 1:length(rNums)
             rstr = '';
             if rNums(r) > 0, rstr = ['-' num2str(rNums(r))]; end
-            analyzeFcROItype([roitypes{n} rstr], preproc, hpfTh, smooth, nuisance, sbjids)
+            analyzeFcROItype([roitypes{n} rstr], preproc, hpfTh, smooth, nuisance, sbjids, false)
         end
     end
 end
 
-function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
+function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids, isplot)
     AUCVER = 2;
 
     % load structural connectivity matrix (from makeStructConnectivity.m)
@@ -163,15 +164,16 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
     end
 
     % show corr between neurons v. synapse weight
-    if isw2
-        r = corr(W2b(:),C2b(:));    % corr between neurons v. synapse weight
-        disp(['corr between synapse weight vs. neurons. r=' num2str(r)]);
-        figure; scatter(W2b(:),C2b(:)); xlabel('synapse weight2'); ylabel('neurons2');
+    if isplot
+        if isw2
+            r = corr(W2b(:),C2b(:));    % corr between neurons v. synapse weight
+            disp(['corr between synapse weight vs. neurons. r=' num2str(r)]);
+            figure; scatter(W2b(:),C2b(:)); xlabel('synapse weight2'); ylabel('neurons2');
+        end
+        r = corr(Sb(:),C2b(:));    % corr between neurons v. synapse weight
+        disp(['corr between synapses vs. neurons. r=' num2str(r)]);
+        figure; scatter(Sb(:),C2b(:)); xlabel('synapses'); ylabel('neurons2');
     end
-    r = corr(Sb(:),C2b(:));    % corr between neurons v. synapse weight
-    disp(['corr between synapses vs. neurons. r=' num2str(r)]);
-    figure; scatter(Sb(:),C2b(:)); xlabel('synapses'); ylabel('neurons2');
-
 
     n = length(ids);
     E = eye(n); E = logical(1-E);
@@ -483,6 +485,8 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids)
             end
         end
     end
+    if ~isplot, return; end
+
     % FC-SC correlation (6-type mixed box plot)
     dlabels = {'neuron vs. m-FC(z)','synapse vs. m-FC(z)'};
     figure; boxplot(Rm([7 9],:),'Labels',rlabel); title([roitype ' FC-SC correlation (neuron vs. synapse)']);

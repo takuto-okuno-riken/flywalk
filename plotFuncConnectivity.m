@@ -572,9 +572,11 @@ function checkRandSubsampleRankTestByHemiroi(vslabels)
     hpfTh = [0]; % high-pass filter threshold
     smooth = {''};
     nuisance = {'poltcomp'};
-    roitypes = {{'hemiroi','_hb0sr80fw_rd65-10'},};
-    targets = {{'hemiroi','_hb0sr80_rc20_only1'}};
-    rNums = 1:49; % for random subsampling number
+    roitypes = {{'hemiroi','_hb0sr80fw_rd140-15'},{'hemiroi','_hb0sr80fw_rd705-40'},{'hemiroi','_hb0sr80fw_rd65-10'}, ...
+       {'hemiroi','_fw0sr140_rd185-20'},{'hemiroi','_fw0sr140_rd1537-80'},{'hemiroi','_fw0sr140_rd135-10'},};
+    targets = {{'hemiroi','_hb0sr80_sp10db3000mi1_only1'},{'hemiroi','_hb0sr80_sp90db3000mi1'},{'hemiroi','_hb0sr80_rc20_only1'}, ...
+        {'hemiroi','_fw0sr140_sp10db3000mi1_only1'},{'hemiroi','_fw0sr140_sp90db3000mi1'},{'hemiroi','_fw0sr140_rc20_only1'},};
+    rNums = 1:99; % for random subsampling number
 
     for r = 1:length(roitypes)
         Am = []; Rm = []; tAm = []; tRm = []; ncounts = []; sycounts = [];
@@ -589,8 +591,8 @@ function checkRandSubsampleRankTestByHemiroi(vslabels)
                     if exist(aucmat,'file')
                         load(aucmat);
                     else
-                        A = nan(size(A3,1),100);
-                        R = nan(size(R3,1),1);
+                        A = nan(size(Am,1),100);
+                        R = nan(size(Rm,1),1);
                     end
                     tAm = [tAm,nanmean(A,2)];
                     tRm = [tRm,R(:)];
@@ -604,8 +606,8 @@ function checkRandSubsampleRankTestByHemiroi(vslabels)
                         if exist(aucmat,'file')
                             load(aucmat);
                         else
-                            A = nan(size(A3,1),100);
-                            R = nan(size(R3,1),1);
+                            A = nan(size(Am,1),100);
+                            R = nan(size(Rm,1),1);
                         end
                         Am = [Am,nanmean(A,2)];
                         Rm = [Rm,R(:)];
@@ -622,19 +624,36 @@ function checkRandSubsampleRankTestByHemiroi(vslabels)
                 rstr = '';
                 if rNums(ss) > 0, rstr = ['-' num2str(rNums(ss))]; end
                 conmat = ['results/sc/' roitypes{r}{1} roitypes{r}{2} rstr '_connectlist.mat'];
-                load(conmat);
-                nn = sum(ncountMat(primaryIds,primaryIds,2),'all');
-                syn = sum(sycountMat(primaryIds,primaryIds,2),'all');
-                ncounts = [ncounts; nn];
-                sycounts = [sycounts; syn];
+                if exist(conmat,'file')
+                    load(conmat);
+                    nn = sum(ncountMat(primaryIds,primaryIds,2),'all');
+                    syn = sum(sycountMat(primaryIds,primaryIds,2),'all');
+                    ncounts = [ncounts; nn];
+                    sycounts = [sycounts; syn];
+                end
             end
         end
 
+        % normality test
+        [h,p] = lillietest(ncounts);
+        disp(['neuron count, Lilliefors test p=' num2str(p)]);
+        [h,p] = lillietest(sycounts);
+        disp(['synapse count, Lilliefors test p=' num2str(p)]);
+        pd1 = fitdist(ncounts,'Normal');
+        p1 = 2*normcdf(-abs(tncount-pd1.mu)/pd1.sigma); % two tailed normal distribution based test
+        pd2 = fitdist(sycounts,'Normal');
+        p2 = 2*normcdf(-abs(tsycount-pd2.mu)/pd2.sigma); % two tailed normal distribution based test
+        
         % show total synapse count histogram
-        figure; histogram(ncounts, 10); title(['ncounts count matrix total : ' roitypes{r}{1} roitypes{r}{2}]);
+        figure; histogram(ncounts, 10); title(['ncounts count matrix total : ' targets{r}{2} ' p=' num2str(p1)]);
+        [y, x]=ecdf([tncount; ncounts]); hold on; plot(x, y*25,'LineWidth',2); hold off;
+        x=linspace(min(x),max(x)); y=normcdf(x,pd1.mu,pd1.sigma); hold on; plot(x, y*25,':k','LineWidth',0.5); hold off;
         xline(tncount,'--r');
-        figure; histogram(sycounts, 10); title(['synapse count matrix total : ' roitypes{r}{1} roitypes{r}{2}]);
+        figure; histogram(sycounts, 10); title(['synapse count matrix total : ' targets{r}{2} ' p=' num2str(p2)]);
+        [y, x]=ecdf([tsycount; sycounts]); hold on; plot(x, y*25,'LineWidth',2); hold off;
+        x=linspace(min(x),max(x)); y=normcdf(x,pd2.mu,pd2.sigma); hold on; plot(x, y*25,':k','LineWidth',0.5); hold off;
         xline(tsycount,'--r');
+%        continue;
 
         % show R and AUC histogram
         B = abs(Rm) + abs(Am-0.5)*2;
@@ -642,12 +661,33 @@ function checkRandSubsampleRankTestByHemiroi(vslabels)
         I = [7 9];
         for i=1:length(I)
             ii = I(i);
-            figure; histogram(Rm(ii,:), 10); title(['FC-SC corr : ' roitypes{r}{1} roitypes{r}{2} ' : ' vslabels{ii}]);
+            % normality test
+            [h,p] = lillietest(Rm(ii,:));
+            disp([targets{r}{2} ' corr, Lilliefors test p=' num2str(p)]);
+            [h,p] = lillietest(Am(ii,:));
+            disp([targets{r}{2} ' AUC, Lilliefors test p=' num2str(p)]);
+            [h,p] = lillietest(B(ii,:));
+            disp([targets{r}{2} ' all, Lilliefors test p=' num2str(p)]);
+            pd1 = fitdist(Rm(ii,:)','Normal');
+            p1 = 2*normcdf(-abs(tRm(ii)-pd1.mu)/pd1.sigma); % two tailed normal distribution based test
+            pd2 = fitdist(Am(ii,:)','Normal');
+            p2 = 2*normcdf(-abs(tAm(ii)-pd2.mu)/pd2.sigma); % two tailed normal distribution based test
+            pd3 = fitdist(B(ii,:)','Normal');
+            p3 = 2*normcdf(-abs(tB(ii)-pd3.mu)/pd3.sigma);  % two tailed normal distribution based test
+            
+            % show histogram
+            figure; histogram(Rm(ii,:), 10); title(['FC-SC corr : ' targets{r}{2} ' : ' vslabels{ii} ' p=' num2str(p1)]);
+            [y, x]=ecdf([tRm(ii), Rm(ii,:)]); hold on; plot(x, y*25,'LineWidth',2); hold off;
+            x=linspace(min(x),max(x)); y=normcdf(x,pd1.mu,pd1.sigma); hold on; plot(x, y*25,':k','LineWidth',0.5); hold off;
             xline(tRm(ii),'--r');
-            figure; histogram(Am(ii,:), 10); title(['FC-SC AUC : ' roitypes{r}{1} roitypes{r}{2} ' : ' vslabels{ii}]);
+            figure; histogram(Am(ii,:), 10); title(['FC-SC AUC : ' targets{r}{2} ' : ' vslabels{ii} ' p=' num2str(p2)]);
+            [y, x]=ecdf([tAm(ii), Am(ii,:)]); hold on; plot(x, y*35,'LineWidth',2); hold off;
+            x=linspace(min(x),max(x)); y=normcdf(x,pd2.mu,pd2.sigma); hold on; plot(x, y*35,':k','LineWidth',0.5); hold off;
             xline(tAm(ii),'--r');
-            figure; histogram(B(ii,:), 10); title(['FC-SC all : ' roitypes{r}{1} roitypes{r}{2} ' : ' vslabels{ii}]);
-            xline(tB(ii),'--r');
+%            figure; histogram(B(ii,:), 10); title(['FC-SC all : ' targets{r}{2} ' : ' vslabels{ii} ' p=' num2str(p3)]);
+%            [y, x]=ecdf([tB(ii), B(ii,:)]); hold on; plot(x, y*25,'LineWidth',2); hold off;
+%            x=linspace(min(x),max(x)); y=normcdf(x,pd3.mu,pd3.sigma); hold on; plot(x, y*25,':k','LineWidth',0.5); hold off;
+%            xline(tB(ii),'--r');
         end
     end
 end

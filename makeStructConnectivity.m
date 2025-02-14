@@ -293,7 +293,7 @@ function makeStructConnectivity
     % random subsampling for parmutation test
 %%{
     functype = 'fw'; %''; %
-    randrange = {[6.5e5, 1e5],[14e5, 1.5e5],[705e5, 4e5]};
+    randrange = {[6.5e5, 1e5],[14e5, 1.5e5],[70.5e5, 4e5]};
     for ii=1:length(randrange)
         param = randrange{ii};
         for k=1:99
@@ -321,7 +321,7 @@ function makeStructConnectivity
     end
 
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs by FlyWire EM data.
-    randrange = {[13.5e5, 1e5],[18e5, 2e5],[1537e5, 8e5]};
+    randrange = {[14e5, 1e5],[18.5e5, 2e5],[154.5e5, 8e5]};
     for ii=1:length(randrange)
         param = randrange{ii};
         for k=1:99
