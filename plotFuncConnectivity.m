@@ -87,21 +87,18 @@ function plotFuncConnectivity
     % roitype: hemiroi
 %    checkReciprocalDistanceRandByHemiroi(vslabels);
 
-%    checkRandSubsampleByHemiroi(vslabels);
+    % check synapse separation index thresholds of FlyEM vs. FlyWire (s0, poltcomp)
+    % roitype: hemiroi
+    checkSeparationRandByHemiroi(vslabels);
 
-    checkRandSubsampleRankTestByHemiroi(vslabels);
+%    checkRandSubsampleByHemiroi(vslabels); % find good rand param of permutation test of separation index & reciprocal
+
+    checkRandSubsampleRankTestByHemiroi(vslabels); % show permutation test results
 
     % check reciprocal synapse distance thresholds of FlyEM vs. FlyWire (s230, poltcomp)
     % roitype: DistKm500
 %    checkReciprocalDistanceRandByDistKm(vslabels);
 
-    % check synapse separation index thresholds of FlyEM vs. FlyWire (s0, poltcomp)
-    % roitype: hemiroi
-    checkSeparationRandByHemiroi(vslabels);
-
-    % check synapse separation index thresholds of FlyEM vs. FlyWire (poltcomp)
-    % roitype: DistKm50
-%    checkSeparationRandByDistKm(vslabels);
 end
 
 function checkSmoothingByRoinum(vslabels)
@@ -572,11 +569,12 @@ function checkRandSubsampleRankTestByHemiroi(vslabels)
     hpfTh = [0]; % high-pass filter threshold
     smooth = {''};
     nuisance = {'poltcomp'};
-    roitypes = {{'hemiroi','_hb0sr80fw_rd140-15'},{'hemiroi','_hb0sr80fw_rd705-40'},{'hemiroi','_hb0sr80fw_rd65-15'}, ...
-       {'hemiroi','_fw0sr140_rd185-20'},{'hemiroi','_fw0sr140_rd1555-80'},{'hemiroi','_fw0sr140_rd140-15'},};
+    roitypes = {{'hemiroi','_hb0sr80fw_rd140-15'},{'hemiroi','_hb0sr80fw_rd705-40'},{'hemiroi','_hb0sr80fw_rd67-12'}, ...
+       {'hemiroi','_fw0sr140_rd185-20'},{'hemiroi','_fw0sr140_rd1560-80'},{'hemiroi','_fw0sr140_rd140-15'},};
     targets = {{'hemiroi','_hb0sr80_sp10db3000mi1_only1'},{'hemiroi','_hb0sr80_sp90db3000mi1'},{'hemiroi','_hb0sr80_rc20_only1'}, ...
         {'hemiroi','_fw0sr140_sp10db3000mi1_only1'},{'hemiroi','_fw0sr140_sp90db3000mi1'},{'hemiroi','_fw0sr140_rc20_only1'},};
     rNums = 1:99; % for random subsampling number
+    pval = 0.05 / 6; % bonferroni correction
 
     for r = 1:length(roitypes)
         Am = []; Rm = []; tAm = []; tRm = []; ncounts = []; sycounts = [];
@@ -633,6 +631,7 @@ function checkRandSubsampleRankTestByHemiroi(vslabels)
                 end
             end
         end
+        if isempty(ncounts), continue; end
 
         % normality test
         [h,p] = lillietest(ncounts);
@@ -648,11 +647,11 @@ function checkRandSubsampleRankTestByHemiroi(vslabels)
         figure; histogram(ncounts, 10); title(['ncounts count matrix total : ' targets{r}{2} ' p=' num2str(p1)]);
         [y, x]=ecdf([tncount; ncounts]); hold on; plot(x, y*25,'LineWidth',2); hold off;
         x=linspace(min(x),max(x)); y=normcdf(x,pd1.mu,pd1.sigma); hold on; plot(x, y*25,':k','LineWidth',0.5); hold off;
-        xline(tncount,'--r');
+        xline(tncount,'r'); bx=norminv([pval,1-pval],pd1.mu,pd1.sigma); xline(bx,':r');
         figure; histogram(sycounts, 10); title(['synapse count matrix total : ' targets{r}{2} ' p=' num2str(p2)]);
         [y, x]=ecdf([tsycount; sycounts]); hold on; plot(x, y*25,'LineWidth',2); hold off;
         x=linspace(min(x),max(x)); y=normcdf(x,pd2.mu,pd2.sigma); hold on; plot(x, y*25,':k','LineWidth',0.5); hold off;
-        xline(tsycount,'--r');
+        xline(tsycount,'r'); bx=norminv([pval,1-pval],pd2.mu,pd2.sigma); xline(bx,':r');
 %        continue;
 
         % show R and AUC histogram
@@ -679,11 +678,11 @@ function checkRandSubsampleRankTestByHemiroi(vslabels)
             figure; histogram(Rm(ii,:), 10); title(['FC-SC corr : ' targets{r}{2} ' : ' vslabels{ii} ' p=' num2str(p1)]);
             [y, x]=ecdf([tRm(ii), Rm(ii,:)]); hold on; plot(x, y*25,'LineWidth',2); hold off;
             x=linspace(min(x),max(x)); y=normcdf(x,pd1.mu,pd1.sigma); hold on; plot(x, y*25,':k','LineWidth',0.5); hold off;
-            xline(tRm(ii),'--r');
+            xline(tRm(ii),'r'); bx=norminv([pval,1-pval],pd1.mu,pd1.sigma); xline(bx,':r');
             figure; histogram(Am(ii,:), 10); title(['FC-SC AUC : ' targets{r}{2} ' : ' vslabels{ii} ' p=' num2str(p2)]);
             [y, x]=ecdf([tAm(ii), Am(ii,:)]); hold on; plot(x, y*35,'LineWidth',2); hold off;
             x=linspace(min(x),max(x)); y=normcdf(x,pd2.mu,pd2.sigma); hold on; plot(x, y*35,':k','LineWidth',0.5); hold off;
-            xline(tAm(ii),'--r');
+            xline(tAm(ii),'r'); bx=norminv([pval,1-pval],pd2.mu,pd2.sigma); xline(bx,':r');
 %            figure; histogram(B(ii,:), 10); title(['FC-SC all : ' targets{r}{2} ' : ' vslabels{ii} ' p=' num2str(p3)]);
 %            [y, x]=ecdf([tB(ii), B(ii,:)]); hold on; plot(x, y*25,'LineWidth',2); hold off;
 %            x=linspace(min(x),max(x)); y=normcdf(x,pd3.mu,pd3.sigma); hold on; plot(x, y*25,':k','LineWidth',0.5); hold off;

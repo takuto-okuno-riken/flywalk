@@ -63,6 +63,17 @@ function makeNeuralSC
 
 %    checkNeuralNetworkPropertiesFw(conf); % this is heavy to see
 
+%    g1 = [int64(720575940639239908),int64(720575940619843845),int64(720575940629259023)];
+%    checkSynapticListOfNeuronsFw(conf, g1);
+
+    g1 = [int64(720575940644632087)];
+    checkSynapticCloudFDAFw(conf, g1);
+
+%    g1 = [int64(720575940644632087)];
+%    g2 = [int64(720575940618260500),int64(720575940654220193),int64(720575940635668622),int64(720575940611932842),int64(720575940632015699),int64(720575940611904296),int64(720575940629901047),int64(720575940630151455),int64(720575940603882174),int64(720575940632118479),int64(720575940628894251),int64(720575940623817776),int64(720575940623755312),int64(720575940609984881),int64(720575940621106977),int64(720575940629264938),int64(720575940629630520),int64(720575940633209996),int64(720575940634627214),int64(720575940626651691),int64(720575940611603502),int64(720575940623685193), ... % AN neurons
+%        int64(720575940635831438),int64(720575940635863214),int64(720575940613099493),int64(720575940628370732),int64(720575940622529574),int64(720575940621558762),int64(720575940624473918)]; % WPN Tier2/3
+%    checkSynapticListBetweenNeuronsFw(conf, g1, g2);
+
     scTh = 140; synTh = 0; % FlyWire synapse score & synapse count at one neuron threshold
 %    scTh = 50; synTh = 0;
 %    scTh = 140; synTh = 5; % high confidence & connection setting.
@@ -954,6 +965,165 @@ function checkNeuralNetworkPropertiesFw(conf)
 
     [GaC, count, allTriplet] = calcGlobalClusteringCoeff(sparse(G));
     disp([scname num2str(synTh) 'sr' num2str(scoreTh) ' : CFG tri ' num2str(count) ' triangles, avg clustering coeff=' num2str(GaC) ', x CFG=' num2str(aC/GaC)]);
+end
+
+function [prejson, postjson] = checkSynapticListOfNeuronsFw(conf, g1)
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+    scname = conf.scname;
+
+    % FlyWire read neuron info
+    Nid = [];
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+
+    % FlyWire read synapse info
+    preNidx = []; postNidx = [];
+    load(conf.synapseFile);
+    score = (cleftScore >= scoreTh);
+    Sidx = int32(1:length(Sid))';
+    valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
+
+    % FlyWire read synapse locations
+    Spostloc = []; Spreloc = [];
+    load(conf.sypostlocFile);
+    load(conf.syprelocFile);
+
+    g1idx = find(ismember(Nid,g1));
+    
+    % get g1 pre-synapse
+    prelogi = ismember(preNidx,g1idx);
+    spreloc = double(Spreloc(prelogi & valid & score,:)) ./ conf.voxelSize;
+
+    % get g1 post-synapse
+    postlogi = ismember(postNidx,g1idx);
+    spostloc = double(Spostloc(postlogi & valid & score,:)) ./ conf.voxelSize;
+
+    % print out json
+    sz1 = size(spreloc,1);
+    point = cell(sz1,1); id = cell(sz1,1);
+    for i=1:sz1, point{i} = spreloc(i,:); id{i} = ['pre' num2str(i)]; end
+    type = cell(sz1,1);
+    type(:) = {'point'};
+    prejson = jsonencode(table(point,type,id));
+
+    sz1 = size(spostloc,1);
+    point = cell(sz1,1); id = cell(sz1,1);
+    for i=1:sz1, point{i} = spostloc(i,:); id{i} = ['post' num2str(i)]; end
+    type = cell(sz1,1);
+    type(:) = {'point'};
+    postjson = jsonencode(table(point,type,id));
+end
+
+function checkSynapticCloudFDAFw(conf, g1)
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+    scname = conf.scname;
+
+    % FlyWire read neuron info
+    Nid = [];
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+
+    % FlyWire read synapse info
+    preNidx = []; postNidx = [];
+    load(conf.synapseFile);
+    score = (cleftScore >= scoreTh);
+    Sidx = int32(1:length(Sid))';
+    valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
+
+    % FlyWire read synapse locations
+    SprelocFc = []; SpostlocFc = [];
+    load(conf.sypostlocFdaFile);
+    load(conf.syprelocFdaFile);
+
+    g1idx = find(ismember(Nid,g1));
+    
+    % get g1 pre-synapse
+    prelogi = ismember(preNidx,g1idx);
+    SprelocFc = SprelocFc(prelogi & valid & score,:);
+
+    % get g1 post-synapse
+    postlogi = ismember(postNidx,g1idx);
+    SpostlocFc = SpostlocFc(postlogi & valid & score,:);
+
+    info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
+    V = niftiread(info); % mask should have same transform with 4D nifti data
+    mV = V; V(:) = 0;
+    sz = size(V);
+
+    for i=1:size(SprelocFc,1)
+        t = ceil(SprelocFc(i,:));
+        if t(1)>0 && t(2)>0 && t(3)>0 && t(1)<sz(1) && t(2)<sz(2) && t(3)<sz(3) 
+            if mV(t(1),t(2),t(3)) > 0
+                V(t(1),t(2),t(3)) = V(t(1),t(2),t(3)) + 1;
+            end
+        else
+            disp(['out of bounds ' num2str(i) ') ' num2str(t)]);
+        end
+    end
+    clear SprelocFc;
+    for i=1:size(SpostlocFc,1)
+        t = ceil(SpostlocFc(i,:));
+        if t(1)>0 && t(2)>0 && t(3)>0 && t(1)<sz(1) && t(2)<sz(2) && t(3)<sz(3) 
+            if mV(t(1),t(2),t(3)) > 0
+                V(t(1),t(2),t(3)) = V(t(1),t(2),t(3)) + 1;
+            end
+        else
+            disp(['out of bounds ' num2str(i) ') ' num2str(t)]);
+        end
+    end
+    clear SpostlocFc;
+        
+    niftiwrite(V,['results/nifti/' num2str(g1) '_synFDACal.nii.gz'],info,'Compressed',true);
+end
+
+function [prejson, postjson] = checkSynapticListBetweenNeuronsFw(conf, g1, g2)
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+    scname = conf.scname;
+
+    % FlyWire read neuron info
+    Nid = [];
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+
+    % FlyWire read synapse info
+    preNidx = []; postNidx = [];
+    load(conf.synapseFile);
+    score = (cleftScore >= scoreTh);
+    Sidx = int32(1:length(Sid))';
+    valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
+
+    % FlyWire read synapse locations
+    Spostloc = []; Spreloc = [];
+    load(conf.sypostlocFile);
+    load(conf.syprelocFile);
+
+    g1idx = find(ismember(Nid,g1));
+    g2idx = find(ismember(Nid,g2));
+    
+    % get g1 pre-synapse
+    prelogi = ismember(preNidx,g1idx);
+    postlogi = ismember(postNidx,g2idx);
+    spreloc = double(Spreloc(prelogi & postlogi & valid & score,:)) ./ conf.voxelSize;
+
+    % get g1 post-synapse
+    postlogi = ismember(postNidx,g1idx);
+    prelogi = ismember(preNidx,g2idx);
+    spostloc = double(Spostloc(postlogi & prelogi & valid & score,:)) ./ conf.voxelSize;
+
+    % print out json
+    sz1 = size(spreloc,1);
+    point = cell(sz1,1); id = cell(sz1,1);
+    for i=1:sz1, point{i} = spreloc(i,:); id{i} = ['pre' num2str(i)]; end
+    type = cell(sz1,1);
+    type(:) = {'point'};
+    prejson = jsonencode(table(point,type,id));
+
+    sz1 = size(spostloc,1);
+    point = cell(sz1,1); id = cell(sz1,1);
+    for i=1:sz1, point{i} = spostloc(i,:); id{i} = ['post' num2str(i)]; end
+    type = cell(sz1,1);
+    type(:) = {'point'};
+    postjson = jsonencode(table(point,type,id));
 end
 
 function checkReciprocalSynapseDistanceFw(conf)
