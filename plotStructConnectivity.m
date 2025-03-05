@@ -2,6 +2,10 @@
 % this script can run after analyzeStructConnectivity.m
 
 function plotStructConnectivity
+    % check ROI volume 
+    % roitype: hemiroi52, CmKm50, DistKm50
+    showSCroiVolume();
+    
     % check SC post synapse cloud
     % roitype: hemiroi primary, hemiDistKm500
     showSCpostSynapse();
@@ -33,6 +37,66 @@ function plotStructConnectivity
 
     checkOtherPieceSynapse('results/sc/hemiroi_connectlist.mat', ids, labelNames); % hemibrain ROI
 %}
+end
+
+function showSCroiVolume()
+    % volume size of one voxel
+    info = niftiinfo('template/thresholded_FDACal_mask.nii.gz');
+    volsz = prod(info.PixelDimensions*1000);
+
+    % load SC & atlas
+%    roitypes = {'hemiroi','hemiCmkm50','hemiDistKm50'};
+%    maxroi = 52;
+    roitypes = {'hemiCmkm30','hemiCmkm50','hemiCmkm100','hemiCmkm200','hemiCmkm500','hemiCmkm1000',...
+        'hemiDistKm30','hemiDistKm50','hemiDistKm100','hemiDistKm200','hemiDistKm500','hemiDistKm1000'};
+    maxroi = 1000;
+
+    roiV = nan(maxroi,length(roitypes));
+    for i = 1:length(roitypes)
+        roitype = roitypes{i};
+
+        % load structural connectivity matrix (from makeStructConnectivity.m)
+        switch(roitype)
+        case 'hemiroi'
+            [roiIdxs, sz] = getHemiroiRoiIdxs();
+        otherwise
+            [roiIdxs, sz, primaryIds, roiNum] = getRoiIdxs(['atlas/' roitype 'atlasCal.nii.gz']);
+        end
+        fname = ['results/sc/' lower(roitype) '_connectlist.mat'];
+        load(fname);
+
+        for k=1:length(primaryIds)
+            r = primaryIds(k);
+            roiV(k,i) = length(roiIdxs{r}) * volsz;
+        end
+    end
+    figure; boxplot(roiV,'Labels',roitypes); title('ROI volumes in each ROI type');
+end
+
+
+function [roiIdxs, sz, primaryIds, roiNum] = getRoiIdxs(fname)
+    atlV = niftiread(fname);
+    roimax = max(atlV(:));
+    sz = size(atlV);
+
+    roiIdxs = {};
+    for i=1:roimax
+        roiIdxs{i} = find(atlV==i);
+    end
+
+    primaryIds = 1:roimax;
+    roiNum = length(primaryIds);
+end
+
+function [roiIdxs, sz] = getHemiroiRoiIdxs()
+    roiIdxs = {};
+    listing = dir(['atlas/hemiroi/*.nii.gz']);
+    for i=1:length(listing)
+        V = niftiread(['atlas/hemiroi/roi' num2str(i) '.nii.gz']); % ROI mask should have same transform with 4D nifti data
+        idx = find(V>0);
+        roiIdxs{i} = idx;
+        sz = size(V);
+    end
 end
 
 function showSCpostSynapse()

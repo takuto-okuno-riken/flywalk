@@ -108,8 +108,8 @@ function makeStructConnectivity
     end
     ids = primaryIds;
     CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
-    figure; imagesc(log10(CM)); colorbar; title('hemibrain neurons matrix');
-    figure; imagesc(log10(SM)); colorbar; title('hemibrain synapses matrix');
+    figure; imagesc(log10(CM)); colorbar; daspect([1 1 1]); title('hemibrain neurons matrix');
+    figure; imagesc(log10(SM)); colorbar; daspect([1 1 1]); title('hemibrain synapses matrix');
 %    CM2b = ncountMat(ids,ids,2); SMb = sycountMat(ids,ids,2); WM2b = nweightMat(ids,ids,2); WMob = outweightMat(ids,ids,2);
 %    WM3b = WM2b ./ SMb; WM3b(SMb==0) = 0; % pure ROI-input neuron connection weight
 %}
@@ -291,7 +291,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs
     % random subsampling for parmutation test
-%%{
+%{
     functype = 'fw'; %''; %
     randrange = {[6.5e5, 1.5e5],[14e5, 1.5e5],[70.5e5, 4e5]};
     for ii=1:length(randrange)
@@ -802,8 +802,8 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from k-means atlas.
     %
-%{
-    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
+%%{
+    for k=50%[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiCmkm' num2str(k)];
         fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
@@ -1299,8 +1299,8 @@ function checkScverTreeAndSave(idstr, fname, countMat, weightMat, ncountMat, syc
 
     ids = primaryIds;
     CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
-    figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
-    figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
+    figure; imagesc(log(CM)); colorbar; daspect([1 1 1]); title([idstr ' neurons matrix']);
+    figure; imagesc(log(SM)); colorbar; daspect([1 1 1]); title([idstr ' synapses matrix']);
 end
 
 function imagescLabel(mat, labelNames, titlestr)

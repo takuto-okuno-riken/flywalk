@@ -29,14 +29,16 @@ function plotFuncConnectivity
     };
 
     % check smoothing result around 50 ROIs (s0 to s80)
+    % FlyEM,Cm,Dist matrix are used in figure.1
     % roitype: FlyEM,FlyEMFw,Branson,BransonFw,Cm,CmFw,CmR1w1,Dist,Rand,Vrand
 %    checkSmoothingResult50(vslabels);
 
     % check smoothing result in several ROI nums (s0 to s80, roi 20 to 1000)
     % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
-%    checkSmoothingByRoinum(vslabels);
+    checkSmoothingByRoinum(vslabels);
 
     % check nuisance result around 50 ROIs (all nuisance)
+    % FlyEM,Cm,Dist are used in figure.1
     % roitype: FlyEM,FlyEmFw,Branson,Cm,CmR1w1,Dist,Rand,Vrand
 %    checkNuisanceResult50(vslabels);
 
@@ -55,7 +57,8 @@ function plotFuncConnectivity
     % roitype: hemiroi68-59-87-106-50-27-54 (mushroom body)
 %    checkSmoothingNuisanceMushroomBody(vslabels);
 
-    % check large smoothing size in several ROI nums and poltcomp (s0 to 300, roi 50 to 500, '' & poltcomp)
+    % check large smoothing size in several ROI nums and poltcomp (s0 to 300, roi 20 to 1000, '' & poltcomp)
+    % Cm,Dist are used in figure.2
     % roitype: Cm,Dist
     checkLargeSmoothingPoltcompByRoinum(vslabels);
 
@@ -859,8 +862,10 @@ function checkNuisanceResult50(vslabels)
         '24hmacomp','24hmgmacomp','24hmgmgsacomp','24hmtcomp','24hmtacomp', ... %27
         'pol','polacomp','poltcomp','poltacomp','polgmtacomp', ...
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp', };
-    roitypes = {'hemiroi','hemiroi_fw0sr50','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
-    roitypelabels = {'FlyEM','FlyEmFw','Branson','Cm','CmR1w1','Dist','Rand','Vrand',};
+%    roitypes = {'hemiroi','hemiroi_fw0sr50','hemiBranson7065km50','hemiCmkm50','hemiCmkm50r1w1','hemiDistKm50','hemiRand50','hemiVrand50'};
+%    roitypelabels = {'FlyEM','FlyEmFw','Branson','Cm','CmR1w1','Dist','Rand','Vrand',};
+    roitypes = {'hemiroi','hemiCmkm50','hemiDistKm50'};
+    roitypelabels = {'FlyEM','Cm','Dist'};
 
     ylabels = {}; R3 = []; A3 = [];
     for r = 1:length(roitypes)
@@ -890,31 +895,32 @@ function checkNuisanceResult50(vslabels)
     end
 
     % FC-SC correlation (all)
-    I = getR3idx([7 9 19 21],[0:24:120]);  % show only Traced neuron, synapse
+%    I = getR3idx([7 9 19 21],[0:24:120]);  % show only Traced neuron, synapse
+    I = getR3idx([7 9],[0:24:48]);
     figure; imagescLabel2(R3(I,:),nuisance,ylabels(I),[0.2 0.9]); colorbar; title(['FC-SC correlation around 50 ROIs']); colormap(hot);
 %    figure; plot(R3(I,:)'); legend(ylabels); title(['FC-SC correlation around 50 ROIs']); setlineColors(24);
 
     % FC-SC correlation m-FCz Traced neuron vs synapse (neuron count shows better result)
-    I = getR3idx([7 9],[0:24:144]);
+%    I = getR3idx([7 9],[0:24:144]);
     figure; plot([1:37]',R3(I,:)'); legend(ylabels(I)); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2);
 
     % FC-SC detection (all)
-    I = getR3idx([7 9 19 21],[0:24:120]);  % show only Traced neuron, synapse
+%    I = getR3idx([7 9 19 21],[0:24:120]);  % show only Traced neuron, synapse
     figure; imagescLabel2(A3(I,:),nuisance,ylabels(I),[0.5 1]); colorbar; title(['FC-SC detection around 50 ROIs']); colormap(hot);
 %    figure; plot(A3(I,:)'); legend(ylabels); title(['FC-SC detection around 50 ROIs']); setlineColors(24);
 
     % FC-SC detection m-FCz neuron vs synapse (neuron count shows better result)
-    I = getR3idx([7 9],[0:24:144]);
+%    I = getR3idx([7 9],[0:24:144]);
     figure; plot([1:37]',A3(I,:)'); legend(ylabels(I)); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2);
 
     % both FC-SC correlation & detection
     B = abs(R3) + abs(A3-0.5)*2;
-    I = getR3idx([7 9 19 21],[0:24:120]);  % show only Traced neuron, synapse
-    figure; imagescLabel2(B(I,:),nuisance,ylabels(I),[0 1.5]); colorbar; title('FC-SC correlation & detection around 50 ROIs'); colormap(hot);
+%    I = getR3idx([7 9 19 21],[0:24:120]);  % show only Traced neuron, synapse
+    figure; imagescLabel2(B(I,:),nuisance,ylabels(I),[0 1.6]); colorbar; title('FC-SC correlation & detection around 50 ROIs'); colormap(hot);
 %    figure; plot(B'); legend(ylabels); title('FC-SC correlation & detection around 50 ROIs'); setlineColors(24);
 
     % FC-SC correlation & detection Full vs. Traced (which is best?)
-    I = getR3idx([7 9],[0:24:144]);
+%    I = getR3idx([7 9],[0:24:144]);
     figure; plot([1:37]',B(I,:)'); legend(ylabels(I)); title('FC-SC correlation & detection around 50 ROIs'); setlineColors(2);
 end
 
@@ -1138,7 +1144,7 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
         's110', 's120', 's130', 's140', 's150', 's160', 's170', 's180', 's190', 's200', ...
         's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
     nuisance = {'','poltcomp'};
-    roinums = [50 100 500];
+    roinums = [20 30 50 100 200 500 1000];
     roitypes = {{'hemiCmkm',''},{'hemiDistKm',''}};
     roitypelabels = {'Cm','Dist'};
 
