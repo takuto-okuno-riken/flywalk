@@ -35,7 +35,7 @@ function plotFuncConnectivity
 
     % check smoothing result in several ROI nums (s0 to s80, roi 20 to 1000)
     % roitype: Branson,Cm,CmR1w1,Dist,Rand,Vand
-    checkSmoothingByRoinum(vslabels);
+%    checkSmoothingByRoinum(vslabels);
 
     % check nuisance result around 50 ROIs (all nuisance)
     % FlyEM,Cm,Dist are used in figure.1
@@ -1148,7 +1148,7 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
     roitypes = {{'hemiCmkm',''},{'hemiDistKm',''}};
     roitypelabels = {'Cm','Dist'};
 
-    ylabels = {}; R3 = []; A3 = []; AA3 = [];
+    ylabels = {}; R3 = []; A3 = []; AA3 = []; R3r = []; A3r = []; I=[7 9];
     for r = 1:length(roitypes)
         Am = []; Rm = []; AA = []; ii=1; xlabels = {};
         for rr=1:length(roinums)
@@ -1156,6 +1156,7 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
                 hpfstr = '';
                 if hpfTh(h) > 0, hpfstr = ['hf' num2str(round(1/hpfTh(h)))]; end
                 for n=1:length(nuisance)
+                    Am2 = []; Rm2 = [];
                     for k=1:length(smooth)
                         pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}{1} num2str(roinums(rr)) roitypes{r}{2}];
                         xlabels{ii} = [smooth{k} nuisance{n} 'roi' num2str(roinums(rr))]; ii=ii+1;
@@ -1164,12 +1165,15 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
                             load(aucmat);
                         else
                             A = nan(size(Am,1),100);
-                            R = nan(size(Rm,1),1);
+                            R = nan(1,size(Rm,1));
                         end
                         AA = cat(3,AA,A);
                         Am = [Am,nanmean(A,2)];
+                        Am2 = [Am2,nanmean(A(I,:),2)];
                         Rm = [Rm,R(:)];
+                        Rm2 = [Rm2,R(I)'];
                     end
+                    R3r = [R3r;Rm2]; A3r = [A3r;Am2];
                 end
             end
         end
@@ -1208,6 +1212,12 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
     % FC-SC correlation & detection Traced neuron vs synapse (which is best?)
     I = getR3idx([7 9],[0 24]);
     figure; plot(B(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
+
+    % used for poltcomp-roi20-1000_smooth0-300ns.xlsx
+    R3r = R3r'; figure; plot(R3r); title('FC-SC correlation by smoothing size'); xlabel('smoothing size [voxel]');
+    A3r = A3r'; figure; plot(A3r); title('FC-SC detection by smoothing size'); xlabel('smoothing size [voxel]');
+    Br = abs(R3r) + abs(A3r-0.5)*2;
+    figure; plot(Br); title('FC-SC detection & correlation by smoothing size'); xlabel('smoothing size [voxel]');
 
     % find best smooth size
     i = 2; step = length(smooth); BMidx = [];

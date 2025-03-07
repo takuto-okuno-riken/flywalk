@@ -802,8 +802,8 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from k-means atlas.
     %
-%%{
-    for k=50%[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
+%{
+    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiCmkm' num2str(k)];
         fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
@@ -882,7 +882,7 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from distance based k-means atlas.
     %
-%{
+%%{
     for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiDistKm' num2str(k)];
         fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
@@ -943,8 +943,8 @@ function makeStructConnectivity
 
         ids = primaryIds;
         CM = ncountMat(ids,ids,2);
-        figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
-        figure; imagesc(distMat(ids,ids)); colorbar; title([idstr ' distance matrix']);
+        figure; imagesc(log(CM)); colorbar; daspect([1 1 1]); title([idstr ' neurons matrix']);
+        figure; imagesc(distMat(ids,ids)); colorbar; daspect([1 1 1]); title([idstr ' distance matrix']);
         r = corr(CM(:),distMat(:));
         figure; scatter(CM(:),distMat(:)); title([idstr ' sc vs. dist r=' num2str(r)]); xlabel('neuron SC matrix'); ylabel('distance matrix');
     end
@@ -1291,6 +1291,7 @@ function checkScverTreeAndSave(idstr, fname, countMat, weightMat, ncountMat, syc
         Z = linkage(eucD,'ward');
         [H,T,outperm] = dendrogram(Z,roiNum);
         primaryIds = outperm; % use default leaf order
+%        dendrogram(Z,200); % for figure.2
     end
     if scver <= SCVER
         scver = scver + 0.1;
