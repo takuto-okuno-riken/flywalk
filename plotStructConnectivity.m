@@ -4,6 +4,7 @@
 function plotStructConnectivity
     % check ROI volume 
     % roitype: hemiroi52, CmKm50, DistKm50
+    % roitype: CmKm & DistKm 20 to 10000
     showSCroiVolume();
     
     % check SC post synapse cloud
@@ -47,10 +48,11 @@ function showSCroiVolume()
     % load SC & atlas
 %    roitypes = {'hemiroi','hemiCmkm50','hemiDistKm50'};
 %    maxroi = 52;
-    roitypes = {'hemiCmkm30','hemiCmkm50','hemiCmkm100','hemiCmkm200','hemiCmkm500','hemiCmkm1000',...
-        'hemiDistKm30','hemiDistKm50','hemiDistKm100','hemiDistKm200','hemiDistKm500','hemiDistKm1000'};
-    maxroi = 1000;
+    roitypes = {'hemiCmkm20','hemiCmkm50','hemiCmkm100','hemiCmkm200','hemiCmkm500','hemiCmkm1000','hemiCmkm5000','hemiCmkm10000',...
+        'hemiDistKm20','hemiDistKm50','hemiDistKm100','hemiDistKm200','hemiDistKm500','hemiDistKm1000','hemiDistKm5000','hemiDistKm10000'};
+    maxroi = 10000;
 
+    csvM = [];
     roiV = nan(maxroi,length(roitypes));
     for i = 1:length(roitypes)
         roitype = roitypes{i};
@@ -68,9 +70,11 @@ function showSCroiVolume()
         for k=1:length(primaryIds)
             r = primaryIds(k);
             roiV(k,i) = length(roiIdxs{r}) * volsz;
+            csvM = [csvM; i, roiV(k,i)];
         end
     end
     figure; boxplot(roiV,'Labels',roitypes); title('ROI volumes in each ROI type');
+    % copy & paste csvM to swarmplot excel files.
 end
 
 
