@@ -48,8 +48,8 @@ function showSCroiVolume()
     % load SC & atlas
 %    roitypes = {'hemiroi','hemiCmkm50','hemiDistKm50'};
 %    maxroi = 52;
-    roitypes = {'hemiCmkm20','hemiCmkm50','hemiCmkm100','hemiCmkm200','hemiCmkm500','hemiCmkm1000','hemiCmkm5000','hemiCmkm10000',...
-        'hemiDistKm20','hemiDistKm50','hemiDistKm100','hemiDistKm200','hemiDistKm500','hemiDistKm1000','hemiDistKm5000','hemiDistKm10000'};
+    roitypes = {'hemiCmkm20','hemiCmkm50','hemiCmkm100','hemiCmkm500','hemiCmkm1000','hemiCmkm5000','hemiCmkm10000',...
+        'hemiDistKm20','hemiDistKm50','hemiDistKm100','hemiDistKm500','hemiDistKm1000','hemiDistKm5000','hemiDistKm10000'};
     maxroi = 10000;
 
     csvM = [];
