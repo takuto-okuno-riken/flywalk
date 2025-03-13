@@ -13,10 +13,10 @@ function makeStructConnectivityWithConditions
     roiNum = length(primaryIds);
     labelNames = roiname(primaryIds,1);
 %%{
-%    rateThs = [50 60 70 80 90];
-%    synThs = 0;
-    rateThs = [60 80];
-    synThs = 5;
+    rateThs = [50 60 70 80 90];
+    synThs = 0;
+%    rateThs = [60 80];
+%    synThs = 5;
     for r=1:length(rateThs)
         rateTh = rateThs(r);
         for j=1:length(synThs)
@@ -41,10 +41,10 @@ function makeStructConnectivityWithConditions
     % ---------------------------------------------------------------------
     % make structural connectivity matrix of hemibrain primary ROI atlas (flyem hemibrain) by FlyWire EM data.
 %%{
-%    rateThs = [50 70 100 130 140 150];
-%    synThs = 0;
-    rateThs = [50 140];
-    synThs = 5;
+    rateThs = [50 70 100 130 140 150];
+    synThs = 0;
+%    rateThs = [50 140];
+%    synThs = 5;
     for r=1:length(rateThs)
         rateTh = rateThs(r);
         for j=1:length(synThs)
@@ -207,6 +207,6 @@ function checkScverAndSave(idstr, fname, ordertemp, countMat, weightMat, ncountM
     figure; imagesc(log(WM)); colorbar; title([idstr ' synapses matrix full']);
 %}
     ids = primaryIds; CM = ncountMat(ids,ids,2); SM = sycountMat(ids,ids,2);
-    figure; imagesc(log(CM)); colorbar; title([idstr ' neurons matrix']);
-    figure; imagesc(log(SM)); colorbar; title([idstr ' synapses matrix']);
+    figure; imagesc(log(CM)); colorbar; daspect([1 1 1]); title([idstr ' neurons matrix']);
+    figure; imagesc(log(SM)); colorbar; daspect([1 1 1]); title([idstr ' synapses matrix']);
 end

@@ -3,23 +3,24 @@
 
 function plotStructConnectivity
     % check ROI volume 
-    % roitype: hemiroi52, CmKm50, DistKm50
-    % roitype: CmKm & DistKm 20 to 10000
+    % roitype: hemiroi52, CmKm50, DistKm50 (figure.1)
+    % roitype: CmKm & DistKm 20 to 10000 (figure.2)
     showSCroiVolume();
     
-    % check SC post synapse cloud
+    % check SC post synapse cloud (figure.3)
     % roitype: hemiroi primary, hemiDistKm500
     showSCpostSynapse();
 
     % check SC matrix connection similarity FlyEM vs. FlyWire
+    % matrix diff is used ext fig.3-1
     % roitype: hemiroi primary, hemiDistKm500
     showSCmatrixSimilarity();
 
-    % check SC vs. FC matrix connection FlyEM vs. FlyWire
+    % check SC vs. FC matrix connection FlyEM vs. FlyWire (figure.3)
     % roitype: hemiroi primary, hemiDistKm500
     showSCFCmatrixSimilarity();
 
-    % check neural transmitter type in each neuron
+    % check neural transmitter type in each neuron (figure.3)
     % roitype: hemiroi primary, hemiDistKm500
     showNeuralTransmitter();
 
@@ -163,6 +164,18 @@ function showSCpostSynapse()
             hold on; h=bar(cats,Y(:,p{j}(2))); h.FaceAlpha = 0.4; hold off;
             legend({labels{p{j}(1)}, labels{p{j}(2)}}); set(gca,'yscale','log');
             title(['valid post-synapse count in each ROI : ' roitype]);
+        end
+
+        % plot scatter plot by each ROI (FlyEM80-FlyWire140 case)
+        if i==1
+            r1 = corr(Y(:,p{1}(1)),Y(:,p{1}(2)));
+            r2 = corr(log10(Y(:,p{1}(1))),log10(Y(:,p{1}(2))));
+            r3 = corr(Y(:,p{1}(1)),Y(:,p{1}(2)),'type','Spearman');
+            figure; scatter(Y(:,p{1}(1)),Y(:,p{1}(2)),14,'red','filled');
+            hold on; plot([0 16e5], [0 16e5],':','Color',[0.5 0.5 0.5]); hold off; daspect([1 1 1]);
+            text(Y(:,p{1}(1)),Y(:,p{1}(2)), labelNames, 'Vert','top', 'Horiz','left', 'FontSize',11);
+            title(['EM vs. Wire valid post-synapse count in each ROI : ' roitype ' r=' num2str(r1)]);
+            xlabel('FlyEM'); ylabel('FlyWire');
         end
     end
 end

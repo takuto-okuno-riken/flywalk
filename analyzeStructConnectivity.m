@@ -240,6 +240,11 @@ function checkSCpostSynapse()
         
                 niftiwrite(hbV,niifile,hbinfo,'Compressed',true);
             end
+%            if confTh == 80
+%                hbV(1,1,1) = 800; % for 80 (figure.3)
+%                niftiwrite(hbV,niifile,hbinfo,'Compressed',true);
+%            end
+            disp(['hb' num2str(synTh) 'sr' num2str(confTh) ' maxV=' num2str(max(hbV(:)))]);
         end
     end
 
@@ -287,6 +292,11 @@ function checkSCpostSynapse()
         
                 niftiwrite(fwV,niifile,hbinfo,'Compressed',true);
             end
+%            if scoreTh == 140
+%                fwV(1,1,1) = 800; % for 140 (figure.3)
+%                niftiwrite(fwV,niifile,hbinfo,'Compressed',true);
+%            end
+            disp(['fw' num2str(synTh) 'sr' num2str(scoreTh) ' maxV=' num2str(max(fwV(:)))]);
         end
     end
 
