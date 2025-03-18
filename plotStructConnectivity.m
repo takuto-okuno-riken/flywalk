@@ -620,12 +620,20 @@ end
 
 function showAPLneuron()
     % load mushroom body ROIs.
-    aV = niftiread('atlas/hemiRoi68-59-87-106-50-27-54atlasCal.nii.gz');
-    idx = find(aV>0);
+%    aV = niftiread('atlas/hemiRoi68-59-87-106-50-27-54atlasCal.nii.gz');
+%    idx = find(aV>0);
 
     % load connected post-synapse counts from APL pre-synapses (output)
     hV = niftiread('results/nifti/hemiAplOutputSynapses.nii.gz');
     wV = niftiread('results/nifti/wireAplOutputSynapses.nii.gz');
+
+    % calculate Sørensen–Dice index
+    bV = hV + wV;
+    idx = find(bV>0);
+    cV = hV .* wV;
+    idx2 = find(cV>0);
+    Didx = 2*length(idx2) / (length(find(hV>0))+length(find(wV>0)));
+%    Didx = dice(logical(hV),logical(wV)); % same value
 
     smooth = [0 20 40 80];
     for i=1:length(smooth)
@@ -646,7 +654,7 @@ function showAPLneuron()
         wscnt = wVt(idx);
         mcnt = max([hscnt; wscnt]);
         r = corr(hscnt,wscnt);    % corr between FlyEM vs. FlyWire post-synapses to connect APL-R neuron
-        figure; scatter(hscnt,wscnt); xlabel('FlyEM synapse count'); ylabel('FlyWire synapse count');
+        figure; scatter(hscnt,wscnt,12,'x'); xlabel('FlyEM synapse count'); ylabel('FlyWire synapse count');
         hold on; plot([0 mcnt], [0 mcnt],':','Color',[0.5 0.5 0.5]); hold off; daspect([1 1 1]);
         title(['s' num2str(sz) ' corr between synapses FlyEM vs. FlyWire r=' num2str(r)]);
     end

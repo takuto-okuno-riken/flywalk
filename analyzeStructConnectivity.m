@@ -10,8 +10,8 @@ function analyzeStructConnectivity
     checkNeuralTransmitterFw();
 
     % check mushroom body huge GABA neuron (APL-R) FlyEM, FlyWire
-%    checkAPLneuron();
-%    checkAPLneuronFw();
+    checkAPLneuron();
+    checkAPLneuronFw();
 end
 
 function checkAPLneuron()
@@ -68,6 +68,13 @@ function checkAPLneuron()
             end
         end
         niftiwrite(V,fname,info,'Compressed',true);
+    else
+        V = niftiread([fname '.gz']);
+    end
+    fname = 'results/nifti/hemiAplOutputSynapsesMask.nii';
+    if ~exist([fname '.gz'],'file')
+        V(V>0) = 1;
+        niftiwrite(V,fname,info,'Compressed',true);
     end
 
     % get post-synapse count of APL neuron (input)
@@ -110,18 +117,20 @@ end
 
 function checkAPLneuronFw()
     scoreTh = 140; % FlyWire synapse score threshold
+    conf = getSCconfig('wire', 0, scoreTh);
 
     % FlyWire read neuron info
-    load('data/flywire783_neuron.mat'); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
 
     % FlyWire read synapse info
-    load('data/flywire783_synapse.mat');
+    load(conf.synapseFile);
     score = (cleftScore >= scoreTh);
     Sidx = int32(1:length(Sid))';
     valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
 
     % read synapse location in FDA
-    load('data/flywire783i_sypostloc_fdacal.mat');
+    load(conf.syprelocFdaFile);
+    load(conf.sypostlocFdaFile);
 
     APLnid = int64(720575940613583001);
     APLidx = find(Nid==APLnid);
@@ -146,6 +155,13 @@ function checkAPLneuronFw()
                 disp(['out of bounds ) ' num2str(t)]);
             end
         end
+        niftiwrite(V,fname,info,'Compressed',true);
+    else
+        V = niftiread([fname '.gz']);
+    end
+    fname = 'results/nifti/wireAplOutputSynapsesMask.nii';
+    if ~exist([fname '.gz'],'file')
+        V(V>0) = 1;
         niftiwrite(V,fname,info,'Compressed',true);
     end
 
