@@ -70,7 +70,7 @@ function plotFuncConnectivity
     % because LargeSmoothing showed better result around s230, this function extended range.
     % Cm,Dist are used in figure.2    
     % roitype: Cm,DistKm,Cube4
-    checkSmoothingPoltcompByLargeRoinum(vslabels);
+%    checkSmoothingPoltcompByLargeRoinum(vslabels);
 
     % check DistKm1000 in each voxel num and poltcomp (s30,80,150,230,300, roi 1000, '' & poltcomp)
     % to check how smoothing and voxel size related, and inside or inter neuropil relation (1 voxel resolution).
@@ -81,11 +81,11 @@ function plotFuncConnectivity
 
     % check smoothing result of FlyEM vs. FlyWire around 50 ROIs (s0 to s80, no nuisance)
     % roitype: FlyEM,FlyEMFw,DistKm50,DistKm50Fw,DistKm50Avg
-    checkSmoothingFlyWireResult50(vslabels);
+%    checkSmoothingFlyWireResult50(vslabels);
 
     % check smoothing and several ROI nums of FlyEM vs. FlyWire (s0 to s80, roi 20 to 1000, no nuisance)
     % roitype: Cm,CmFw,Branson,BransonFw,Dist,DistFw
-    checkSmoothingFlyWireByRoinum(vslabels);
+%    checkSmoothingFlyWireByRoinum(vslabels);
 
     % check reciprocal synapse distance thresholds of FlyEM vs. FlyWire (s0, poltcomp)
     % roitype: hemiroi
@@ -93,11 +93,11 @@ function plotFuncConnectivity
 
     % check synapse separation index thresholds of FlyEM vs. FlyWire (s0, poltcomp)
     % roitype: hemiroi
-    checkSeparationRandByHemiroi(vslabels);
+%    checkSeparationRandByHemiroi(vslabels);
 
 %    checkRandSubsampleByHemiroi(vslabels); % find good rand param of permutation test of separation index & reciprocal
 
-    checkRandSubsampleRankTestByHemiroi(vslabels); % show permutation test results
+    checkRandSubsampleRankTestByHemiroi(vslabels); % show permutation test results (figure.4)
 
     % check reciprocal synapse distance thresholds of FlyEM vs. FlyWire (s230, poltcomp)
     % roitype: DistKm500
@@ -648,13 +648,16 @@ function checkRandSubsampleRankTestByHemiroi(vslabels)
         p2 = 2*normcdf(-abs(tsycount-pd2.mu)/pd2.sigma); % two tailed normal distribution based test
         
         % show total synapse count histogram
-        figure; histogram(ncounts, 10); title(['ncounts count matrix total : ' targets{r}{2} ' p=' num2str(p1)]);
-        [y, x]=ecdf([tncount; ncounts]); hold on; plot(x, y*25,'LineWidth',2); hold off;
-        x=linspace(min(x),max(x)); y=normcdf(x,pd1.mu,pd1.sigma); hold on; plot(x, y*25,':k','LineWidth',0.5); hold off;
+        figure; h=histogram(ncounts, 10); title(['ncounts count matrix total : ' targets{r}{2} ' p=' num2str(p1)]);
+        ymax = 5*ceil(max(h.Values)/5);
+        [y, x]=ecdf([tncount; ncounts]); hold on; plot(x, y*ymax,'LineWidth',2); hold off;
+        x=linspace(min(x),max(x)); y=normcdf(x,pd1.mu,pd1.sigma); hold on; plot(x, y*ymax,':k','LineWidth',0.5); hold off;
         xline(tncount,'r'); bx=norminv([pval,1-pval],pd1.mu,pd1.sigma); xline(bx,':r');
-        figure; histogram(sycounts, 10); title(['synapse count matrix total : ' targets{r}{2} ' p=' num2str(p2)]);
-        [y, x]=ecdf([tsycount; sycounts]); hold on; plot(x, y*25,'LineWidth',2); hold off;
-        x=linspace(min(x),max(x)); y=normcdf(x,pd2.mu,pd2.sigma); hold on; plot(x, y*25,':k','LineWidth',0.5); hold off;
+
+        figure; h=histogram(sycounts, 10); title(['synapse count matrix total : ' targets{r}{2} ' p=' num2str(p2)]);
+        ymax = 5*ceil(max(h.Values)/5);
+        [y, x]=ecdf([tsycount; sycounts]); hold on; plot(x, y*ymax,'LineWidth',2); hold off;
+        x=linspace(min(x),max(x)); y=normcdf(x,pd2.mu,pd2.sigma); hold on; plot(x, y*ymax,':k','LineWidth',0.5); hold off;
         xline(tsycount,'r'); bx=norminv([pval,1-pval],pd2.mu,pd2.sigma); xline(bx,':r');
 %        continue;
 
@@ -679,13 +682,16 @@ function checkRandSubsampleRankTestByHemiroi(vslabels)
             p3 = 2*normcdf(-abs(tB(ii)-pd3.mu)/pd3.sigma);  % two tailed normal distribution based test
             
             % show histogram
-            figure; histogram(Rm(ii,:), 10); title(['FC-SC corr : ' targets{r}{2} ' : ' vslabels{ii} ' p=' num2str(p1)]);
-            [y, x]=ecdf([tRm(ii), Rm(ii,:)]); hold on; plot(x, y*25,'LineWidth',2); hold off;
-            x=linspace(min(x),max(x)); y=normcdf(x,pd1.mu,pd1.sigma); hold on; plot(x, y*25,':k','LineWidth',0.5); hold off;
+            figure; h=histogram(Rm(ii,:), 10); title(['FC-SC corr : ' targets{r}{2} ' : ' vslabels{ii} ' p=' num2str(p1)]);
+            ymax = 5*ceil(max(h.Values)/5);
+            [y, x]=ecdf([tRm(ii), Rm(ii,:)]); hold on; plot(x, y*ymax,'LineWidth',2); hold off;
+            x=linspace(min(x),max(x)); y=normcdf(x,pd1.mu,pd1.sigma); hold on; plot(x, y*ymax,':k','LineWidth',0.5); hold off;
             xline(tRm(ii),'r'); bx=norminv([pval,1-pval],pd1.mu,pd1.sigma); xline(bx,':r');
-            figure; histogram(Am(ii,:), 10); title(['FC-SC AUC : ' targets{r}{2} ' : ' vslabels{ii} ' p=' num2str(p2)]);
-            [y, x]=ecdf([tAm(ii), Am(ii,:)]); hold on; plot(x, y*35,'LineWidth',2); hold off;
-            x=linspace(min(x),max(x)); y=normcdf(x,pd2.mu,pd2.sigma); hold on; plot(x, y*35,':k','LineWidth',0.5); hold off;
+
+            figure; h=histogram(Am(ii,:), 10); title(['FC-SC AUC : ' targets{r}{2} ' : ' vslabels{ii} ' p=' num2str(p2)]);
+            ymax = 5*ceil(max(h.Values)/5);
+            [y, x]=ecdf([tAm(ii), Am(ii,:)]); hold on; plot(x, y*ymax,'LineWidth',2); hold off;
+            x=linspace(min(x),max(x)); y=normcdf(x,pd2.mu,pd2.sigma); hold on; plot(x, y*ymax,':k','LineWidth',0.5); hold off;
             xline(tAm(ii),'r'); bx=norminv([pval,1-pval],pd2.mu,pd2.sigma); xline(bx,':r');
 %            figure; histogram(B(ii,:), 10); title(['FC-SC all : ' targets{r}{2} ' : ' vslabels{ii} ' p=' num2str(p3)]);
 %            [y, x]=ecdf([tB(ii), B(ii,:)]); hold on; plot(x, y*25,'LineWidth',2); hold off;
