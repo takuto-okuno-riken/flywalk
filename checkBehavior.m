@@ -54,8 +54,8 @@ function checkBehavior
     for i=1:size(MBcal,1)
         vq = interp1(x,MBcal(i,:),xq);
         U = conv(vq, hrf);
-        X = U(1:res:res*(sz2+1)); % sampling
-        figure; imagesc([MBcal(i,:)', X']); title([num2str(i) ') original vs. conv CRF'])
+        MBcal2(i,:) = U(1:res:res*(sz2+1)); % sampling
+        figure; imagesc([MBcal(i,:)', MBcal2(i,:)']); title([num2str(i) ') original vs. conv CRF'])
     end
 
     save('data/behavior.mat','MScal','MBcal','MBcal2');
