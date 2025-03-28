@@ -15,7 +15,7 @@ function analyzeFuncConnectivity
 %    smooth = {'', 's30', 's80'}; %, 's150','s230','s300'};
 %    smooth = {'', 's30', 's40', 's60', 's80', 's100', 's150'};
 %    smooth = {'s230'}; % DistKm
-    smooth = {''}; % hemiroi
+%    smooth = {''}; % hemiroi
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
         '6hmacomp','6hmgmacomp','6hmgmgsacomp','6hmtcomp','6hmtacomp', ... %22
@@ -27,7 +27,7 @@ function analyzeFuncConnectivity
     nuisance = {'','poltcomp'}; % good for DistKm
 %    nuisance = {'','6hm','tcomp','pol','poltcomp'}; % good for hemiRoiXX
 %    nuisance = {''};
-    nuisance = {'poltcomp'}; % good for hemiroi, DistKm
+%    nuisance = {'poltcomp'}; % good for hemiroi, DistKm
 
     % file number setting for random subsampling
     rNums = [0]; % no number setting
@@ -39,12 +39,12 @@ function analyzeFuncConnectivity
     % ROI name
 %    roitypes = {'hemiroif'};  % flyem ROI full
 %    roitypes = {'hemiroi','bransonhemi'}; % flyem ROI (Turner compatible)
-    roitypes = {'hemiroi_hb0sr80','hemiroi_fw0','hemiroi_avg0'}; % flyem ROI (Primary, FlyEM vs. FlyWire vs. Average)
+%    roitypes = {'hemiroi_hb0sr80','hemiroi_fw0','hemiroi_avg0'}; % flyem ROI (Primary, FlyEM vs. FlyWire vs. Average)
 %    roitypes = {'hemiBranson7065'};
 %    roitypes = {'hemiBranson7065km20','hemiBranson7065km30','hemiBranson7065km50','hemiBranson7065km100','hemiBranson7065km200', ...
 %        'hemiBranson7065km300','hemiBranson7065km500','hemiBranson7065km300'};
-%    roitypes = {'hemiCmkm20','hemiCmkm30','hemiCmkm50','hemiCmkm100','hemiCmkm200', ...
-%        'hemiCmkm300','hemiCmkm500','hemiCmkm1000'};
+    roitypes = {'hemiCmkm20','hemiCmkm30','hemiCmkm50','hemiCmkm100','hemiCmkm200', ...
+        'hemiCmkm300','hemiCmkm500','hemiCmkm1000'};
 %    roitypes = {'hemiCmkm20r1w1','hemiCmkm30r1w1','hemiCmkm50r1w1','hemiCmkm100r1w1','hemiCmkm200r1w1', ...
 %        'hemiCmkm300r1w1','hemiCmkm500r1w1','hemiCmkm1000r1w1'};
 %    roitypes = {'hemiCmkm20r1w1','hemiCmkm30r1w1','hemiCmkm50r1w1','hemiCmkm100r1w1','hemiCmkm200r1w1', ...
@@ -131,7 +131,7 @@ function analyzeFuncConnectivity
 end
 
 function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids, isplot)
-    AUCVER = 2;
+    AUCVER = 3;
 
     % load structural connectivity matrix (from makeStructConnectivity.m)
     switch(roitype)
@@ -193,7 +193,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids, isp
     if ~exist('results/fc','dir'), mkdir('results/fc'); end
 
     sbjR = [];
-    Rm = []; rlabel = {}; ii=1;
+    Rm = []; SRm = []; rlabel = {}; ii=1;
     AUC = [];
     for h=1:length(hpfTh)
         hpfstr = '';
@@ -236,7 +236,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids, isp
                 % mean group data
                 mFz = nanmean(F3z,3);
                 mFz(isinf(mFz)) = max(mFz(~isinf(mFz)));
-                figure; imagesc(abs(mFz)); colorbar; daspect([1 1 1]); title([pftype ' m-FCz matrix']);
+%                figure; imagesc(abs(mFz)); colorbar; daspect([1 1 1]); title([pftype ' m-FCz matrix']);
 
                 T3 = T2(ids,ids);
                 T3(isinf(T3)) = max(T3(~isinf(T3)));
@@ -268,6 +268,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids, isp
 
                 % full ROIs (vs. mean group data)
                 R = nan(1,24,'single');
+                SR = nan(1,24,'single');
                 R(1) = corr(lC2(:),abs(mFz(:))); % whole vs. m-FCz
                 disp(['prefix=' pftype ' : log10(neurons2) vs. m-FCz = ' num2str(R(1))]);
                 R(3) = corr(lS(:),abs(mFz(:)));
@@ -291,6 +292,8 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids, isp
                 R(9) = corr(lSb(:),abs(mFz(:)));
                 disp(['prefix=' pftype ' : log10(synapses b) vs. m-FCz = ' num2str(R(9))]);
 %                figure; scatter(lSb(:),abs(mFz(:)),18,'x'); xlabel('log10(synapses b)'); ylabel('m-FCz'); title([pftype ' r=' num2str(R(9))]);
+                SR(7) = corr(lC2b(:),abs(mFz(:)),'Type','Spearman'); % Traced vs. m-FCz
+                SR(9) = corr(lSb(:),abs(mFz(:)),'Type','Spearman');
                 if isw2
                     R(8) = corr(lW2b(:),abs(mFz(:)));
                     disp(['prefix=' pftype ' : log10(synapse weight2b) vs. m-FCz = ' num2str(R(8))]);
@@ -326,6 +329,8 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids, isp
                 disp(['prefix=' pftype ' : log10(neurons2b) vs. FC-Tval = ' num2str(R(19))]);
                 R(21) = corr(lSb(:),abs(T3(:)));
                 disp(['prefix=' pftype ' : log10(synapses b) vs. FC-Tval = ' num2str(R(21))]);
+                SR(19) = corr(lC2b(:),abs(T3(:)),'Type','Spearman');
+                SR(21) = corr(lSb(:),abs(T3(:)),'Type','Spearman');
                 if isw2
                     R(20) = corr(lW2b(:),abs(T3(:)));
                     disp(['prefix=' pftype ' : log10(synapse weight2b) vs. FC-Tval = ' num2str(R(20))]);
@@ -338,7 +343,12 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids, isp
                     R(24) = corr(Wob(:),abs(T3(:)));
                     disp(['prefix=' pftype ' : ROI out-neuron weight b vs. FC-Tval = ' num2str(R(24))]);
                 end
-                Rm = [Rm, R']; aucver = 2;
+                Rm = [Rm, R']; SRm = [Rm, SR']; aucver = 3;
+                
+                disp(['prefix=' pftype ' : log10(neurons2b) vs. m-FCz (sp)= ' num2str(SR(7))]);
+                disp(['prefix=' pftype ' : log10(synapses b) vs. m-FCz (sp)= ' num2str(SR(9))]);
+                disp(['prefix=' pftype ' : log10(neurons2b) vs. FC-Tval (sp)= ' num2str(SR(19))]);
+                disp(['prefix=' pftype ' : log10(synapses b) vs. FC-Tval (sp)= ' num2str(SR(21))]);
 
                 % calculate AUC
                 aucmat = ['results/auc/' pftype '-fcauc.mat'];
@@ -477,7 +487,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids, isp
                 end
                 if aucver <= AUCVER
                     aucver = aucver + 0.1;
-                    save(aucmat,'A','R','roiR','aucver','-v7.3');
+                    save(aucmat,'A','R','SR','roiR','aucver','-v7.3');
                 end
                 AUC = cat(3,AUC,A);
 

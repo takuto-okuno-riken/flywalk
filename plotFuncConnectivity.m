@@ -60,7 +60,7 @@ function plotFuncConnectivity
     % check large smoothing size in several ROI nums and poltcomp (s0 to 300, roi 20 to 1000, '' & poltcomp)
     % Cm,Dist are used in figure.2
     % roitype: Cm,CmR1w1,Dist,
-%    checkLargeSmoothingPoltcompByRoinum(vslabels);
+    checkLargeSmoothingPoltcompByRoinum(vslabels);
 
     % check large ROI num result (roi 100 to 20000)
     % roitype: Cm,CmR1w1,Dist,Vand
@@ -1155,15 +1155,15 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
     roitypes = {{'hemiCmkm',''},{'hemiCmkm','r1w1'},{'hemiDistKm',''}};
     roitypelabels = {'Cm','CmR1w1','Dist'};
 
-    ylabels = {}; R3 = []; A3 = []; AA3 = []; R3r = []; A3r = []; I=[7 9];
+    ylabels = {}; R3 = []; SR3 = []; A3 = []; AA3 = []; R3r = []; SR3r = []; A3r = []; I=[7 9];
     for r = 1:length(roitypes)
-        Am = []; Rm = []; AA = []; ii=1; xlabels = {};
+        Am = []; Rm = []; SRm = []; AA = []; ii=1; xlabels = {};
         for rr=1:length(roinums)
             for h=1:length(hpfTh)
                 hpfstr = '';
                 if hpfTh(h) > 0, hpfstr = ['hf' num2str(round(1/hpfTh(h)))]; end
                 for n=1:length(nuisance)
-                    Am2 = []; Rm2 = [];
+                    Am2 = []; Rm2 = []; SRm2 = [];
                     for k=1:length(smooth)
                         pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}{1} num2str(roinums(rr)) roitypes{r}{2}];
                         xlabels{ii} = [smooth{k} nuisance{n} 'roi' num2str(roinums(rr))]; ii=ii+1;
@@ -1173,19 +1173,22 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
                         else
                             A = nan(size(Am,1),100);
                             R = nan(1,size(Rm,1));
+                            SR = nan(1,size(SRm,1));
                         end
                         AA = cat(3,AA,A);
                         Am = [Am,nanmean(A,2)];
                         Am2 = [Am2,nanmean(A(I,:),2)];
                         Rm = [Rm,R(:)];
                         Rm2 = [Rm2,R(I)'];
+                        SRm = [SRm,SR(:)];
+                        SRm2 = [SRm2,SR(I)'];
                     end
-                    R3r = [R3r;Rm2]; A3r = [A3r;Am2];
+                    R3r = [R3r;Rm2]; SR3r = [SR3r;SRm2]; A3r = [A3r;Am2];
                 end
             end
         end
 
-        R3 = [R3;Rm]; A3 = [A3;Am]; AA3 = cat(1,AA3,AA); ii=ii-1;
+        R3 = [R3;Rm]; SR3 = [R3;SRm]; A3 = [A3;Am]; AA3 = cat(1,AA3,AA); ii=ii-1;
         C = cell(24,1); C(1:24) = {[roitypelabels{r} ' ']};
         ylabels = [ylabels(:); strcat(C(:),vslabels(:))];
     end
@@ -1220,8 +1223,12 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
     I = getR3idx([7 9],[0 24 48]);
     figure; plot(B(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
 
-    % used for poltcomp-roi20-1000_smooth0-300ns.xlsx (Figure.2)
+    % used for poltcomp-roi20-1000_smooth0-300ns.xlsx (Figure.2) 
+    x = [3 4 7 8 11 12 15 16 19 20 23 24 27 28];
+    y = [1 2 5 6 9 10 13 14 17 18 21 22 25 26];
+    X = [x, x+56, y, y+56]; % excel order (copy & paste R3r(:,X), A3r(:,X), Br(:,X))
     R3r = R3r'; figure; plot(R3r); title('FC-SC correlation by smoothing size'); xlabel('smoothing size [voxel]');
+    SR3r = SR3r'; figure; plot(SR3r); title('FC-SC correlation (Spearman) by smoothing size'); xlabel('smoothing size [voxel]');
     A3r = A3r'; figure; plot(A3r); title('FC-SC detection by smoothing size'); xlabel('smoothing size [voxel]');
     Br = abs(R3r) + abs(A3r-0.5)*2;
     figure; boxplot(Br(:,[1 3 13 15 25 27 [1 3 13 15 25 27]+56])); title('FC-SC detection & correlation, raw vs. poltcomp');
