@@ -45,7 +45,7 @@ function checkBehavior
     dt = (TR  / 1000) / res; % sec
 
     [t, hrf] = getGlmCRF(dt, 1.7, 0.25, 5);
-    figure; plot(t,hrf); xlim([0,5]); title('calcium response function.');
+    figure; plot(t,hrf); xlim([0,5]); title('calcium response function.'); % figure.5
 
     sz2 = (size(MBcal,2)-1);
     x = 0:TR:TR*sz2;

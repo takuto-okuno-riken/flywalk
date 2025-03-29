@@ -60,7 +60,12 @@ function plotFuncConnectivity
     % check large smoothing size in several ROI nums and poltcomp (s0 to 300, roi 20 to 1000, '' & poltcomp)
     % Cm,Dist are used in figure.2
     % roitype: Cm,CmR1w1,Dist,
-    checkLargeSmoothingPoltcompByRoinum(vslabels);
+%    checkLargeSmoothingPoltcompByRoinum(vslabels);
+
+    % check high-pass filter in several ROI nums and poltcomp (s230, roi 20 to 1000, poltcomp)
+    % Dist are used in ext figure.2
+    % roitype: Dist,
+    checkHighpassFilterPoltcompByRoinum(vslabels);
 
     % check large ROI num result (roi 100 to 20000)
     % roitype: Cm,CmR1w1,Dist,Vand
@@ -1259,6 +1264,91 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
         end
     end
     figure; plot(X); legend(slabels); title(['FC-SC detection results by threshold in ' ylabels{i}]);
+end
+
+function checkHighpassFilterPoltcompByRoinum(vslabels)
+    preproc = 'ar'; % for move correct, slice time correct
+    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
+    smooth = {'s230'};
+    nuisance = {'poltcomp'};
+    roinums = [20 50 100 200 500 1000];
+    roitypes = {{'hemiDistKm',''}};
+    roitypelabels = {'Dist'};
+
+    ylabels = {}; R3 = []; SR3 = []; A3 = []; AA3 = []; R3r = []; SR3r = []; A3r = []; I=[7 9];
+    for r = 1:length(roitypes)
+        Am = []; Rm = []; SRm = []; AA = []; ii=1; xlabels = {};
+        for rr=1:length(roinums)
+            for k=1:length(smooth)
+                for n=1:length(nuisance)
+                    Am2 = []; Rm2 = []; SRm2 = [];
+                    for h=1:length(hpfTh)
+                        hpfstr = '';
+                        if hpfTh(h) > 0, hpfstr = ['hf' num2str(round(1/hpfTh(h)))]; end
+                        pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}{1} num2str(roinums(rr)) roitypes{r}{2}];
+                        xlabels{ii} = [smooth{k} nuisance{n} 'roi' num2str(roinums(rr))]; ii=ii+1;
+                        aucmat = ['results/auc/' pftype '-fcauc.mat'];
+                        if exist(aucmat,'file')
+                            load(aucmat);
+                        else
+                            A = nan(size(Am,1),100);
+                            R = nan(1,size(Rm,1));
+                            SR = nan(1,size(SRm,1));
+                        end
+                        AA = cat(3,AA,A);
+                        Am = [Am,nanmean(A,2)];
+                        Am2 = [Am2,nanmean(A(I,:),2)];
+                        Rm = [Rm,R(:)];
+                        Rm2 = [Rm2,R(I)'];
+                        SRm = [SRm,SR(:)];
+                        SRm2 = [SRm2,SR(I)'];
+                    end
+                    R3r = [R3r;Rm2]; SR3r = [SR3r;SRm2]; A3r = [A3r;Am2];
+                end
+            end
+        end
+
+        R3 = [R3;Rm]; SR3 = [R3;SRm]; A3 = [A3;Am]; AA3 = cat(1,AA3,AA); ii=ii-1;
+        C = cell(24,1); C(1:24) = {[roitypelabels{r} ' ']};
+        ylabels = [ylabels(:); strcat(C(:),vslabels(:))];
+    end
+
+    % FC-SC correlation (all)
+    I = getR3idx([7 9 19 21],[0]);  % show only Traced neuron, synapse
+    figure; imagescLabel2(R3(I,:),xlabels,ylabels(I),[0.2 0.9]); colorbar; title(['FC-SC correlation (All) ']); colormap(hot);
+ %   figure; plot(R3(I,:)'); legend(ylabels); title(['FC-SC correlation (All)']); setlineColors(24);
+    
+    % FC-SC correlation Traced neuron vs synapse
+    I = getR3idx([7 9],[0]);
+ %   figure; imagescLabel2(R3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC correlation Full vs. Traced');
+    figure; plot(R3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % FC-SC detection (all)
+    I = getR3idx([7 9 19 21],[0]);  % show only Traced neuron, synapse
+    figure; imagescLabel2(A3(I,:),xlabels,ylabels(I),[0.5 1]); colorbar; title(['FC-SC detection (All) ']); colormap(hot);
+%    figure; plot(A3(I,:)'); legend(ylabels); title(['FC-SC detection (All)']); setlineColors(24);
+
+    % FC-SC detection Traced neuron vs synapse
+    I = getR3idx([7 9], [0]);
+%    figure; imagescLabel2(A3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC detection Full vs. Traced');
+    figure; plot(A3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC detection Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % both FC-SC correlation & detection (all)
+    B = abs(R3) + abs(A3-0.5)*2;
+    I = getR3idx([7 9 19 21],[0]);  % show only Traced neuron, synapse
+    figure; imagescLabel2(B(I,:),xlabels,ylabels(I),[0 1.5]); colorbar; title('FC-SC correlation & detection'); colormap(hot);
+%    figure; plot(B'); legend(ylabels); title('FC-SC correlation & detection'); setlineColors(24);
+
+    % FC-SC correlation & detection Traced neuron vs synapse (which is best?)
+    I = getR3idx([7 9],[0]);
+    figure; plot(B(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation & detection'); setlineColors(2); setlineStyles({'-','--'});
+
+    % used for poltcomp-roi20-1000_highpass.xlsx (ext Figure.2) 
+    %(copy & paste R3r(:,:), A3r(:,:), Br(:,:))
+    R3r = R3r'; figure; plot(R3r); title('FC-SC correlation by high-pass filter'); xlabel('high-pass filter');
+    SR3r = SR3r'; figure; plot(SR3r); title('FC-SC correlation (Spearman) by high-pass filter'); xlabel('high-pass filter');
+    A3r = A3r'; figure; plot(A3r); title('FC-SC detection by high-pass filter'); xlabel('high-pass filter');
+    Br = abs(R3r) + abs(A3r-0.5)*2;
 end
 
 function checkLargeRoinumResult(vslabels)

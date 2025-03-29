@@ -51,9 +51,10 @@ function plotNeuralFC
 %    showNeuralDBScanFw(conf, epsilon, minpts); % figure.4
 %    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0 0.1]); % ext figure.4-2
 %    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0.9 1]); % ext figure.4-2
+%    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940644632087)); % WAGN figure.5
 
 %    showReciprocalDistanceGraphFw(conf); % figure.4
-    showReciprocalDistanceSyCloudFw(conf, 2000); % ext figure.4-2
+%    showReciprocalDistanceSyCloudFw(conf, 2000); % ext figure.4-2
 
 %    showReciprocalDistanceFw(conf, int64(720575940628908548), 2000); % CT1-R (2um is good threshold based on histogram) (ext figure.4-2).
 %    showReciprocalDistanceFw(conf, int64(720575940613583001), 2000); % APL-R (ext figure.4-2)
@@ -383,12 +384,15 @@ end
 
 function plotBrainSwc(swc, mesh, vp, loc1, loc2, tstr, savefile)
     if nargin < 7, savefile = []; end
-    plotSwc(swc, [0.7 0.7 1], 1, true); view(3); view(vp(1),vp(2)); grid off; axis image; alpha(.1);
+    plotSwc(swc, [0.7 0.7 1], 1, true); view(3); grid off; axis image; alpha(.1);
+    if ~isempty(vp), view(vp(1),vp(2)); end
     xlabel('x [nm]'); ylabel('y [nm]'); zlabel('z [nm]'); title(tstr);
     hold on; scatter3(loc1(:,1),loc1(:,2),loc1(:,3),8,'red','filled'); hold off;  % pre. output
     hold on; scatter3(loc2(:,1),loc2(:,2),loc2(:,3),8,'blue','filled'); hold off; % post. input
     alpha(.5);
-    hold on; patch('Faces',mesh.F,'Vertices',mesh.V,'FaceColor',[0.8 0.8 0.8],'FaceAlpha',0.1,'EdgeColor','none','LineStyle','none'); hold off;
+    if ~isempty(mesh)
+        hold on; patch('Faces',mesh.F,'Vertices',mesh.V,'FaceColor',[0.8 0.8 0.8],'FaceAlpha',0.1,'EdgeColor','none','LineStyle','none'); hold off;
+    end
     if ~isempty(savefile)
         h = gca;
         h.XAxis.Visible = 'off';
@@ -402,6 +406,75 @@ function plotBrainSwc(swc, mesh, vp, loc1, loc2, tstr, savefile)
             set(gcf,'Position',[10 10 1500 700]);
         end
         saveas(gca,savefile)
+    end
+end
+
+function showNeuralDBScanSpidxFw(conf, epsilon, minpts, nids)
+    if nargin < 4, nids = []; end
+
+    tlabels = {'Unknown','DA','SER','GABA','GLUT','ACH','OCT'};
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+
+    % FlyWire read neuron info
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+
+    % FlyWire read synapse info
+    load(conf.synapseFile);
+    score = (cleftScore >= scoreTh);
+    Sidx = int32(1:length(Sid))';
+    valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
+    validSidx = Sidx(valid & score);
+    syVnum = 2*length(validSidx);
+    disp([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' ep' num2str(epsilon) 'nm cl' num2str(minpts) ' : valid pre & post synapse num=' num2str(syVnum) ', neuron num=' num2str(length(Nid))])
+
+    % FlyEM read synapse info
+    load(conf.sypostlocFile);
+    load(conf.syprelocFile);
+
+    % FlyWire read neural SC
+    DBcount = {};
+    load(['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralDBScan' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+
+    % pre-post-synapse separate index
+    load([conf.neuSepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+    Nspidx = double(Nspidx) / 10000;
+    Nspidx(Nspidx<0) = nan;
+    load([conf.sySepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+    preSpidx = single(preSpidx) / 10000;
+    preSpidx(preSpidx<0) = nan;
+    postSpidx = single(postSpidx) / 10000;
+    postSpidx(postSpidx<0) = nan;
+
+    % whole brain mesh
+    mesh = load(conf.brainMeshFile);
+
+    if isempty(nids), nids = Nid; end
+    nlen = length(nids);
+    for i=1:nlen
+        nid = nids(i);
+        k = find(Nid==nid);
+        if exist('Ncrop','var') && Ncrop(k)==1, continue; end % ignore cropped body.
+
+        % for detail plot, need to add Trees toolbox (https://www.treestoolbox.org/index.html)
+        swc = loadSwc([conf.swcPath '/' num2str(nid) '.swc'], true);
+
+        % get all connected synapses
+        prelogi = ismember(preNidx,k);
+        postlogi = ismember(postNidx,k);
+        loc1 = Spreloc(prelogi & valid & score,:);
+        loc2 = Spostloc(postlogi & valid & score,:);
+        spidx1 = preSpidx(prelogi & valid & score);
+        spidx2 = postSpidx(postlogi & valid & score);
+
+        tstr = [num2str(i) ') k=' num2str(k) ' nid=' num2str(nid) ' (' tlabels{Ntype(k)+1} ') spidx=' num2str(Nspidx(k))];
+        disp(tstr);
+
+        figure; plotSwc(swc, [0.7 0.7 1], 0.2, true); view(3); grid off; axis image; alpha(.1);
+        xlabel('x [nm]'); ylabel('y [nm]'); zlabel('z [nm]'); title(tstr);
+        hold on; scatter3(loc1(:,1),loc1(:,2),loc1(:,3),12,spidx1,'filled'); hold off; % pre. output
+        hold on; scatter3(loc2(:,1),loc2(:,2),loc2(:,3),16,spidx2,'+'); hold off; % post. input
+        alpha(.5); colormap(gca,'jet');
     end
 end
 

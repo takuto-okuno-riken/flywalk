@@ -66,12 +66,12 @@ function makeNeuralSC
 %    g1 = [int64(720575940639239908),int64(720575940619843845),int64(720575940629259023)];
 %    checkSynapticListOfNeuronsFw(conf, g1);
 
-    g1 = [int64(720575940644632087)];
+    g1 = [int64(720575940644632087)]; % WAGN
     checkSynapticCloudFDAFw(conf, g1);
 
-%    g1 = [int64(720575940644632087)];
+%    g1 = [int64(720575940644632087)]; % WAGN
 %    g2 = [int64(720575940618260500),int64(720575940654220193),int64(720575940635668622),int64(720575940611932842),int64(720575940632015699),int64(720575940611904296),int64(720575940629901047),int64(720575940630151455),int64(720575940603882174),int64(720575940632118479),int64(720575940628894251),int64(720575940623817776),int64(720575940623755312),int64(720575940609984881),int64(720575940621106977),int64(720575940629264938),int64(720575940629630520),int64(720575940633209996),int64(720575940634627214),int64(720575940626651691),int64(720575940611603502),int64(720575940623685193), ... % AN neurons
-%        int64(720575940635831438),int64(720575940635863214),int64(720575940613099493),int64(720575940628370732),int64(720575940622529574),int64(720575940621558762),int64(720575940624473918)]; % WPN Tier2/3
+%        int64(720575940635831438),int64(720575940635863214),int64(720575940613099493),int64(720575940628370732),int64(720575940622529574),int64(720575940621558762),int64(720575940624473918)]; % WPNb Tier2/3
 %    checkSynapticListBetweenNeuronsFw(conf, g1, g2);
 
     scTh = 140; synTh = 0; % FlyWire synapse score & synapse count at one neuron threshold
@@ -82,6 +82,18 @@ function makeNeuralSC
 %    checkNeuralInputOutputVoxelsFw(conf); % no use
 
 %    checkNeuralInputOutputDistance(conf); % no use
+%{
+    g1 = [int64(720575940644632087)]; % WAGN figure.5
+    g2 = [int64(720575940635831438),int64(720575940635863214),int64(720575940613099493),int64(720575940628370732),int64(720575940622529574),int64(720575940621558762),int64(720575940624473918)]; % WPN Tier2/3
+    [spreloc1, spresidx1, spostloc1, spostsidx1] = checkSynapticListBetweenNeuronsFw(conf, g1, g2);
+
+    g1 = [int64(720575940644632087)]; % WAGN figure.5
+    g2 = [int64(720575940618260500),int64(720575940654220193),int64(720575940635668622),int64(720575940611932842),int64(720575940632015699),int64(720575940611904296),int64(720575940629901047),int64(720575940630151455),int64(720575940603882174),int64(720575940632118479),int64(720575940628894251),int64(720575940623817776),int64(720575940623755312),int64(720575940609984881),int64(720575940621106977),int64(720575940629264938),int64(720575940629630520),int64(720575940633209996),int64(720575940634627214),int64(720575940626651691),int64(720575940611603502),int64(720575940623685193)]; % AN neurons
+    [spreloc2, spresidx2, spostloc2, spostsidx2] = checkSynapticListBetweenNeuronsFw(conf, g1, g2);
+    checkSynapseDistanceBetweenGroupsFw(conf, spresidx1, spostsidx2); % WPNb<-WAGN<-ANs
+    checkSynapseDistanceBetweenGroupsFw(conf, spresidx1, spostsidx1); % WPNb<-WAGN<-WPNb Tier2/3
+%}
+%    checkPre2postSynapseDistanceFw(conf, [int64(720575940644632087)]); % WAGN figure.5
 
     for i=1:5
         checkNeuralDBScanFw(conf, epsilon*i, minpts);
@@ -1076,7 +1088,7 @@ function checkSynapticCloudFDAFw(conf, g1)
     niftiwrite(V,['results/nifti/' num2str(g1) '_synFDACal.nii.gz'],info,'Compressed',true);
 end
 
-function [prejson, postjson] = checkSynapticListBetweenNeuronsFw(conf, g1, g2)
+function [spreloc, spresidx, spostloc, spostsidx, prejson, postjson] = checkSynapticListBetweenNeuronsFw(conf, g1, g2)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
     scname = conf.scname;
@@ -1104,11 +1116,13 @@ function [prejson, postjson] = checkSynapticListBetweenNeuronsFw(conf, g1, g2)
     prelogi = ismember(preNidx,g1idx);
     postlogi = ismember(postNidx,g2idx);
     spreloc = double(Spreloc(prelogi & postlogi & valid & score,:)) ./ conf.voxelSize;
+    spresidx = Sidx(prelogi & postlogi & valid & score);
 
     % get g1 post-synapse
     postlogi = ismember(postNidx,g1idx);
     prelogi = ismember(preNidx,g2idx);
     spostloc = double(Spostloc(postlogi & prelogi & valid & score,:)) ./ conf.voxelSize;
+    spostsidx = Sidx(prelogi & postlogi & valid & score);
 
     % print out json
     sz1 = size(spreloc,1);
@@ -1124,6 +1138,121 @@ function [prejson, postjson] = checkSynapticListBetweenNeuronsFw(conf, g1, g2)
     type = cell(sz1,1);
     type(:) = {'point'};
     postjson = jsonencode(table(point,type,id));
+end
+
+function checkSynapseDistanceBetweenGroupsFw(conf, sidx1, sidx2)
+    tlabels = {'Unknown','DA','SER','GABA','GLUT','ACH','OCT'};
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+    scname = conf.scname;
+
+    % FlyWire read neuron info
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+
+    % FlyWire read synapse info
+    load(conf.synapseFile);
+    score = (cleftScore >= scoreTh);
+    Sidx = int32(1:length(Sid))';
+    valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
+
+    % FlyWire read synapse locations
+    Spostloc = []; Spreloc = [];
+    load(conf.sypostlocFile);
+    load(conf.syprelocFile);
+
+    prelocs = single(Spreloc(sidx1,:)) ./ conf.swcSize .* conf.voxelSize;   % pre-synapse on group1; FlyWire original space (unit is nano meter) (int32)
+    postlocs = single(Spostloc(sidx2,:)) ./ conf.swcSize .* conf.voxelSize; % post-synapse on group2; 
+    preP = reshape(prelocs,[size(prelocs,1) 1 3]);
+    postP = reshape(postlocs,[1 size(postlocs,1) 3]);
+    preP = repmat(preP,[1 size(postP,2) 1]);
+    postP = repmat(postP,[size(preP,1) 1 1]);
+    D = sqrt(sum((preP-postP).^2,3));
+    clear preP; clear postP;
+
+    % find minimum distance of pre and post (should be same reciprocal target neuron)
+    [minD, idxD] = min(D,[],2,'omitnan');
+    clsidx2 = sidx2(idxD);
+    nidx1 = postNidx(sidx1); % group1 nidx (post)
+    nidx2 = preNidx(sidx1);  % group1 nidx (pre)
+    clnidx2 = preNidx(clsidx2); % group2 nidx (pre)
+    clpostlocs = postlocs(idxD,:);
+
+    figure; histogram(minD,0:1000:16000);
+    [N,edges] = histcounts(minD,0:1000:16000); % for excel.
+
+    prelocs = prelocs ./ conf.voxelSize;
+    clpostlocs = clpostlocs ./ conf.voxelSize;
+    disp('showing closest synapses betweeen groups');
+    [m,im] = sort(minD);
+    for i=1:10
+        k = im(i);
+        disp([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : ' num2str(i) ') ' num2str(minD(k)) 'nm sidx: ' num2str(sidx1(k)) ' - ' num2str(clsidx2(k)) ' nid: ' num2str(Nid(nidx1(k))) ', ' num2str(Nid(nidx2(k))) ', ' num2str(Nid(clnidx2(k))) ' (' tlabels{Ntype(nidx1(k))+1} '<-' tlabels{Ntype(nidx2(k))+1} '<-' tlabels{Ntype(clnidx2(k))+1} ')']);
+        disp(['  ' num2str(prelocs(k,1)) ',' num2str(prelocs(k,2)) ',' num2str(prelocs(k,3)) ' - ' num2str(clpostlocs(k,1)) ',' num2str(clpostlocs(k,2)) ',' num2str(clpostlocs(k,3))]);
+    end
+end
+
+function checkPre2postSynapseDistanceFw(conf, nids)
+    if nargin < 2, nids = []; end
+
+    tlabels = {'Unknown','DA','SER','GABA','GLUT','ACH','OCT'};
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+    scname = conf.scname;
+
+    % FlyWire read neuron info
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+
+    % FlyWire read synapse info
+    load(conf.synapseFile);
+    score = (cleftScore >= scoreTh);
+    Sidx = int32(1:length(Sid))';
+    valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
+
+    % FlyWire read synapse locations
+    Spostloc = []; Spreloc = [];
+    load(conf.sypostlocFile);
+    load(conf.syprelocFile);
+
+    if isempty(nids), nids = Nid; end
+    nlen = length(nids);
+    for i=1:nlen
+        nid = nids(i);
+        k = find(Nid==nid);
+        if exist('Ncrop','var') && Ncrop(k)==1, continue; end % ignore cropped body.
+
+        % get all connected synapses
+        prelogi = ismember(preNidx,k);
+        postlogi = ismember(postNidx,k);
+        prelocs = single(Spreloc(prelogi & valid & score,:)) ./ conf.swcSize .* conf.voxelSize;   % pre-synapse on nid; FlyWire original space (unit is nano meter) (int32)
+        postlocs = single(Spostloc(postlogi & valid & score,:)) ./ conf.swcSize .* conf.voxelSize; % post-synapse on nid; 
+        spresidx = Sidx(prelogi & valid & score);
+        spostsidx = Sidx(postlogi & valid & score);
+
+        preP = reshape(prelocs,[size(prelocs,1) 1 3]);
+        postP = reshape(postlocs,[1 size(postlocs,1) 3]);
+        preP = repmat(preP,[1 size(postP,2) 1]);
+        postP = repmat(postP,[size(preP,1) 1 1]);
+        D = sqrt(sum((preP-postP).^2,3));
+        clear preP; clear postP;
+
+        % find minimum distance of pre and post (should be same reciprocal target neuron)
+        [minD, idxD] = min(D,[],2,'omitnan');
+        clsidx2 = spostsidx(idxD);
+        clnidx2 = preNidx(clsidx2); % connected nidx (pre)
+        clntype = Ntype(clnidx2);
+        clpostlocs = postlocs(idxD,:);
+
+        edges = 0:250:9000;
+        N = [];
+        for k=1:length(tlabels)
+            idx = find(clntype==(k-1));
+            h = histcounts(minD(idx),edges); % for excel.
+            N = [N, h'];
+        end
+        % Sdbs is better than linear version with FlyWire and hemibrain
+        figure; bar(N,'stacked','LineWidth',0.1); legend(tlabels); xticklabels(''); xlabel('synapse distance'); ylabel('synapse count');
+        title([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' :' num2str(i) ') nid=' num2str(nid) ' synapse distance histogram']);
+    end
 end
 
 function checkReciprocalSynapseDistanceFw(conf)

@@ -144,7 +144,7 @@ function glmFlyMB1st
             X = [X Xn ones(size(X,1),1)]; % Nuisance should be raw
         end
 
-        figure; imagesc(X, [-0.1, 1.1]); colorbar;
+        figure; imagesc(X, [-0.1, 1.1]); colorbar; % figure.5 (1:500)
 
         % check Tukey range
         checkTukeyRange(Z, X, path, [smooth hpfstr nuisance preproc], maskV, backV, subject, tuM);
