@@ -13,7 +13,7 @@ function plotNeuralFC
 
 %    showNeuralFCFw(conf, epsilon, minpts); % no use
 
-%    showNeuralDBScanFw(conf, epsilon, minpts); % ext figure.4-1
+    showNeuralDBScanFw(conf, epsilon, minpts); % ext figure.4-1
 %    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0 0.1]); % ext figure.4-2
 %    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0.9 1]); % ext figure.4-2
 
@@ -268,6 +268,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
     % synapse count & calc pre-post-synapse separation index
     syCount = zeros(nlen,6,'single');
     Ldbs = nan(nlen,1,'single');
+    H = nan(nlen,1,'single');
     for i=1:nlen
         if isempty(DBcount{i}), continue; end
         cmat = double(DBcount{i});
@@ -280,8 +281,22 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
         syCount(i,6) = size(cmat,1);     % cluster size
 
         % pre-post-synapse separation index based on DBscan clustering
-        s = sum(cmat,2);
-        Ldbs(i) = sum(abs(cmat(:,1)-cmat(:,2))./s .* (s./syCount(i,1))) ;   % linear version (cluster synaptic weight)
+        Ni = sum(cmat,2);
+        Ldbs(i) = sum(abs(cmat(:,1)-cmat(:,2))./Ni .* (Ni./syCount(i,1))) ;   % linear version (cluster synaptic weight)
+
+        % segregation index (Schneider-mizell et al., 2016)
+        Pi = cmat(:,2) ./ Ni;
+        Si = -(Pi.*log(Pi) + (1-Pi).*log(1-Pi)); % this could be NaN
+        Si(isnan(Si)) = 0; % segregated 
+        S = nansum(Ni .* Si) / syCount(i,1);
+        Fi = sum(Pi.*Ni) / syCount(i,1);
+%        Fi = syCount(i,2) / syCount(i,1);
+        Snorm = -(Fi*log(Fi) + (1-Fi)*log(1-Fi));
+        if isnan(Snorm)
+            H(i) = 1; % segregated
+        else
+            H(i) = 1 - S/Snorm;
+        end
     end
 
     % show histogram
@@ -295,6 +310,19 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
     % Sdbs is better than linear version with FlyWire and hemibrain
     figure; bar(N,'stacked','LineWidth',0.1); legend(tlabels); xticklabels(''); xlabel('separation index [0 1]'); ylabel('neuron count');
     title([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : pre-post-synapse separation index histogram']);
+%    figure; histogram(Ldbs);
+
+    % show histogram (segregation index)
+    edges = 0:0.05:1;
+    N = [];
+    for i=1:length(tlabels)
+        idx = find(Ntype==(i-1));
+        h = histcounts(H(idx),edges);
+        N = [N, h'];
+    end
+    % Sdbs is better than linear version with FlyWire and hemibrain
+    figure; bar(N,'stacked','LineWidth',0.1); legend(tlabels); xticklabels(''); xlabel('segregation index [0 1]'); ylabel('neuron count');
+    title([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : pre-post-synapse segregation index histogram']);
 %    figure; histogram(Ldbs);
 
     Nspidx(isnan(Nspidx)) = -1;
