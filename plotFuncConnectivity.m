@@ -1268,7 +1268,7 @@ end
 
 function checkHighpassFilterPoltcompByRoinum(vslabels)
     preproc = 'ar'; % for move correct, slice time correct
-    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
+    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.005, 0.001]; % high-pass filter threshold
     smooth = {'s230'};
     nuisance = {'poltcomp'};
     roinums = [20 50 100 200 500 1000];
