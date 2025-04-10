@@ -13,12 +13,12 @@ function plotNeuralFC
 
 %    showNeuralFCFw(conf, epsilon, minpts); % no use
 
-    showNeuralDBScanFw(conf, epsilon, minpts); % ext figure.4-1
+%    showNeuralDBScanFw(conf, epsilon, minpts); % ext figure.4-1
 %    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0 0.1]); % ext figure.4-2
 %    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0.9 1]); % ext figure.4-2
 
 %    showReciprocalDistanceGraphFw(conf); % ext figure.4-1
-    showReciprocalDistanceSyCloudFw(conf, 2000); % ext figure.4-2
+%    showReciprocalDistanceSyCloudFw(conf, 2000); % ext figure.4-2
 
 %    showReciprocalDistanceFw(conf, uint64(425790257), 2000); % APL-R
 %    showReciprocalDistanceFw(conf, [], []); % ext figure.4-1
@@ -52,6 +52,9 @@ function plotNeuralFC
 %    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0 0.1]); % ext figure.4-2
 %    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0.9 1]); % ext figure.4-2
 %    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940644632087)); % WAGN figure.5
+%    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940628555270)); % T4
+    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940628307026)); % AM1-R
+
 
 %    showReciprocalDistanceGraphFw(conf); % figure.4
 %    showReciprocalDistanceSyCloudFw(conf, 2000); % ext figure.4-2
@@ -310,6 +313,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
     % Sdbs is better than linear version with FlyWire and hemibrain
     figure; bar(N,'stacked','LineWidth',0.1); legend(tlabels); xticklabels(''); xlabel('separation index [0 1]'); ylabel('neuron count');
     title([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : pre-post-synapse separation index histogram']);
+    xline(20 * nanmean(Nspidx),'r'); 
 %    figure; histogram(Ldbs);
 
     % show histogram (segregation index)
@@ -323,6 +327,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
     % Sdbs is better than linear version with FlyWire and hemibrain
     figure; bar(N,'stacked','LineWidth',0.1); legend(tlabels); xticklabels(''); xlabel('segregation index [0 1]'); ylabel('neuron count');
     title([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : pre-post-synapse segregation index histogram']);
+    xline(20 * nanmean(H),'r'); 
 %    figure; histogram(Ldbs);
 
     Nspidx(isnan(Nspidx)) = -1;
