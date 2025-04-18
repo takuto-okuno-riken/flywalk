@@ -60,12 +60,12 @@ function plotFuncConnectivity
     % check large smoothing size in several ROI nums and poltcomp (s0 to 300, roi 20 to 1000, '' & poltcomp)
     % Cm,Dist are used in figure.2
     % roitype: Cm,CmR1w1,Dist,
-%    checkLargeSmoothingPoltcompByRoinum(vslabels);
+    checkLargeSmoothingPoltcompByRoinum(vslabels);
 
     % check high-pass filter in several ROI nums and poltcomp (s230, roi 20 to 1000, poltcomp)
     % Dist are used in ext figure.2
     % roitype: Dist,
-    checkHighpassFilterPoltcompByRoinum(vslabels);
+%    checkHighpassFilterPoltcompByRoinum(vslabels);
 
     % check large ROI num result (roi 100 to 20000)
     % roitype: Cm,CmR1w1,Dist,Vand
@@ -1193,7 +1193,7 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
             end
         end
 
-        R3 = [R3;Rm]; SR3 = [R3;SRm]; A3 = [A3;Am]; AA3 = cat(1,AA3,AA); ii=ii-1;
+        R3 = [R3;Rm]; SR3 = [SR3;SRm]; A3 = [A3;Am]; AA3 = cat(1,AA3,AA); ii=ii-1;
         C = cell(24,1); C(1:24) = {[roitypelabels{r} ' ']};
         ylabels = [ylabels(:); strcat(C(:),vslabels(:))];
     end
@@ -1207,6 +1207,10 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
     I = getR3idx([7 9],[0 24 48]);
  %   figure; imagescLabel2(R3(I,:),xlabels,ylabels(I)); colorbar; title('FC-SC correlation Full vs. Traced');
     figure; plot(R3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % FC-SC correlation (spearman) Traced neuron vs synapse
+    I = getR3idx([7 9],[0 24 48]);
+    figure; plot(SR3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation (spearman) Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
 
     % FC-SC detection (all)
     I = getR3idx([7 9 19 21],[0 24 48]);  % show only Traced neuron, synapse
@@ -1244,6 +1248,7 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
     p(4) = ranksum(Br(:,1+56),Br(:,3+56));
     p(5) = ranksum(Br(:,13+56),Br(:,25+56));
     p(6) = ranksum(Br(:,25+56),Br(:,27+56));
+    disp(['ranksums : p=' num2str(p)]);
 
     % find best smooth size
     i = 2; step = length(smooth); BMidx = [];

@@ -51,9 +51,9 @@ function plotNeuralFC
 %    showNeuralDBScanFw(conf, epsilon, minpts); % figure.4
 %    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0 0.1]); % ext figure.4-2
 %    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0.9 1]); % ext figure.4-2
-%    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940644632087)); % WAGN figure.5
+%    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940644632087)); % WAGN figure.5h
 %    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940628555270)); % T4
-    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940628307026)); % AM1-R
+%    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940628307026)); % AM1-R
 
 
 %    showReciprocalDistanceGraphFw(conf); % figure.4

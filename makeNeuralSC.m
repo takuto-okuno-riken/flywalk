@@ -82,7 +82,7 @@ function makeNeuralSC
 %    checkNeuralInputOutputVoxelsFw(conf); % no use
 
 %    checkNeuralInputOutputDistance(conf); % no use
-%{
+%%{
     g1 = [int64(720575940644632087)]; % WAGN figure.5
     g2 = [int64(720575940635831438),int64(720575940635863214),int64(720575940613099493),int64(720575940628370732),int64(720575940622529574),int64(720575940621558762),int64(720575940624473918)]; % WPN Tier2/3
     [spreloc1, spresidx1, spostloc1, spostsidx1] = checkSynapticListBetweenNeuronsFw(conf, g1, g2);
@@ -1175,10 +1175,21 @@ function checkSynapseDistanceBetweenGroupsFw(conf, sidx1, sidx2)
     nidx1 = postNidx(sidx1); % group1 nidx (post)
     nidx2 = preNidx(sidx1);  % group1 nidx (pre)
     clnidx2 = preNidx(clsidx2); % group2 nidx (pre)
+    clntype = Ntype(clnidx2);   % group2 transmitter type
     clpostlocs = postlocs(idxD,:);
 
-    figure; histogram(minD,0:1000:16000);
-    [N,edges] = histcounts(minD,0:1000:16000); % for excel.
+%    figure; histogram(minD,edges);
+%    [N,edges] = histcounts(minD,edges); % for excel.
+
+    edges = 0:1000:16000;
+    N = [];
+    for k=1:length(tlabels)
+        idx = find(clntype==(k-1));
+        h = histcounts(minD(idx),edges); % for excel.
+        N = [N, h'];
+    end
+    % Sdbs is better than linear version with FlyWire and hemibrain
+    figure; bar(N,'stacked','LineWidth',0.1); legend(tlabels); xticklabels(''); xlabel('synapse distance'); ylabel('synapse count');
 
     prelocs = prelocs ./ conf.voxelSize;
     clpostlocs = clpostlocs ./ conf.voxelSize;
