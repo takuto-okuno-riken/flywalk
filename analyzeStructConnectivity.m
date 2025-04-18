@@ -202,7 +202,7 @@ function checkSCpostSynapse()
     if ~exist('results/nifti','dir'), mkdir('results/nifti'); end
 
     % make post-synapse could of FlyEM hemibrain
-    confThs = [50 60 70 80 90];
+    confThs = [0 10 20 30 40 50 60 70 80 90];
     hbsynThs = [0]; % 5 10 20 30 50 100];
     for r=1:length(confThs)
         confTh = confThs(r);
