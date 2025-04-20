@@ -1156,7 +1156,7 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
         's110', 's120', 's130', 's140', 's150', 's160', 's170', 's180', 's190', 's200', ...
         's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
     nuisance = {'','poltcomp'};
-    roinums = [20 30 50 100 200 500 1000];
+    roinums = [10 20 30 50 100 200 500 1000];
     roitypes = {{'hemiCmkm',''},{'hemiCmkm','r1w1'},{'hemiDistKm',''}};
     roitypelabels = {'Cm','CmR1w1','Dist'};
 

@@ -179,7 +179,8 @@ function makeStructConnectivity
     functype = 'fw'; %''; %
 %{
     rnum = 0;
-    rtype = 0;
+    rtype = 0; % for spiTh=90, logi inversion ~(0<=spiTh<=90)
+%    rtype = 3; % for spiTh=10, logi as is (0<=spiTh<=10) '_only'
     ii = 1;
     for k=[10 20 40 60 80 90]
 %}
@@ -238,7 +239,8 @@ function makeStructConnectivity
 %{
 %{
     rnum = 0;
-    rtype = 0;
+    rtype = 0; % for spiTh=90, logi inversion ~(0<=spiTh<=90)
+%    rtype = 3; % for spiTh=10, logi as is (0<=spiTh<=10) '_only'
     ii = 1;
     for k=[10 20 40 60 80 90]
 %}
@@ -802,8 +804,8 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from k-means atlas.
     %
-%{
-    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
+%%{
+    for k=[10 20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiCmkm' num2str(k)];
         fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
@@ -828,8 +830,8 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix from k-means (smoothing) atlas.
     %
-%{
-    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
+%%{
+    for k=[10 20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiCmkm' num2str(k) 'r1w1'];
         fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
@@ -883,7 +885,7 @@ function makeStructConnectivity
     % make structural connectivity matrix from distance based k-means atlas.
     %
 %%{
-    for k=[20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
+    for k=[10 20 30 50 100 200 300 500 1000 5000 10000 15000 20000]
         idstr = ['hemiDistKm' num2str(k)];
         fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
 
