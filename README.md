@@ -7,7 +7,7 @@ Takuto Okuno, Alexander Woodward, Hideyuki Okano, Junichi Hata (in submisstion)
 ["Functional connectivity, structural connectivity, and inter-individual variability in Drosophila melanogaster"](https://www.yahoo.com/)
 
 <div align="center">
-<img src="data/img/fig1.jpg" width="50%">
+<img src="data/img/fig1.jpg" width="70%">
 </div>
 
 ## Requirements: Software
@@ -31,7 +31,7 @@ Pre-processed connect list files should be downloaded from [zenodo](https://doi.
 ...
 ~~~
 <div align="center">
-<img src="data/img/demo1.jpg" width="50%">
+<img src="data/img/demo1.jpg" width="70%">
 </div>
 
 This demo shows several SC matrices of hemibrain, CmKm and DistKm ROIs.
