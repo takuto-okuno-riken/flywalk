@@ -6,6 +6,10 @@ Code for a manuscipt of the flywalk.<br>
 Takuto Okuno, Alexander Woodward, Hideyuki Okano, Junichi Hata (in submisstion)
 ["Functional connectivity, structural connectivity, and inter-individual variability in Drosophila melanogaster"](https://www.yahoo.com/)
 
+<div align="center">
+<img src="data/img/fig1.jpg" width="50%">
+</div>
+
 ## Requirements: Software
 * MATLAB R2021b or later
 * Parallel Computing Toolbox ver7.1 or later
@@ -19,23 +23,17 @@ Takuto Okuno, Alexander Woodward, Hideyuki Okano, Junichi Hata (in submisstion)
 
 ## Demo Codes
 <b>Demo</b><br>
-The first demo shows the structural connectivity of hemibrain 52, CmKm and DistKm ROIs in Drosophila melanogaster (Fig.1a).<br>
-Pre-processed connect list files should be downloaded from [zenodo](https://doi.org/10.5281/zenodo.7827225) and extracted under 'data' directory before running this code.
+The first demo shows the structural connectivity (SC) of hemibrain primary 63, 52 ROIs, CmKm and DistKm ROIs in Drosophila melanogaster (Fig.1a, Fig.2a).<br>
+Pre-processed connect list files should be downloaded from [zenodo](https://doi.org/10.5281/zenodo.7827225) and extracted under <work_path>/flywalk-main directory before running this code.<br>
+(Please confirm to update data and results directory.)
 ~~~
->> marmoAudGLMindividual
-loading : data/s34waM3_1.nii.gz
-apply mask atlas...
-apply highpass filter (0.0078125 Hz) : tfMRI and design matrix...
-process GLM with Tukey-Taper(8) estimation ...
-done t=5.3043sec
-P-value=0.05, T-value=1.6525
-Tmax of GLM6 marmoAuCube1s34waM3_1CTukey8 : audio tmax=9.2829, tcnt=8111, mrv=1.6545
+>> makeStructConnectivity
 ...
 ~~~
 <div align="center">
-<img src="data/demo1.jpg">
+<img src="data/img/demo1.jpg" width="50%">
 </div>
 
-After calculation of GLM analysis for individual sessions, mixed-effects model (2nd analysis) could be applied (Fig.2c).
+This demo shows several SC matrices of hemibrain, CmKm and DistKm ROIs.
 
 
