@@ -38,7 +38,8 @@ Pre-processed connect list files should be downloaded from [zenodo](https://doi.
 This demo shows several SC matrices of hemibrain, CmKm and DistKm ROIs.<br>
 <br>
 <b>Demo 2</b><br>
-Second demo shows relation between spatial smoothing and FC-SC detection & correlation in DistKm and CmKm ROIs (Fig.2b).
+Second demo shows relation between spatial smoothing and FC-SC detection & correlation in DistKm and CmKm ROIs (Fig.2b).<br>
+
 
 ~~~
 >> plotFuncConnectivity
@@ -49,4 +50,23 @@ Second demo shows relation between spatial smoothing and FC-SC detection & corre
 <img src="data/img/demo2.jpg" width="100%">
 </div>
 From left to right, FC-SC correlation, FC-SC detection, and FC-SC detection & correlation, respectively. Smoothing size 0 to 300 with Polynomial & tCompCor methods. <br>
+<br>
+<b>Demo 3</b><br>
+Third demo shows comparison between FlyEM (cf0.8) and FlyWire (sc140) post-synapses (Fig.3a,c).
+This also shows out-neuron, in-neuron neurotransmitters in hemibrain primary 63 ROIs using FlyWire (sc140) (Fig.3f,g).<br>
+
+
+~~~
+>> plotStructConnectivity
+poltcomparhemiroi_fw0sr140 FC-SC vs. out-neuron DA r=0.20936 p=0.099606
+poltcomparhemiroi_fw0sr140 FC-SC vs. out-neuron SER r=-0.1701 p=0.18259
+poltcomparhemiroi_fw0sr140 FC-SC vs. out-neuron GABA r=-0.25177 p=0.04653
+...
+~~~
+
+<div align="center">
+<img src="data/img/demo3.jpg" width="70%">
+</div>
+(Top left, right) comparison between FlyEM (cf0.8) and FlyWire (sc140) post-synapses.<br>
+(Bottom left, right) out-neuron neurotransmitters in hemibrain primary 63 ROIs using FlyWire (sc140), and correlation between out-neuron neurotransmitter rate and FC-SC correlation (neuron).<br>
 
