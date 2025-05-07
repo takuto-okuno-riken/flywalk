@@ -24,10 +24,10 @@ function analyzeFuncConnectivity
         '6hmpol','6hmpolacomp','6hmpoltcomp','6hmpoltacomp','6hmpolgmtacomp'}; % , ...
 %        'polacompn','poltcompn','poltacompn'}; % normalized for checking diff with polacomp,etc.
 %    nuisance = {'6hmtacomp'}; % good for bransonhemi, branson7065km50
-    nuisance = {'','poltcomp'}; % good for DistKm
+%    nuisance = {'','poltcomp'}; % good for DistKm
 %    nuisance = {'','6hm','tcomp','pol','poltcomp'}; % good for hemiRoiXX
 %    nuisance = {''};
-%    nuisance = {'poltcomp'}; % good for hemiroi, DistKm
+    nuisance = {'poltcomp'}; % good for hemiroi, DistKm
 
     % file number setting for random subsampling
     rNums = [0]; % no number setting
@@ -50,8 +50,8 @@ function analyzeFuncConnectivity
 %        'hemiCmkm300r1w1','hemiCmkm500r1w1','hemiCmkm1000r1w1'};
 %    roitypes = {'hemiCmkm20r1w1','hemiCmkm30r1w1','hemiCmkm50r1w1','hemiCmkm100r1w1','hemiCmkm200r1w1', ...
 %        'hemiCmkm300r1w1','hemiCmkm500r1w1','hemiCmkm1000r1w1'};
-%    roitypes = {'hemiDistKm20','hemiDistKm30','hemiDistKm50','hemiDistKm100','hemiDistKm200', ...
-%        'hemiDistKm300','hemiDistKm500','hemiDistKm1000'};
+    roitypes = {'hemiDistKm20','hemiDistKm30','hemiDistKm50','hemiDistKm100','hemiDistKm200', ...
+        'hemiDistKm300','hemiDistKm500','hemiDistKm1000'};
 %    roitypes = {'hemiRand20','hemiRand30','hemiRand50','hemiRand100','hemiRand200', ...
 %        'hemiRand300','hemiRand500','hemiRand1000'};
 %    roitypes = {'hemiVrand20','hemiVrand30','hemiVrand50','hemiVrand100','hemiVrand200', ...
