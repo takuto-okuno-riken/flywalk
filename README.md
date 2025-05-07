@@ -48,13 +48,13 @@ Additionally, random synapse extraction test (permutation test) results are also
 ~~~
 
 <div align="center">
-<img src="data/img/demo2.jpg" width="100%">
+<img src="data/img/demo2.jpg" width="90%">
 </div>
 From left to right, FC-SC correlation, FC-SC detection and FC-SC detection & correlation score, respectively. Smoothing size 0 to 300 with Polynomial & tCompCor methods. The vertical axis shows the correlation coefficient, averaged AUC and FC-SC detection & correlation score, respectively. The horizontal axis shows spatial smoothing size (voxels) and ROI size.<br>
 
 <br>
 <div align="center">
-<img src="data/img/demo2-1.jpg" width="100%">
+<img src="data/img/demo2-1.jpg" width="90%">
 </div>
 
 (Top) Histogram of null SC matrices (blue bar) and extracted SC matrix with PPSSI (0-0.1) (red slid line). Black dot line shows cumulative distribution function of the normal distribution, brown slid line shows cumulative distribution function of null & extracted SC matrices, and red dot line shows Bonferroni-corrected p<0.05 threshold. Left shows SC matrix (synapse) total, center shows FC-SC correlation (neuron), and right shows FC-SC correlation (synapse).<br>
