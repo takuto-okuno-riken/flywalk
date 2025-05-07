@@ -5,7 +5,7 @@ function plotStructConnectivity
     % check ROI volume 
     % roitype: hemiroi52, CmKm50, DistKm50 (figure.1)
     % roitype: CmKm & DistKm 20 to 10000 (figure.2)
-    showSCroiVolume();
+%    showSCroiVolume();
     
     % check SC post synapse cloud (figure.3)
     % roitype: hemiroi primary, hemiDistKm500
@@ -14,18 +14,18 @@ function plotStructConnectivity
     % check SC matrix connection similarity FlyEM vs. FlyWire
     % matrix diff is used ext fig.3-1
     % roitype: hemiroi primary, hemiDistKm500
-    showSCmatrixSimilarity();
+%    showSCmatrixSimilarity();
 
     % check SC vs. FC matrix connection FlyEM vs. FlyWire (figure.3)
     % roitype: hemiroi primary, hemiDistKm500
-    showSCFCmatrixSimilarity();
+%    showSCFCmatrixSimilarity();
 
     % check neural transmitter type in each neuron (figure.3)
     % roitype: hemiroi primary, hemiDistKm500
     showNeuralTransmitter();
 
     % check mushroom body huge GABA neuron (APL-R) FlyEM, FlyWire
-    showAPLneuron();
+%    showAPLneuron();
 
     % check SC matrix connection count diff FlyEM 0sr80 vs. FlyWire 0sr140 (roi 20 to 1000)
     % roitype: Branson,Cm,DistKm
@@ -109,7 +109,7 @@ function showSCpostSynapse()
     load('data/hemiroi.mat');
 
     % load SC & atlas
-    roitypes = {'hemiroi', 'hemidistkm500'};
+    roitypes = {'hemiroi'}; %, 'hemidistkm500'};
 
     for i = 1:length(roitypes)
         roitype = roitypes{i};
@@ -190,7 +190,7 @@ function showSCmatrixSimilarity()
     fwrateThs = [50 70 100 130 140 150];
 
     % load SC & atlas
-    roitypes = {'hemiroi', 'hemidistkm500'};
+    roitypes = {'hemiroi'}; %, 'hemidistkm500'};
 
     for i = 1:length(roitypes)
         roitype = roitypes{i};
@@ -457,7 +457,7 @@ function showNeuralTransmitter()
     llabels = {'Unknown','DA','SER','GABA','GLUT','ACH','OCT'};
     rateThs = [140]; %50 70 100  140 150];
     synThs = [0];
-    roitypes = {'hemiroi', 'hemidistkm500'};
+    roitypes = {'hemiroi'}; %, 'hemidistkm500'};
 
     % use appropriate smooth and nuisance
     preproc = 'ar';

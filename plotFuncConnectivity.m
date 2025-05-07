@@ -1251,12 +1251,12 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
     disp(['ranksums : p=' num2str(p)]);
 
     % find best smooth size
-    i = 2; step = length(smooth); BMidx = [];
+    i = 1; step = length(smooth); BMidx = []; N = length(nuisance);
     for rr=1:length(roinums)
-        Bt = B(:,(i-1)*step+1:i*step); i=i+2;
+        Bt = B(:,(i-1)*step+1:i*step); i=i+N;
         [m,idx] = max(Bt,[],2); BMidx = [BMidx, idx];
-        disp([roitypelabels{1} '   neuron ' nuisance{2} 'roi' num2str(roinums(rr)) ' max : ' smooth{idx(7)} '=' num2str(m(7))]);
-        disp([roitypelabels{2} ' neuron ' nuisance{2} 'roi' num2str(roinums(rr)) ' max : ' smooth{idx(7+24)} '=' num2str(m(7+24))]);
+        disp([roitypelabels{1} '   neuron ' nuisance{N} 'roi' num2str(roinums(rr)) ' max : ' smooth{idx(7)} '=' num2str(m(7))]);
+        disp([roitypelabels{2} ' neuron ' nuisance{N} 'roi' num2str(roinums(rr)) ' max : ' smooth{idx(7+24)} '=' num2str(m(7+24))]);
     end
 
     % show thresholded AUCs
