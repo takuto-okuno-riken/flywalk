@@ -50,7 +50,7 @@ Additionally, random synapse extraction test (permutation test) results are also
 <div align="center">
 <img src="data/img/demo2.jpg" width="90%">
 </div>
-From left to right, FC-SC correlation, FC-SC detection and FC-SC detection & correlation score, respectively. Smoothing size 0 to 300 with Polynomial & tCompCor methods. The vertical axis shows the correlation coefficient, averaged AUC and FC-SC detection & correlation score, respectively. The horizontal axis shows spatial smoothing size (voxels) and ROI size.<br>
+From left to right, FC-SC correlation, FC-SC detection and FC-SC detection & correlation score, respectively. The vertical axis shows the correlation coefficient, averaged AUC and FC-SC detection & correlation score, respectively. The horizontal axis shows smoothing size 0 to 300 with Polynomial & tCompCor methods and ROI size.<br>
 
 <br>
 <div align="center">
