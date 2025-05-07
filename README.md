@@ -82,6 +82,5 @@ poltcomparhemiroi_fw0sr140 FC-SC vs. out-neuron GABA r=-0.25177 p=0.04653
 <div align="center">
 <img src="data/img/demo3.jpg" width="70%">
 </div>
-(Top left, right) comparison between FlyEM (cf0.8) and FlyWire (sc140) post-synapses.<br>
-(Bottom left, right) out-neuron neurotransmitters in hemibrain primary 63 ROIs using FlyWire (sc140), and correlation between out-neuron neurotransmitter rate and FC-SC correlation (neuron).<br>
-
+(Top left) Bar graph of post-synapse count in hemibrain region from FlyEM and FlyWire connectome data. The vertical axis shows post-synapse count, and the horizontal axis shows confidence thresholds for FlyEM and Cleft score thresholds for FlyWire. (right) Bar graph of post-synapse count in hemibrain primary ROIs. Blue bar shows FlyEM (cf0.8), red bar shows FlyWire (sc140). The vertical axis shows post-synapse count, and the horizontal axis shows hemibrain primary ROIs.<br>
+(Bottom left) Bar graph of neurotransmitter rate of output neurons in hemibrain primary ROIs based on FlyWire (sc140) connectome data. The horizontal axis shows hemibrain primary ROIs. (DA: dopamine, SER: serotonin, GABA, GLUT: glutamine, ACH: acetylcholine, OCT: octopamine). (right) Scatter plots of neurotransmitter rate of output neurons vs. FC-SC correlation (neuron) in hemibrain primary ROIs (FlyWire sc140). Each of the six neurotransmitters was compared.<br>
