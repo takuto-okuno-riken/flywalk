@@ -26,14 +26,26 @@ Takuto Okuno, Alexander Woodward, Hideyuki Okano, Junichi Hata (in submisstion)
 The first demo shows the structural connectivity (SC) of hemibrain primary 63, 52 ROIs, CmKm and DistKm ROIs in Drosophila melanogaster (Fig.1a, Fig.2a).<br>
 Pre-processed connect list files should be downloaded from [zenodo](https://doi.org/10.5281/zenodo.7827225) and extracted under <work_path>/flywalk-main directory before running this code.<br>
 (Please confirm to update data and results directory.)
+
 ~~~
 >> makeStructConnectivity
 ...
 ~~~
+
 <div align="center">
 <img src="data/img/demo1.jpg" width="70%">
 </div>
+This demo shows several SC matrices of hemibrain, CmKm and DistKm ROIs.<br>
+<br>
+Second demo shows relation between spatial smoothing and FC-SC detection & correlation in DistKm and CmKm ROIs (Fig.2b).
 
-This demo shows several SC matrices of hemibrain, CmKm and DistKm ROIs.
+~~~
+>> plotFuncConnectivity
+...
+~~~
 
+<div align="center">
+<img src="data/img/demo2.jpg" width="100%">
+</div>
+From left to right, FC-SC correlation, FC-SC detection, and FC-SC detection & correlation, respectively. Smoothing size 0 to 300 with Polynomial & tCompCor methods. <br>
 
