@@ -35,6 +35,11 @@ Pre-processed connect list files should be downloaded from [zenodo](https://doi.
 <div align="center">
 <img src="data/img/demo1.jpg" width="70%">
 </div>
+
+<div align="center">
+<img src="data/img/demo1-1.jpg" width="90%">
+</div>
+
 This demo shows several SC matrices of hemibrain, CmKm and DistKm ROIs.<br>
 
 <br>
