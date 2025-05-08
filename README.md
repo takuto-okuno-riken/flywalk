@@ -111,4 +111,24 @@ full separation neuron rate=0.044548 (6154/138144)
 
 (left) Mixture ranking of top (APL_L cell) and second (CT1_R cell) in FlyWire (sc140) connectome data. Red dot shows pre-synapse, bule dot shows post-synapse.<br/>
 (right) Separation ranking of top (OA-AL2b2 cell) and second (OA-AL2b2 cell) in FlyWire (sc140) connectome data.<br/>
-This demo shows both top 10 neurons, and figures are saved in <work_path>/flywalk-main directory.
+This demo shows both top 10 neurons, and figures are saved in <work_path>/flywalk-main directory.<br/>
+
+<b>Demo 5</b><br/>
+
+Fifth demo shows General Linear Model (GLM) analysis result (Fig.5b).<br/>
+
+~~~
+>>  glmFlyMB2nd
+Height threshold: P-value=0.001, T-value=3.2423
+Extent threshold: k=167.936 voxels, P-value=0.0051641 (0.015373)
+Expected cluster list (num=3), degree of freedom=56, FWHM={7.5373 7.8173 5.5143} voxels
+1) k=416801 voxels, P uncorr=0, P fwe-corr=0, peak (102,83,40)=14.7075
+2) k=406 voxels, P uncorr=7.5926e-05, P fwe-corr=0.00022775, peak (82,78,12)=-6.1411
+3) k=260 voxels, P uncorr=0.00086956, P fwe-corr=0.0026053, peak (174,80,15)=-5.6522
+Tmax of s80poltcomparfly-all-Tukey8 : movement tmax=14.7075, tcnt=416809
+~~~
+
+<div align="center">
+<img src="data/img/demo5.jpg" width="70%"></div>
+
+2nd level (group) GLM analysis result of 9 flies. Right shows 3D maximum projection of GLM contrast (plus). Color bar shows T-value. Left shows 3D maximum projection of GLM contrast (minus).
