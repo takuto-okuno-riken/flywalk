@@ -23,6 +23,7 @@ Takuto Okuno, Alexander Woodward, Hideyuki Okano, Junichi Hata (in submisstion)
 
 ## Demo Codes
 <b>Demo 1</b><br/>
+
 The first demo shows the structural connectivity (SC) of hemibrain primary 63, 52 ROIs, CmKm and DistKm ROIs in Drosophila melanogaster (Fig.1a, Fig.2a).
 Pre-processed connect list and other files should be downloaded from [zenodo](https://doi.org/10.5281/zenodo.7827225) and extracted under <work_path>/flywalk-main directory before running this code.<br/>
 (Please confirm to update data and results directory.)
@@ -40,8 +41,8 @@ Pre-processed connect list and other files should be downloaded from [zenodo](ht
 
 This demo shows several SC matrices of hemibrain, CmKm and DistKm ROIs.<br/>
 
-<br/>
 <b>Demo 2</b><br/>
+
 Second demo shows relation between spatial smoothing and FC-SC detection & correlation in DistKm and CmKm ROIs (Fig.2b).<br/>
 Additionally, random synapse extraction test (permutation test) results are also shown (Fig.4e,f,i).
 
@@ -62,8 +63,8 @@ From left to right, FC-SC correlation, FC-SC detection and FC-SC detection & cor
 (Top) Histogram of null SC matrices (blue bar) and extracted SC matrix with PPSSI (0-0.1) (red slid line). Black dot line shows cumulative distribution function of the normal distribution, brown slid line shows cumulative distribution function of null & extracted SC matrices, and red dot line shows Bonferroni-corrected p<0.05 threshold. Left shows SC matrix (synapse) total, center shows FC-SC correlation (neuron), and right shows FC-SC correlation (synapse).<br/>
 (Bottom) Histogram of null SC matrices and extracted SC matrix with reciprocal-synapse (≤2μm).<br/>
 
-<br/>
 <b>Demo 3</b><br/>
+
 Third demo shows comparison between FlyEM (cf0.8) and FlyWire (sc140) post-synapses (Fig.3a,c).
 This also shows out-neuron, in-neuron neurotransmitters in hemibrain primary 63 ROIs using FlyWire (sc140) (Fig.3f,g).<br/>
 
@@ -81,8 +82,8 @@ poltcomparhemiroi_fw0sr140 FC-SC vs. out-neuron GABA r=-0.25177 p=0.04653
 (Top left) Bar graph of post-synapse count in hemibrain region from FlyEM and FlyWire connectome data. The vertical axis shows post-synapse count, and the horizontal axis shows confidence thresholds for FlyEM and Cleft score thresholds for FlyWire. (right) Bar graph of post-synapse count in hemibrain primary ROIs. Blue bar shows FlyEM (cf0.8), red bar shows FlyWire (sc140). The vertical axis shows post-synapse count, and the horizontal axis shows hemibrain primary ROIs.<br/>
 (Bottom left) Bar graph of neurotransmitter rate of output neurons in hemibrain primary ROIs based on FlyWire (sc140) connectome data. The horizontal axis shows hemibrain primary ROIs. (DA: dopamine, SER: serotonin, GABA, GLUT: glutamine, ACH: acetylcholine, OCT: octopamine). (right) Scatter plots of neurotransmitter rate of output neurons vs. FC-SC correlation (neuron) in hemibrain primary ROIs (FlyWire sc140). Each of the six neurotransmitters was compared.<br/>
 
-<br/>
 <b>Demo 4</b><br/>
+
 Forth demo shows quantification of pre- and post-synapse separation, and investigating relation between FC and synapses in FlyWire (sc140) (Fig.4a,b,c,h).<br/>
 Demo swc files (top 10 mixture and separation) are included in [zenodo](https://doi.org/10.5281/zenodo.7827225). If you want to see more skeletons, please download them from [Flywire codex](https://codex.flywire.ai/api/download?dataset=fafb).<br/>
 
