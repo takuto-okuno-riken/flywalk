@@ -33,12 +33,10 @@ Pre-processed connect list files should be downloaded from [zenodo](https://doi.
 ~~~
 
 <div align="center">
-<img src="data/img/demo1.jpg" width="70%">
-</div>
+<img src="data/img/demo1.jpg" width="70%"></div>
 
 <div align="center">
-<img src="data/img/demo1-1.jpg" width="90%">
-</div>
+<img src="data/img/demo1-1.jpg" width="90%"></div>
 
 This demo shows several SC matrices of hemibrain, CmKm and DistKm ROIs.<br>
 
@@ -53,14 +51,13 @@ Additionally, random synapse extraction test (permutation test) results are also
 ~~~
 
 <div align="center">
-<img src="data/img/demo2.jpg" width="90%">
-</div>
+<img src="data/img/demo2.jpg" width="90%"></div>
+
 From left to right, FC-SC correlation, FC-SC detection and FC-SC detection & correlation score, respectively. The vertical axis shows the correlation coefficient, averaged AUC and FC-SC detection & correlation score, respectively. The horizontal axis shows smoothing size 0 to 300 with Polynomial & tCompCor methods and ROI size.<br>
 
 <br>
 <div align="center">
-<img src="data/img/demo2-1.jpg" width="90%">
-</div>
+<img src="data/img/demo2-1.jpg" width="90%"></div>
 
 (Top) Histogram of null SC matrices (blue bar) and extracted SC matrix with PPSSI (0-0.1) (red slid line). Black dot line shows cumulative distribution function of the normal distribution, brown slid line shows cumulative distribution function of null & extracted SC matrices, and red dot line shows Bonferroni-corrected p<0.05 threshold. Left shows SC matrix (synapse) total, center shows FC-SC correlation (neuron), and right shows FC-SC correlation (synapse).<br>
 (Bottom) Histogram of null SC matrices and extracted SC matrix with reciprocal-synapse (≤2μm).<br>
@@ -79,14 +76,15 @@ poltcomparhemiroi_fw0sr140 FC-SC vs. out-neuron GABA r=-0.25177 p=0.04653
 ~~~
 
 <div align="center">
-<img src="data/img/demo3.jpg" width="70%">
-</div>
+<img src="data/img/demo3.jpg" width="70%"></div>
+
 (Top left) Bar graph of post-synapse count in hemibrain region from FlyEM and FlyWire connectome data. The vertical axis shows post-synapse count, and the horizontal axis shows confidence thresholds for FlyEM and Cleft score thresholds for FlyWire. (right) Bar graph of post-synapse count in hemibrain primary ROIs. Blue bar shows FlyEM (cf0.8), red bar shows FlyWire (sc140). The vertical axis shows post-synapse count, and the horizontal axis shows hemibrain primary ROIs.<br>
 (Bottom left) Bar graph of neurotransmitter rate of output neurons in hemibrain primary ROIs based on FlyWire (sc140) connectome data. The horizontal axis shows hemibrain primary ROIs. (DA: dopamine, SER: serotonin, GABA, GLUT: glutamine, ACH: acetylcholine, OCT: octopamine). (right) Scatter plots of neurotransmitter rate of output neurons vs. FC-SC correlation (neuron) in hemibrain primary ROIs (FlyWire sc140). Each of the six neurotransmitters was compared.<br>
 
 <br>
 <b>Demo 4</b><br>
 Forth demo shows quantification of pre- and post-synapse separation, and investigating relation between FC and synapses in FlyWire (sc140) (Fig.4a,b,c,h).<br>
+Demo swc files (top 10 mixture and separation) are included in [zenodo](https://doi.org/10.5281/zenodo.7827225). If you want to see more skeletons, please download them from [Flywire codex](https://codex.flywire.ai/api/download?dataset=fafb).<br>
 
 ~~~
 >> plotNeuralFC
@@ -101,14 +99,15 @@ full separation neuron rate=0.044548 (6154/138144)
 ~~~
 
 <div align="center">
-<img src="data/img/demo4.jpg" width="70%">
-</div>
+<img src="data/img/demo4.jpg" width="70%"></div>
+
 (left) The PPSSI histogram of all neurons (139,255) in FlyWire (sc140) connectome data. The vertical axis shows neuron count, and the horizontal axis shows PPSSI [0 1].<br>
 (right) Histogram of reciprocal-synaptic minimum distances in FlyWire (sc140) connectome data. The vertical axis shows reciprocal-synapse pair count, and the horizontal axis shows distance [μm].
 
 <br>
 <div align="center">
-<img src="data/img/demo4-1.jpg" width="90%">
-</div>
+<img src="data/img/demo4-1.jpg" width="90%"></div>
+
 (left) Mixture ranking of top (APL_L cell) and second (CT1_R cell) in FlyWire (sc140) connectome data. Red dot shows pre-synapse, bule dot shows post-synapse.<br>
 (right) Separation ranking of top (OA-AL2b2 cell) and second (OA-AL2b2 cell) in FlyWire (sc140) connectome data.<br>
+This demo shows both top 10 neurons, and figures are saved in <work_path>/flywalk-main directory.
