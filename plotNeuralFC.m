@@ -256,7 +256,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
     DBcount = {};
     load(['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralDBScan' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
 
-    % pre-post-synapse separate index
+    % pre-post-synapse separate index (PPSSI)
     load([conf.neuSepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
     Nspidx = double(Nspidx) / 10000;
     Nspidx(Nspidx<0) = nan;
@@ -268,7 +268,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
     clcount(clcount<0) = 0; % remove -1 case
     clAll = sum(clcount,1);
 
-    % synapse count & calc pre-post-synapse separation index
+    % synapse count & calc PPSSI
     syCount = zeros(nlen,6,'single');
     Ldbs = nan(nlen,1,'single');
     H = nan(nlen,1,'single');
@@ -283,7 +283,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
         syCount(i,5) = sum(cmat(postlogi,:),'all');
         syCount(i,6) = size(cmat,1);     % cluster size
 
-        % pre-post-synapse separation index based on DBscan clustering
+        % PPSSI based on DBscan clustering
         Ni = sum(cmat,2);
         Ldbs(i) = sum(abs(cmat(:,1)-cmat(:,2))./Ni .* (Ni./syCount(i,1))) ;   % linear version (cluster synaptic weight)
 
@@ -311,8 +311,8 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
         N = [N, h'];
     end
     % Sdbs is better than linear version with FlyWire and hemibrain
-    figure; bar(N,'stacked','LineWidth',0.1); legend(tlabels); xticklabels(''); xlabel('separation index [0 1]'); ylabel('neuron count');
-    title([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : pre-post-synapse separation index histogram']);
+    figure; bar(N,'stacked','LineWidth',0.1); legend(tlabels); xticklabels(''); xlabel('PPSSI [0 1]'); ylabel('neuron count');
+    title([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : PPSSI histogram']);
     xline(20 * nanmean(Nspidx),'r'); 
 %    figure; histogram(Ldbs);
 
