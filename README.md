@@ -1,10 +1,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-success.svg)](https://opensource.org/licenses/MIT)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7827225.svg)](https://doi.org/10.5281/zenodo.7827225)
 
-# flywalk
-Code for a manuscipt of the flywalk.<br/>
+# Fly FC-SC analysis demo scripts
+Code for a manuscipt of ["Functional connectivity, structural connectivity, and inter-individual variability in Drosophila melanogaster,"](https://www.yahoo.com/)
 Takuto Okuno, Alexander Woodward, Hideyuki Okano, Junichi Hata (in submisstion)
-["Functional connectivity, structural connectivity, and inter-individual variability in Drosophila melanogaster"](https://www.yahoo.com/)
 
 <div align="center">
 <img src="data/img/fig1.jpg" width="70%">
