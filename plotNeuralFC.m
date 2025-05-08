@@ -48,7 +48,7 @@ function plotNeuralFC
 
 %    showNeuralFCFw(conf, epsilon, minpts); % no use
 
-%    showNeuralDBScanFw(conf, epsilon, minpts); % figure.4
+    showNeuralDBScanFw(conf, epsilon, minpts); % figure.4
 %    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0 0.1]); % ext figure.4-2
 %    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0.9 1]); % ext figure.4-2
 %    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940644632087)); % WAGN figure.5h
@@ -56,13 +56,13 @@ function plotNeuralFC
 %    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940628307026)); % AM1-R
 
 
-%    showReciprocalDistanceGraphFw(conf); % figure.4
+    showReciprocalDistanceGraphFw(conf); % figure.4
 %    showReciprocalDistanceSyCloudFw(conf, 2000); % ext figure.4-2
 
 %    showReciprocalDistanceFw(conf, int64(720575940628908548), 2000); % CT1-R (2um is good threshold based on histogram) (ext figure.4-2).
 %    showReciprocalDistanceFw(conf, int64(720575940613583001), 2000); % APL-R (ext figure.4-2)
  
-    showReciprocalDistanceFw(conf, [], []); % show all neuron, top 3 closest
+%    showReciprocalDistanceFw(conf, [], []); % show all neuron, top 3 closest
 %{
     for p12=1:2
         for p13=1:2
@@ -370,7 +370,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
     % show most mixed and large synapse neurons
 %%{
     [dsyMdbs,dIdx] = sort(NsywMixScore,'descend');
-    for i=1:50
+    for i=1:10
         k = dIdx(i);
         nid = Nid(k);
         if exist('Ncrop','var') && Ncrop(k)==1, continue; end % ignore cropped body.
@@ -385,7 +385,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
         loc2 = Spostloc(postlogi & valid & score,:);
 
         tstr = [num2str(i) ') k=' num2str(k) ' nid=' num2str(nid) ' (' tlabels{Ntype(k)+1} ') sycount=' num2str(syCount(k,1)) ' (' num2str(syCount(k,2)) '/' num2str(syCount(k,3)) ';' num2str(syCount(k,6)) ')' ...
-            ', nSPidx=' num2str(Nspidx(k)) ', syMIXscore=' num2str(NsywMixScore(k)) ', Ldbs=' num2str(Ldbs(k))];
+            ', PPSSI=' num2str(Nspidx(k)) ', syMIXscore=' num2str(NsywMixScore(k))];
         disp(tstr);
         figure; plotBrainSwc(swc, mesh, conf.brainMeshView, loc1, loc2, tstr, [conf.scname 'syMix' num2str(i) '.png']);
     end
@@ -393,7 +393,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
     % show most separated and large synapse neurons
 %%{
     [dsySdbs,dIdx] = sort(NsywSepScore,'descend');
-    for i=1:50
+    for i=1:10
         k = dIdx(i);
         nid = Nid(k);
         if exist('Ncrop','var') && Ncrop(k)==1, continue; end % ignore cropped body.
@@ -408,7 +408,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
         loc2 = Spostloc(postlogi & valid & score,:);
 
         tstr = [num2str(i) ') k=' num2str(k) ' nid=' num2str(nid) ' (' tlabels{Ntype(k)+1} ') sycount=' num2str(syCount(k,1)) ' (' num2str(syCount(k,2)) '/' num2str(syCount(k,3)) ';' num2str(syCount(k,6)) ')' ...
-            ', nSPidx=' num2str(Nspidx(k)) ', sySPscore=' num2str(NsywSepScore(k)) ', Ldbs=' num2str(Ldbs(k))];
+            ', PPSSI=' num2str(Nspidx(k)) ', sySPscore=' num2str(NsywSepScore(k))];
         disp(tstr);
         figure; plotBrainSwc(swc, mesh, conf.brainMeshView, loc1, loc2, tstr, [conf.scname 'sySP' num2str(i) '.png']);
     end
@@ -417,7 +417,7 @@ end
 
 function plotBrainSwc(swc, mesh, vp, loc1, loc2, tstr, savefile)
     if nargin < 7, savefile = []; end
-    plotSwc(swc, [0.7 0.7 1], 1, true); view(3); grid off; axis image; alpha(.1);
+    if ~isempty(swc), plotSwc(swc, [0.7 0.7 1], 1, true); view(3); grid off; axis image; alpha(.1); end
     if ~isempty(vp), view(vp(1),vp(2)); end
     xlabel('x [nm]'); ylabel('y [nm]'); zlabel('z [nm]'); title(tstr);
     hold on; scatter3(loc1(:,1),loc1(:,2),loc1(:,3),8,'red','filled'); hold off;  % pre. output

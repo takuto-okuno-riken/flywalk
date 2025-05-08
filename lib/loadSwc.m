@@ -9,11 +9,13 @@ function swc = loadSwc(fname, isTrees)
     if nargin < 2, isTrees = false; end
     if isTrees && exist('load_tree','file')
         swc = load_tree(fname); % Trees toolbox
-    else
+    elseif exist(fname,'file')
         X = readmatrix(fname,'FileType','text','OutputType','double');
         swc = nan(1,size(X,2)-1);
         idx = X(:,1);
         swc(idx,:) = nan;
         swc(idx,:) = X(:,2:end);
+    else
+        swc = [];
     end
 end
