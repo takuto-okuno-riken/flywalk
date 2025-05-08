@@ -48,12 +48,13 @@ function glmFlyMB2nd
     X2 = [];
     FWHMs = [];
     % read calcium image nii files
-    listing = dir(['registered/' preproc '*green_FD_Warped.nii.gz']);
+    listing = dir([path smooth hpfstr nuisance preproc 'fly-*-Tukey8.mat']);
     for i=1:length(listing)
         name = listing(i).name;
-        subject = name(7:13);
+        str = split(name,'-');
+        subject = str{2};
 
-        betaBmat = [path smooth hpfstr nuisance preproc subject '-Tukey8.mat'];
+        betaBmat = [path smooth hpfstr nuisance preproc 'fly-' subject '-Tukey8.mat'];
         if ~exist(betaBmat,'file')
             disp(['file not found. please calc individual sessions first : ' betaBmat])
             continue;
