@@ -24,7 +24,7 @@ Takuto Okuno, Alexander Woodward, Hideyuki Okano, Junichi Hata (in submisstion)
 ## Demo Codes
 <b>Demo 1</b><br/>
 The first demo shows the structural connectivity (SC) of hemibrain primary 63, 52 ROIs, CmKm and DistKm ROIs in Drosophila melanogaster (Fig.1a, Fig.2a).
-Pre-processed connect list files should be downloaded from [zenodo](https://doi.org/10.5281/zenodo.7827225) and extracted under <work_path>/flywalk-main directory before running this code.<br/>
+Pre-processed connect list and other files should be downloaded from [zenodo](https://doi.org/10.5281/zenodo.7827225) and extracted under <work_path>/flywalk-main directory before running this code.<br/>
 (Please confirm to update data and results directory.)
 
 ~~~
