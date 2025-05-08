@@ -70,7 +70,6 @@ From left to right, FC-SC correlation, FC-SC detection and FC-SC detection & cor
 Third demo shows comparison between FlyEM (cf0.8) and FlyWire (sc140) post-synapses (Fig.3a,c).
 This also shows out-neuron, in-neuron neurotransmitters in hemibrain primary 63 ROIs using FlyWire (sc140) (Fig.3f,g).<br>
 
-
 ~~~
 >> plotStructConnectivity
 poltcomparhemiroi_fw0sr140 FC-SC vs. out-neuron DA r=0.20936 p=0.099606
@@ -84,3 +83,32 @@ poltcomparhemiroi_fw0sr140 FC-SC vs. out-neuron GABA r=-0.25177 p=0.04653
 </div>
 (Top left) Bar graph of post-synapse count in hemibrain region from FlyEM and FlyWire connectome data. The vertical axis shows post-synapse count, and the horizontal axis shows confidence thresholds for FlyEM and Cleft score thresholds for FlyWire. (right) Bar graph of post-synapse count in hemibrain primary ROIs. Blue bar shows FlyEM (cf0.8), red bar shows FlyWire (sc140). The vertical axis shows post-synapse count, and the horizontal axis shows hemibrain primary ROIs.<br>
 (Bottom left) Bar graph of neurotransmitter rate of output neurons in hemibrain primary ROIs based on FlyWire (sc140) connectome data. The horizontal axis shows hemibrain primary ROIs. (DA: dopamine, SER: serotonin, GABA, GLUT: glutamine, ACH: acetylcholine, OCT: octopamine). (right) Scatter plots of neurotransmitter rate of output neurons vs. FC-SC correlation (neuron) in hemibrain primary ROIs (FlyWire sc140). Each of the six neurotransmitters was compared.<br>
+
+<br>
+<b>Demo 4</b><br>
+Forth demo shows quantification of pre- and post-synapse separation, and investigating relation between FC and synapses in FlyWire (sc140) (Fig.4a,b,c,h).<br>
+
+~~~
+>> plotNeuralFC
+wire0sr140 ep3000nm cl1 : valid pre & post synapse num=61553590, neuron num=139255
+total cluster (synapse)=5085726 (61553596), totalIn=2549256 (7557488), totalOut=815787 (4273259)
+in-cluster rate=0.50126, out-cluster rate=0.16041
+cluster belong synapse rate=1, in-cluster synapse rate=0.12278, out-cluster synapse rate=0.069423
+full separation neuron rate=0.044548 (6154/138144)
+1) k=67233 nid=720575940624547622 (GABA) sycount=75804 (34221/41583;95), PPSSI=0.0122, syMIXscore=4.8203
+2) k=79893 nid=720575940626979621 (GABA) sycount=91235 (53534/37701;105), PPSSI=0.0364, syMIXscore=4.7812
+...
+~~~
+
+<div align="center">
+<img src="data/img/demo4.jpg" width="70%">
+</div>
+(left) The PPSSI histogram of all neurons (139,255) in FlyWire (sc140) connectome data. The vertical axis shows neuron count, and the horizontal axis shows PPSSI [0 1].<br>
+(right) Histogram of reciprocal-synaptic minimum distances in FlyWire (sc140) connectome data. The vertical axis shows reciprocal-synapse pair count, and the horizontal axis shows distance [μm].
+
+<br>
+<div align="center">
+<img src="data/img/demo4-1.jpg" width="90%">
+</div>
+(left) Mixture ranking of top (APL_L cell) and second (CT1_R cell) in FlyWire (sc140) connectome data. Red dot shows pre-synapse, bule dot shows post-synapse.<br>
+(right) Separation ranking of top (OA-AL2b2 cell) and second (OA-AL2b2 cell) in FlyWire (sc140) connectome data.<br>
