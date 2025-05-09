@@ -1,8 +1,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-success.svg)](https://opensource.org/licenses/MIT)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7827225.svg)](https://doi.org/10.5281/zenodo.7827225)
 
-# Fly FC-SC analysis demo scripts
-Code for a manuscipt of ["Functional connectivity, structural connectivity, and inter-individual variability in Drosophila melanogaster,"](https://www.yahoo.com/)
+# Fly FC-SC analysis scripts
+Scripts for a manuscipt of ["Functional connectivity, structural connectivity, and inter-individual variability in Drosophila melanogaster,"](https://www.yahoo.com/)
 Takuto Okuno, Alexander Woodward, Hideyuki Okano, Junichi Hata (in submisstion)
 
 <div align="center">
@@ -24,7 +24,7 @@ Takuto Okuno, Alexander Woodward, Hideyuki Okano, Junichi Hata (in submisstion)
 <b>Demo 1</b><br/>
 
 The first demo shows the structural connectivity (SC) of hemibrain primary 63, 52 ROIs, CmKm and DistKm ROIs in Drosophila melanogaster (Fig.1a, Fig.2a).
-Pre-processed connect list and other files should be downloaded from [zenodo](https://doi.org/10.5281/zenodo.7827225), and extracted a zip file to overwrite 'data' and 'results' directories in <work_path>/flywalk-main before running this code.<br/>
+Pre-processed connect list and other files should be downloaded from [zenodo](https://tmpuc.box.com/s/2xmocqmj8hjd5tuqrei9gpnzwqm7mdqi), and extracted a zip file to overwrite 'data' and 'results' directories in <work_path>/flywalk-main before running this code.<br/>
 (Please confirm to update data, results and swc directories.)
 
 ~~~
@@ -84,7 +84,7 @@ poltcomparhemiroi_fw0sr140 FC-SC vs. out-neuron GABA r=-0.25177 p=0.04653
 <b>Demo 4</b><br/>
 
 Forth demo shows quantification of pre- and post-synapse separation, and investigating relation between FC and synapses in FlyWire (sc140) (Fig.4a,b,c,h).<br/>
-Demo swc files (top 10 mixture and separation) are included in [zenodo](https://doi.org/10.5281/zenodo.7827225). If you want to see more skeletons, please download them from [Flywire codex](https://codex.flywire.ai/api/download?dataset=fafb).<br/>
+Demo swc files (top 10 mixture and separation) are included in [zenodo](https://tmpuc.box.com/s/2xmocqmj8hjd5tuqrei9gpnzwqm7mdqi). If you want to see more skeletons, please download them from [Flywire codex](https://codex.flywire.ai/api/download?dataset=fafb).<br/>
 
 ~~~
 >> plotNeuralFC
