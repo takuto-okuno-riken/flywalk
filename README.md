@@ -130,5 +130,5 @@ Tmax of s80poltcomparfly-all-Tukey8 : movement tmax=14.7075, tcnt=416809
 <div align="center">
 <img src="data/img/demo5.jpg" width="70%"></div>
 
-2nd level (group) GLM analysis result of 9 flies. Right shows 3D maximum projection of GLM contrast (plus). Color bar shows T-value. Left shows 3D maximum projection of GLM contrast (minus).<br/>
+2nd level (group) GLM analysis result of 9 flies. Left shows 3D maximum projection of GLM contrast (plus). Color bar shows T-value. Right shows 3D maximum projection of GLM contrast (minus).<br/>
 NIfTI files are saved in <work_path>/flywalk-main/results/glm directory.
