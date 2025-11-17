@@ -321,9 +321,12 @@ function makeStructConnectivity
             checkScverAndSave(idstr, fname, 'results/sc/hemiroi_hb0sr80_connectlist.mat', countMat, weightMat, ncountMat, sycountMat, nweightMat, outweightMat, syweightMat, primaryIds, roiNum, scver);
         end
     end
-
+%}
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs by FlyWire EM data.
-    randrange = {[14e5, 1.5e5],[18.5e5, 2e5],[155.5e5, 8e5]};
+    % full random subsampling is not good. Setting sparsity constraints.
+%%{
+%    randrange = {[14e5, 1.5e5],[18.5e5, 2e5],[155.5e5, 8e5]};
+    randrange = {[14e5, 1.6e5, 0.4863, 0.015],[18.5e5, 2.1e5, 0.4175, 0.015]};
     for ii=1:length(randrange)
         param = randrange{ii};
         for k=1:99
@@ -334,16 +337,20 @@ function makeStructConnectivity
             if exist(fname,'file')
                 load(fname);
             else
-                rnum = param(1) + randn() * param(2);
+                rnum = param(1) + randn() * param(2); % subsampling number
+                spnum = param(3) + randn() * param(4); % sparcity rate
                 [roiIdxs, sz] = getHemiroiRoiIdxs();
 
+                spmat = getSparseRandMatix('results/sc/hemiroi_fw0sr140_connectlist.mat', spnum, length(roiIdxs));
                 conf = getSCconfig('wire', synTh, hbSth);
-                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), 0, epsilon, minpts, 0, 4, rnum);
+                spsubsamp = getSparseSubsampSyn(conf, 'hemiroi_fw0sr140', spmat);
+
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), 0, epsilon, minpts, 0, 6, rnum, spsubsamp);
 
                 countMat = []; weightMat = []; scver = 5;
             end
             % not 52 ROIs, but this one is 63 ROIs
-            checkScverAndSave(idstr, fname, 'results/sc/hemiroi_hb0sr80_connectlist.mat', countMat, weightMat, ncountMat, sycountMat, nweightMat, outweightMat, syweightMat, primaryIds, roiNum, scver);
+            checkScverAndSave(idstr, fname, 'results/sc/hemiroi_fw0sr140_connectlist.mat', countMat, weightMat, ncountMat, sycountMat, nweightMat, outweightMat, syweightMat, primaryIds, roiNum, scver);
         end
     end
 %}
@@ -1260,6 +1267,44 @@ function [roiIdxs, sz, aV] = getHemiroiRoiIdxs(ids)
         end
         sz = size(V);
     end
+end
+
+function spmat = getSparseRandMatix(ordertemp, spnum, roiNum)
+    spmat = zeros(roiNum,roiNum,'logical');
+    load(ordertemp);
+    ids = primaryIds;
+    spmat(ids,ids) = 1;
+    idx = find(spmat);
+    permidx = randperm(length(idx));
+    spmat(idx(permidx(ceil(length(idx)*spnum):end))) = 0;
+end
+
+function spsubsamp = getSparseSubsampSyn(conf, type, spmat)
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+
+    % read synapse info
+    Sid = []; postNidx = []; preNidx = [];
+    load(conf.synapseFile);
+    score = (cleftScore >= scoreTh);
+    Sidx = int32(1:length(Sid))';
+    valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
+    spsubsamp = valid; spsubsamp(:) = 0;
+
+    load(['results/cache/' type '_Nin_Nout.mat']); % should exist
+    roimax = size(spmat,1);
+    for i=1:roimax
+        outnidx = Nout{i}{2};
+        for j=1:roimax
+            if spmat(i,j) == 0, continue; end
+            innidx = Nin{j}{2};
+            % find input neuron rate from ROI(i)
+            nlogi = ismember(innidx,outnidx);
+            slogi = ismember(preNidx,innidx(nlogi));
+            spsubsamp = spsubsamp | slogi;
+        end
+    end
+    spsubsamp = spsubsamp & valid & score;
 end
 
 function checkScverAndSave(idstr, fname, ordertemp, countMat, weightMat, ncountMat, sycountMat, nweightMat, outweightMat, syweightMat, primaryIds, roiNum, scver)

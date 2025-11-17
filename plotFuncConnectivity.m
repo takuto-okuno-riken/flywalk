@@ -60,7 +60,7 @@ function plotFuncConnectivity
     % check large smoothing size in several ROI nums and poltcomp (s0 to 300, roi 20 to 1000, '' & poltcomp)
     % Cm,Dist are used in figure.2
     % roitype: Cm,CmR1w1,Dist,
-    checkLargeSmoothingPoltcompByRoinum(vslabels);
+%    checkLargeSmoothingPoltcompByRoinum(vslabels);
 
     % check high-pass filter in several ROI nums and poltcomp (s230, roi 20 to 1000, poltcomp)
     % Dist are used in ext figure.2
@@ -588,7 +588,7 @@ function checkRandSubsampleRankTestByHemiroi(vslabels)
     pval = 0.05 / 6; % bonferroni correction
 
     for r = 1:length(roitypes)
-        Am = []; Rm = []; tAm = []; tRm = []; ncounts = []; sycounts = [];
+        Am = []; Rm = []; Sp = []; tAm = []; tRm = []; tSp = []; ncounts = []; sycounts = [];
         for h=1:length(hpfTh)
             hpfstr = '';
             if hpfTh(h) > 0, hpfstr = ['hf' num2str(round(1/hpfTh(h)))]; end
@@ -605,6 +605,11 @@ function checkRandSubsampleRankTestByHemiroi(vslabels)
                     end
                     tAm = [tAm,nanmean(A,2)];
                     tRm = [tRm,R(:)];
+                    spmat = ['results/sc/' targets{r}{1} targets{r}{2} '_sparserate.mat'];
+                    if exist(spmat,'file')
+                        load(spmat);
+                        tSp = [tSp,neuSparseRate];
+                    end
 
                     % random subsampling ROI type
                     for ss = 1:length(rNums)
@@ -620,6 +625,11 @@ function checkRandSubsampleRankTestByHemiroi(vslabels)
                         end
                         Am = [Am,nanmean(A,2)];
                         Rm = [Rm,R(:)];
+                        spmat = ['results/sc/' roitypes{r}{1} roitypes{r}{2} rstr '_sparserate.mat'];
+                        if exist(spmat,'file')
+                            load(spmat);
+                            Sp = [Sp, neuSparseRate];
+                        end
                     end
                 end
             end
@@ -667,6 +677,13 @@ function checkRandSubsampleRankTestByHemiroi(vslabels)
         x=linspace(min(x),max(x)); y=normcdf(x,pd2.mu,pd2.sigma); hold on; plot(x, y*ymax,':k','LineWidth',0.5); hold off;
         xline(tsycount,'r'); bx=norminv([pval,1-pval],pd2.mu,pd2.sigma); xline(bx,':r');
 %        continue;
+
+        % show sparse rate histogram
+        figure; h=histogram(Sp, 10); title(['sparse rate histogram : ' targets{r}{2}]);
+        ymax = 5*ceil(max(h.Values)/5);
+%        [y, x]=ecdf([tSp, Sp]); hold on; plot(x, y*ymax,'LineWidth',2); hold off;
+%        x=linspace(min(x),max(x)); y=normcdf(x,pd1.mu,pd1.sigma); hold on; plot(x, y*ymax,':k','LineWidth',0.5); hold off;
+        hold on; xline(tSp,'r'); hold off; %bx=norminv([pval,1-pval],pd1.mu,pd1.sigma); xline(bx,':r');
 
         % show R and AUC histogram
         B = abs(Rm) + abs(Am-0.5)*2;
@@ -1159,7 +1176,7 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
         's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
 %    nuisance = {'','poltcomp'};
     nuisance = {'poltcomp'};
-    roinums = [20 50 100 200 500 1000 5000 10000];
+    roinums = [20 50 100 200 500 1000];% 5000 10000];
 %    roitypes = {{'hemiCmkm',''},{'hemiCmkm','r1w1'},{'hemiDistKm',''}};
 %    roitypelabels = {'Cm','CmR1w1','Dist'};
     roitypes = {{'hemiCmkm',''},{'hemiDistKm',''}};

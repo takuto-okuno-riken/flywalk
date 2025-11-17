@@ -1,6 +1,7 @@
 % make SC neuron & synapse count matrix by FlyWire structure data.
 
-function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrixFw(roiIdxs, sz, conf, type, spiTh, epsilon, minpts, rcdistTh, rtype, rnum)
+function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrixFw(roiIdxs, sz, conf, type, spiTh, epsilon, minpts, rcdistTh, rtype, rnum, spsubsamp)
+    if nargin < 11, spsubsamp = []; end
     if nargin < 10, rnum = 0; end
     if nargin < 9, rtype = 0; end
     if nargin < 8, rcdistTh = 0; end
@@ -25,10 +26,33 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
     SpostlocFc = [];
     load(conf.sypostlocFdaFile);
 
-    % read synapse separation index, reciprocal synapse distance (option, random sub sampling)
     if ~exist('results/cache','dir'), mkdir('results/cache'); end
 
+    % make postsynapse index
+    cfile = conf.sypostCellFile;
+    if exist(cfile,'file')
+        load(cfile);
+    else
+        C = cell(sz(1),sz(2),sz(3));
+        for i=1:size(SpostlocFc,1)
+            if ~valid(i), continue; end % use only valid pre-post synapse set
+            t = ceil(SpostlocFc(i,:));
+            if t(1)>0 && t(2)>0 && t(3)>0 && t(1)<sz(1) && t(2)<sz(2) && t(3)<sz(3) 
+                C{t(1),t(2),t(3)} = [C{t(1),t(2),t(3)},i];
+            else
+                disp(['out of bounds ' num2str(i) ') ' num2str(t)]);
+            end
+        end
+        save(cfile,'C','-v7.3');
+    end
+
+    % extract sparce matrix synapses
     spidx = (valid | true); rcdist = (valid | true); subsamp = (valid | true); % init logis
+    if rnum > 0 && ~isempty(spsubsamp)
+        subsamp = spsubsamp;
+    end
+
+    % read synapse separation index, reciprocal synapse distance (option, random sub sampling)
     if spiTh > 0 || rcdistTh > 0 || rnum > 0
         rfile = ['results/cache/' type '_subsample.mat'];
         if exist(rfile,'file')
@@ -47,24 +71,6 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             end
             save(rfile, 'spidx','rcdist','subsamp','-v7.3');
         end
-    end
-
-    % make presynapse index
-    cfile = conf.sypostCellFile;
-    if exist(cfile,'file')
-        load(cfile);
-    else
-        C = cell(sz(1),sz(2),sz(3));
-        for i=1:size(SpostlocFc,1)
-            if ~valid(i), continue; end % use only valid pre-post synapse set
-            t = ceil(SpostlocFc(i,:));
-            if t(1)>0 && t(2)>0 && t(3)>0 && t(1)<sz(1) && t(2)<sz(2) && t(3)<sz(3) 
-                C{t(1),t(2),t(3)} = [C{t(1),t(2),t(3)},i];
-            else
-                disp(['out of bounds ' num2str(i) ') ' num2str(t)]);
-            end
-        end
-        save(cfile,'C','-v7.3');
     end
 
     % read or save regional neural (synapse) input & output
@@ -266,12 +272,14 @@ end
 
 function [rslogi] = randSubsampleFw(rslogi, rtype, valid, score, rnum)
     switch(rtype)
-    case {1,2,4,5}
+    case {1,2,4,5,6}
         if rnum == 0
             rnum = sum(rslogi);
         end
         if rtype==1 || rtype==4
             slogi = (valid & score); % full random
+        elseif rtype==6
+            slogi = (valid & score & rslogi); % constrained random
         else
             slogi = (valid & score & ~rslogi); % exclusive random
         end
