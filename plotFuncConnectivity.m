@@ -1159,21 +1159,27 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
         's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
 %    nuisance = {'','poltcomp'};
     nuisance = {'poltcomp'};
-    roinums = [20 50 100 200 500 1000];
+    roinums = [20 50 100 200 500 1000 5000 10000];
 %    roitypes = {{'hemiCmkm',''},{'hemiCmkm','r1w1'},{'hemiDistKm',''}};
 %    roitypelabels = {'Cm','CmR1w1','Dist'};
     roitypes = {{'hemiCmkm',''},{'hemiDistKm',''}};
     roitypelabels = {'Cm','Dist'};
 
-    ylabels = {}; R3 = []; SR3 = []; A3 = []; AA3 = []; R3r = []; SR3r = []; A3r = []; I=[7 9];
+    ylabels = {}; R3 = []; SR3 = []; GR3 = []; A3 = []; AA3 = []; A3r = []; I=[7 9];
+    R3r = []; SR3r = []; GR3r = []; R3rm = []; GR3rm = []; SpR = [];
     for r = 1:length(roitypes)
-        Am = []; Rm = []; SRm = []; AA = []; ii=1; xlabels = {};
+        Am = []; Rm = []; SRm = []; GRm = []; AA = []; SpRn = []; ii=1; xlabels = {};
         for rr=1:length(roinums)
+            fname = ['results/sc/' roitypes{r}{1} num2str(roinums(rr)) roitypes{r}{2} '_sparserate.mat'];
+            if exist(fname,'file')
+                load(fname);
+                SpRn = [SpRn; neuSparseRate];
+            end
             for h=1:length(hpfTh)
                 hpfstr = '';
                 if hpfTh(h) > 0, hpfstr = ['hf' num2str(round(1/hpfTh(h)))]; end
                 for n=1:length(nuisance)
-                    Am2 = []; Rm2 = []; SRm2 = [];
+                    Am2 = []; Rm2 = []; SRm2 = []; GRm2 = [];
                     for k=1:length(smooth)
                         pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}{1} num2str(roinums(rr)) roitypes{r}{2}];
                         xlabels{ii} = [smooth{k} nuisance{n} 'roi' num2str(roinums(rr))]; ii=ii+1;
@@ -1184,6 +1190,7 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
                             A = nan(size(Am,1),100);
                             R = nan(1,size(Rm,1));
                             SR = nan(1,size(SRm,1));
+                            GR = nan(1,size(GRm,1));
                         end
                         AA = cat(3,AA,A);
                         Am = [Am,nanmean(A,2)];
@@ -1192,15 +1199,19 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
                         Rm2 = [Rm2,R(I)'];
                         SRm = [SRm,SR(:)];
                         SRm2 = [SRm2,SR(I)'];
+                        GRm = [GRm,GR(:)];
+                        GRm2 = [GRm2,GR(I)'];
                     end
-                    R3r = [R3r;Rm2]; SR3r = [SR3r;SRm2]; A3r = [A3r;Am2];
+                    R3r = [R3r;Rm2]; SR3r = [SR3r;SRm2]; GR3r = [GR3r;GRm2]; A3r = [A3r;Am2];
+                    R3rm = [R3rm;nanmax(Rm2,[],2)']; GR3rm = [GR3rm;nanmax(GRm2,[],2)'];
                 end
             end
         end
 
-        R3 = [R3;Rm]; SR3 = [SR3;SRm]; A3 = [A3;Am]; AA3 = cat(1,AA3,AA); ii=ii-1;
+        R3 = [R3;Rm]; SR3 = [SR3;SRm]; GR3 = [GR3;GRm]; A3 = [A3;Am]; AA3 = cat(1,AA3,AA); ii=ii-1;
         C = cell(24,1); C(1:24) = {[roitypelabels{r} ' ']};
         ylabels = [ylabels(:); strcat(C(:),vslabels(:))];
+        SpR = [SpR, SpRn];
     end
 
     % FC-SC correlation (all)
@@ -1215,6 +1226,13 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
     % FC-SC correlation (spearman) Traced neuron vs synapse
     I = getR3idx([7 9],[0:24:L]);
     figure; plot(SR3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation (spearman) Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % FC-SC correlation (gaussian) Traced neuron vs synapse
+    I = getR3idx([7 9],[0:24:L]);
+    figure; plot(GR3(I,:)'); legend(ylabels(I)); xticks(1:ii); xticklabels(xlabels); title('FC-SC correlation (gaussian) Traced neuron vs synapse'); setlineColors(2); setlineStyles({'-','--'});
+
+    % R3rm, SR3rm, GR3rm is used for review answer (poltcomp-roi20-10000.xlsx)
+    X = [R3rm(1:length(roinums),1), R3rm(length(roinums)+1:end,1), GR3rm(1:length(roinums),1), GR3rm(length(roinums)+1:end,1)];
 
     % FC-SC detection (all)
     I = getR3idx([7 9 19 21],[0:24:L]);  % show only Traced neuron, synapse
