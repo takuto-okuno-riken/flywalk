@@ -316,13 +316,15 @@ function [ssrslogi, rslogi] = randSubsample(rslogi, rtype, StoS, Sid, ssrate, ss
     s1rslogi = ismember(StoS(:,1),Sid(rslogi));
     s2rslogi = ismember(StoS(:,2),Sid(rslogi));
     switch(rtype)
-    case {1,2,4,5}
+    case {1,2,4,5,6}
         ssrslogi = (s1rslogi & s2rslogi);
         if rnum == 0
             rnum = sum(ssrslogi);
         end
         if rtype==1 || rtype==4
             sslogi = ssrate & sstraced; % full random
+        elseif rtype==6
+            sslogi = ssrate & sstraced & ssrslogi; % constrained random
         else
             sslogi = ssrate & sstraced & ~ssrslogi; % exclusive random
         end
