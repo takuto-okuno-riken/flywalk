@@ -337,7 +337,7 @@ function makeStructConnectivity
             if exist(fname,'file')
                 load(fname);
             else
-                rnum = param(1) + randn() * param(2); % subsampling number
+                rnum = int32(param(1) + randn() * param(2)); % subsampling number
                 spnum = param(3) + randn() * param(4); % sparcity rate
                 [roiIdxs, sz] = getHemiroiRoiIdxs();
 
@@ -1293,15 +1293,19 @@ function spsubsamp = getSparseSubsampSyn(conf, type, spmat)
 
     load(['results/cache/' type '_Nin_Nout.mat']); % should exist
     roimax = size(spmat,1);
+    sinlogi = zeros(length(preNidx),roimax,'logical');
+    for j=1:roimax
+        sinlogi(Sin{j}{2},j) = 1;
+    end
     for i=1:roimax
         outnidx = Nout{i}{2};
         for j=1:roimax
             if spmat(i,j) == 0, continue; end
             innidx = Nin{j}{2};
-            % find input neuron rate from ROI(i)
+            % find input neuron from ROI(i)
             nlogi = ismember(innidx,outnidx);
             slogi = ismember(preNidx,innidx(nlogi));
-            spsubsamp = spsubsamp | slogi;
+            spsubsamp = spsubsamp | (slogi & sinlogi(:,j));
         end
     end
     spsubsamp = spsubsamp & valid & score;
