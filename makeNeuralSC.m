@@ -15,26 +15,26 @@ function makeNeuralSC
 %    checkNeuralInputOutputVoxelsFw(conf); % no use
 
 %    checkNeuralInputOutputDistance(conf); % no use
-
+%{
     for i=1:5
-        checkNeuralDBScanFw(conf, epsilon*i, minpts);
+        checkNeuralDBScanFw(conf, epsilon*i, minpts); % for Ext.Data.Fig.4-1
     end
-    checkSeparateIndexFw(conf, epsilon*3, minpts);
+    checkSeparateIndexFw(conf, epsilon*3, minpts); % for Ext.Data.Fig.4-1
 
-    checkNeuralReciprocalConnectionsFw(conf);
+    checkNeuralReciprocalConnectionsFw(conf); % for Ext.Data.Fig.4-1
 
 %    checkNeuralNetworkPropertiesFw(conf); % this is heavy to see
 
     checkReciprocalSynapseDistanceFw(conf);
 
     checkReciprocalSynapseCountFw(conf, 1000:1000:3000); % three thresholds
-
+%}
 %{
     Cnames = {'SMP352'};
     Cnids = {[266187532, 266528078, 266528086, 296194535, 328593903, 5813009926]};
     checkNeuralNamedReciprocalConnectionsFw(Cnames, Cnids, conf)
 %}
-    checkNeuralAutoConnectionsFw(conf);
+%    checkNeuralAutoConnectionsFw(conf); % there should not be self connection
 %{
     for p12=1:2
         for p13=1:2
@@ -67,7 +67,7 @@ function makeNeuralSC
 %    checkSynapticListOfNeuronsFw(conf, g1);
 
     g1 = [int64(720575940644632087)]; % WAGN
-    checkSynapticCloudFDAFw(conf, g1);
+%    checkSynapticCloudFDAFw(conf, g1);
 
 %    g1 = [int64(720575940644632087)]; % WAGN
 %    g2 = [int64(720575940618260500),int64(720575940654220193),int64(720575940635668622),int64(720575940611932842),int64(720575940632015699),int64(720575940611904296),int64(720575940629901047),int64(720575940630151455),int64(720575940603882174),int64(720575940632118479),int64(720575940628894251),int64(720575940623817776),int64(720575940623755312),int64(720575940609984881),int64(720575940621106977),int64(720575940629264938),int64(720575940629630520),int64(720575940633209996),int64(720575940634627214),int64(720575940626651691),int64(720575940611603502),int64(720575940623685193), ... % AN neurons
@@ -82,7 +82,7 @@ function makeNeuralSC
 %    checkNeuralInputOutputVoxelsFw(conf); % no use
 
 %    checkNeuralInputOutputDistance(conf); % no use
-%%{
+%{
     g1 = [int64(720575940644632087)]; % WAGN figure.5
     g2 = [int64(720575940635831438),int64(720575940635863214),int64(720575940613099493),int64(720575940628370732),int64(720575940622529574),int64(720575940621558762),int64(720575940624473918)]; % WPN Tier2/3
     [spreloc1, spresidx1, spostloc1, spostsidx1] = checkSynapticListBetweenNeuronsFw(conf, g1, g2);
@@ -95,12 +95,14 @@ function makeNeuralSC
 %}
 %    checkPre2postSynapseDistanceFw(conf, [int64(720575940644632087)]); % WAGN figure.5
 
-    for i=1:5
-        checkNeuralDBScanFw(conf, epsilon*i, minpts);
-    end
-    checkSeparateIndexFw(conf, epsilon*3, minpts);
+    checkNeuralMorphDistFw(conf, epsilon*3, minpts);  % morphological distance based clustering (for reviewer answer)
 
-    checkNeuralReciprocalConnectionsFw(conf);
+    for i=1:5
+        checkNeuralDBScanFw(conf, epsilon*i, minpts); % DBScan based clustering (for Fig.4)
+    end
+    checkSeparateIndexFw(conf, epsilon*3, minpts); % for Fig.4
+
+    checkNeuralReciprocalConnectionsFw(conf); % for Fig.4
 
     checkNeuralNetworkPropertiesFw(conf); % this is heavy to see
 
@@ -420,17 +422,150 @@ function checkNeuralDBScanFw(conf, epsilon, minpts)
     DBidx = cell(nlen,1);
     DBcount = cell(nlen,1);
     clcount = zeros(nlen,3,'int16');
+%    for i=1:nlen
     parfor i=1:nlen
         prelogi = ismember(preNidx,i); % find pre-synapses which belong to target neurons
         poslogi = ismember(postNidx,i); % find pre-synapses which belong to target neurons
 
-        X = double(Spreloc(prelogi & valid & score,:))./ conf.swcSize .* conf.voxelSize;    % reciprocal pre-synapse on Nid(i); FlyWire original space (unit is nano meter) (int32)
+        X = double(Spreloc(prelogi & valid & score,:))./ conf.swcSize .* conf.voxelSize;    % pre-synapse on Nid(i); FlyWire original space (unit is nano meter) (int32)
         prelen = size(X,1);
-        Xb = double(Spostloc(poslogi & valid & score,:)) ./ conf.swcSize .* conf.voxelSize; % reciprocal post-synapse on Nid(i); 
+        Xb = double(Spostloc(poslogi & valid & score,:)) ./ conf.swcSize .* conf.voxelSize; % post-synapse on Nid(i); 
         X = [X; Xb];
         if isempty(X), continue; end
 
         dbidx = int32(dbscan(X,epsilon,minpts)); % nanometer
+        DBidx{i} = dbidx;
+
+        % count info
+        clsz = max(dbidx);
+        predbidx = dbidx(1:prelen);
+        postdbidx = dbidx(prelen+1:end);
+        cmat = zeros(clsz,2,'int32');
+        cmat2 = zeros(clsz,1);
+        for j=1:clsz
+            c1 = length(find(predbidx==j));
+            c2 = length(find(postdbidx==j));
+            cmat(j,1) = c1;
+            cmat(j,2) = c2;
+            cmat2(j) = double(c1) / (c1 + c2);
+        end
+        DBcount{i} = cmat;
+        inOnly = sum(cmat2==0);
+        outOnly = sum(cmat2==1);
+        clcount(i,:) = [clsz, inOnly, outOnly];
+
+        disp(['dbscan ' conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : process (' num2str(i) ') nid=' num2str(Nid(i)) ', clsz=' num2str(clsz) ' (' num2str(inOnly) ', ' num2str(outOnly) ')']);
+    end
+    save(fname,'clcount','DBcount','DBidx','-v7.3');
+end
+
+function checkNeuralMorphDistFw(conf, epsilon, minpts)
+    synTh = conf.synTh;
+    scoreTh = conf.scoreTh;
+    distTh = epsilon + 3000; % to check graph based distance
+    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_1neuralMorphDist' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
+    if exist(fname,'file'), return; end
+
+    % read neuron info (id, connection number, size)
+    Nid = [];
+    load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
+
+    % FlyWire read synapse info
+    preNidx = []; postNidx = [];
+    load(conf.synapseFile);
+    score = (cleftScore >= scoreTh);
+    Sidx = int32(1:length(Sid))';
+    valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
+
+    % read synapse location in FDA
+    Spostloc = []; Spreloc = [];
+    load(conf.sypostlocFile);
+    load(conf.syprelocFile);
+
+    nlen = length(Nid);
+    DBidx = cell(nlen,1);
+    DBcount = cell(nlen,1);
+    clcount = zeros(nlen,3,'int16');
+%    for i=4641 % pre only1 case
+%    for i=1
+    parfor i=1:40000%nlen
+        prelogi = ismember(preNidx,i); % find pre-synapses which belong to target neurons
+        poslogi = ismember(postNidx,i); % find pre-synapses which belong to target neurons
+
+        Xa = double(Spreloc(prelogi & valid & score,:))./ conf.swcSize .* conf.voxelSize;    % pre-synapse on Nid(i); FlyWire original space (unit is nano meter) (int32)
+        prelen = size(Xa,1);
+        Xb = double(Spostloc(poslogi & valid & score,:)) ./ conf.swcSize .* conf.voxelSize; % post-synapse on Nid(i); 
+        X = [Xa; Xb];
+        if isempty(X), continue; end
+
+        nid = Nid(i);
+
+        if size(X,1) == 1
+            dbidx = 1;
+        else
+            % get distance matrix
+            D = pdist(X);
+            Z = squareform(D);
+
+            % for detail plot, need to add Trees toolbox (https://www.treestoolbox.org/index.html)
+            swc = loadSwc([conf.swcPath '/' num2str(nid) '.swc'], true);
+    
+            % check swc and synapse location
+%{
+            figure; plotSwc(swc, [0.7 0.7 1], 1, true); view(3); grid off; axis image; alpha(.1);
+            xlabel('x [nm]'); ylabel('y [nm]'); zlabel('z [nm]'); title([num2str(i) ') nid=' num2str(nid)]);
+            hold on; scatter3(Xa(:,1),Xa(:,2),Xa(:,3),8,'red','filled'); hold off;  % pre. output
+            hold on; scatter3(Xb(:,1),Xb(:,2),Xb(:,3),8,'blue','filled'); hold off; % post. input
+%}
+            Xa = []; Xb = []; % clear 
+
+            S = 1:size(swc,1)-1; % edge start
+            T = swc(S,end);      % edge target
+            F = [S',T];
+            Tm = (T<=0);
+            F(Tm,2) = 1; % set dummy
+            P1 = swc(F(:,1),2:4);
+            P2 = swc(F(:,2),2:4);
+            D = P1 - P2;
+            D(Tm,:) = inf;
+            D = sqrt(sum(D.*D,2)); % distance P1 to P2
+            S = []; T = []; P2 = []; %swc = []; % clear
+    
+            % undirected graph
+            G = graph(F(:,1),F(:,2),D);
+            D = []; % clear
+%            figure; plot(G);
+
+            % find nearest edge (point) on Graph from pre & post synapses
+            Ex = zeros(size(X,1),1,'int32'); % synapse edge
+            for j=1:size(X,1)
+                Dx = P1 - repmat(X(j,:),[size(P1,1) 1]);
+                Dx = sum(Dx.*Dx,2);
+                [~, Ex(j)] = min(Dx);
+            end
+    
+            % replace straight line distance to graph based distance
+            Ez = Z;
+            for j = 1:size(Z,1)
+                for k = j+1:size(Z,2)
+                    if Z(j,k) < distTh
+                        [path1, Ez(j,k)] = shortestpath(G, Ex(j), Ex(k));
+%{
+                        figure; plotSwc(swc, [0.7 0.7 1], 1, true); view(3); grid off; axis image; alpha(.1);
+                        hold on; scatter3(X(j,1),X(j,2),X(j,3),8,'black','filled'); hold off;
+                        hold on; scatter3(X(k,1),X(k,2),X(k,3),8,'black','filled'); hold off;
+                        Ft = [1:length(path1)-1; 2:length(path1)];
+                        hold on; patch('Faces',[1 2],'Vertices',X([j, k],:),'FaceColor','none','EdgeColor','r','LineWidth',0.5); hold off;
+                        hold on; patch('Faces',Ft','Vertices',P1(path1,:),'FaceColor','none','EdgeColor','g','LineWidth',2); hold off;
+%}
+                    end
+                end
+            end
+            Ez = triu(Ez,1) + triu(Ez,1)';
+            Z = []; % clear
+    
+            dbidx = int32(dbscan(Ez,epsilon,minpts,'DISTANCE','PRECOMPUTED')); % nanometer
+        end
         DBidx{i} = dbidx;
 
         % count info
@@ -481,20 +616,21 @@ function checkSeparateIndexFw(conf, epsilon, minpts)
     DBcount = {}; DBidx = {};
     load(['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralDBScan' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
 
-    % synapse count & calc pre-post-synapse separation index
+    % synapse count & calc pre-post-synapse separation index (PPSSI)
     slen = length(Sidx);
     nlen = length(Nid);
     Nspidx = ones(nlen,1,'int16') * -1;
     NsywSepScore = nan(nlen,1,'half');
     NsywMixScore = nan(nlen,1,'half');
     spC = cell(nlen,1);
-    parfor i=1:nlen
+    for i=1:nlen
+%    parfor i=1:nlen
         if isempty(DBcount{i}), continue; end
 
         cmat = double(DBcount{i});
         synumall = sum(cmat,'all');
 
-        % pre-post-synapse separation index based on DBscan clustering
+        % pre-post-synapse separation index (PPSSI) based on DBscan clustering
 %{
         t = sum(cmat,1);
         N1 = t(1); N2 = t(2); % these could be zero.
