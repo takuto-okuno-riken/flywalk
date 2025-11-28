@@ -11,11 +11,11 @@ function analyzeFuncConnectivity
     hpfTh = [0]; % high-pass filter threshold
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
 %    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
-    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80', 's90', 's100', 's110', 's120', 's130', 's140', 's150', 's160', 's170', 's180', 's190', 's200', 's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
+%    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80', 's90', 's100', 's110', 's120', 's130', 's140', 's150', 's160', 's170', 's180', 's190', 's200', 's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
 %    smooth = {'', 's30', 's80', 's150','s230','s300'};
 %    smooth = {'', 's30', 's40', 's60', 's80', 's100', 's150'};
 %    smooth = {'s230'}; % DistKm
-%    smooth = {''}; % hemiroi
+    smooth = {''}; % hemiroi
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
         '6hmacomp','6hmgmacomp','6hmgmgsacomp','6hmtcomp','6hmtacomp', ... %22
@@ -30,8 +30,8 @@ function analyzeFuncConnectivity
     nuisance = {'poltcomp'}; % good for hemiroi, DistKm
 
     % file number setting for random subsampling
-    rNums = [0]; % no number setting
-%    rNums = 1:99; % for random subsampling number
+%    rNums = [0]; % no number setting
+    rNums = 1:99; % for random subsampling number
 
     % using subjects (flys). sbj 7 shows NaN row in FC matrix
     sbjids = [1 2 3 4 5 6 8 9];
@@ -117,7 +117,8 @@ function analyzeFuncConnectivity
 %            'hemiroi_fw0sr140_rc20_xorand1','hemiroi_fw0sr140_rc20_xorand2','hemiroi_fw0sr140_rc20_xorand3'};  % for s0, poltcomp
 %    roitypes = {'hemiroi_hb0sr80fw_rd67-12','hemiroi_hb0sr80fw_rd140-15','hemiroi_hb0sr80fw_rd705-40', ...
 %            'hemiroi_fw0sr140_rd140-15','hemiroi_fw0sr140_rd185-20','hemiroi_fw0sr140_rd1560-80'};  % for s0, poltcomp, rNums
-
+%    roitypes = {'hemiroi_fw0sr140_rd195-20-60'};  % for s0, poltcomp, rNums (review answer)
+    roitypes = {'hemiroi_fw0sr140_rd320-20-35'};  % for s0, poltcomp, rNums (review answer)
     %to check scatter and AUC graph (need to comment out plot lines)
 %    roitypes = {'hemiroi_hb0sr80','hemiroi_hb0sr80_rc20_only1','hemiroi_hb0sr80_rn150_orand1','hemiroi_hb0sr80_rn10_orand1', ...
 %            'hemiroi_fw0sr140','hemiroi_fw0sr140_rc20_only1','hemiroi_fw0sr140_rn10_orand1'};  % for s0, poltcomp
@@ -169,14 +170,14 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids, isp
     end
 
     % check sparse rate (for reviewer comment)
-%{
+%%{
     fname = ['results/sc/' roitype '_sparserate.mat'];
     if ~exist(fname,'file')
         neuSparseRate = sum(C2b==0,'all') / numel(C2b);
         synSparseRate = sum(Sb==0,'all') / numel(Sb);
-        save(fname,'neuSparseRate','synSparseRate');
+        synCount = sum(Sb,'all');
+        save(fname,'neuSparseRate','synSparseRate','synCount');
     end
-    return;
 %}
     % show corr between neurons v. synapse weight
     if isplot
@@ -323,7 +324,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids, isp
                 nF = tanh(mFz .* E);
                 GR(7) = corr(gC2b(:),nF(:),'Rows','complete'); % Traced vs. m-FCz
                 disp(['prefix=' pftype ' : gaussian(neurons2b) vs. m-FCz = ' num2str(GR(7))]);
-                figure; scatter(gC2b(:),nF(:),18,'x'); xlabel('gaussian(neurons2b)'); ylabel('m-FCz'); title([pftype ' r=' num2str(GR(7))]); xlim([0 1]);
+%                figure; scatter(gC2b(:),nF(:),18,'x'); xlabel('gaussian(neurons2b)'); ylabel('m-FCz'); title([pftype ' r=' num2str(GR(7))]); xlim([0 1]);
                 GR(9) = corr(gSb(:),nF(:),'Rows','complete');
                 disp(['prefix=' pftype ' : gaussian(synapses b) vs. m-FCz = ' num2str(GR(9))]);
                 if isw2

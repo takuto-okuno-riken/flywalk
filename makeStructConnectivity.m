@@ -326,8 +326,8 @@ function makeStructConnectivity
     % full random subsampling is not good. Setting sparsity constraints.
 %%{
 %    randrange = {[14e5, 1.5e5, 0, 0, 0],[18.5e5, 2e5, 0, 0, 0],[155.5e5, 8e5, 0, 0, 0]};
-    randrange = {[19.5e5, 2e5, 0.4863, 0.015, 60],[30e5, 2e5, 0.4175, 0.015, 40]};
-%    randrange = {[19.5e5, 0.1e5, 0.4863, 0.015, 60],[30e5, 0.1e5, 0.4175, 0.015, 40]};
+    randrange = {[19.5e5, 2e5, 0.4863, 0.015, 60],[32e5, 2e5, 0.4175, 0.015, 35]};
+%    randrange = {[19.5e5, 0.1e5, 0.4863, 0.015, 60],[32e5, 0.1e5, 0.4175, 0.015, 35]};
     for ii=1:length(randrange)
         param = randrange{ii};
         for k=1:99

@@ -201,6 +201,16 @@ end
 function checkSCpostSynapse()
     if ~exist('results/nifti','dir'), mkdir('results/nifti'); end
 
+    % get hemiroi primary ROI mask
+    load('data/hemiroi.mat');
+    ids = [107	16	59	68	65	78	4	49	106	87	100	27	43	5	57	89	101	97	50	58	113	10	32	66	30	67	19	76	31	82	93	54	52	8	7	42	1	63	95	112	98	33	18	103	15	20	111	34	51	62	47	24	38	22	75	41	2	45	80	102	56	28	91];
+    Vm = single(niftiread(['atlas/hemiroi/roi107.nii.gz']));
+    for i=2:length(ids)
+        Vi = niftiread(['atlas/hemiroi/roi' num2str(ids(i)) '.nii.gz']);
+        Vm = Vm + Vi;
+    end
+    Vm(Vm>0) = 1; % mask
+
     % make post-synapse could of FlyEM hemibrain
     confThs = [0 10 20 30 40 50 60 70 80 90];
     hbsynThs = [0]; % 5 10 20 30 50 100];
@@ -253,13 +263,18 @@ function checkSCpostSynapse()
                     end
                 end
                 clear SpostlocFc;
-        
+
                 niftiwrite(hbV,niifile,hbinfo,'Compressed',true);
             end
-%            if confTh == 80
-%                hbV(1,1,1) = 800; % for 80 (figure.3)
-%                niftiwrite(hbV,niifile,hbinfo,'Compressed',true);
-%            end
+
+            niifile = ['results/nifti/hemibrain_hb' num2str(synTh) 'sr' num2str(confTh) '_postsynFDACalPRois.nii'];
+            if ~exist([niifile '.gz'],'file')
+                hbV = hbV .* uint16(Vm);
+                if confTh == 80
+                    hbV(1,1,1) = 800; % for 80 (figure.3)
+                end
+                niftiwrite(hbV,niifile,hbinfo,'Compressed',true);
+            end
             disp(['hb' num2str(synTh) 'sr' num2str(confTh) ' maxV=' num2str(max(hbV(:)))]);
         end
     end
@@ -305,13 +320,18 @@ function checkSCpostSynapse()
                     end
                 end
                 clear SpostlocFc;
-        
+
                 niftiwrite(fwV,niifile,hbinfo,'Compressed',true);
             end
-%            if scoreTh == 140
-%                fwV(1,1,1) = 800; % for 140 (figure.3)
-%                niftiwrite(fwV,niifile,hbinfo,'Compressed',true);
-%            end
+
+            niifile = ['results/nifti/hemibrain_fw' num2str(synTh) 'sr' num2str(scoreTh) '_postsynFDACalPRois.nii'];
+            if ~exist([niifile '.gz'],'file')
+                fwV = fwV .* uint16(Vm);
+                if scoreTh == 140
+                    fwV(1,1,1) = 800; % for 140 (figure.3)
+                end
+                niftiwrite(fwV,niifile,hbinfo,'Compressed',true);
+            end
             disp(['fw' num2str(synTh) 'sr' num2str(scoreTh) ' maxV=' num2str(max(fwV(:)))]);
         end
     end
