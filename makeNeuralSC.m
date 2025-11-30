@@ -15,7 +15,10 @@ function makeNeuralSC
 %    checkNeuralInputOutputVoxelsFw(conf); % no use
 
 %    checkNeuralInputOutputDistance(conf); % no use
-%{
+%%{
+    checkNeuralMorphDistFw(conf, epsilon*3, minpts);  % morphological distance based clustering (for reviewer answer)
+    checkSeparateIndexFw(conf, epsilon*3, minpts, '_neuralMorphDist', '_md'); % (for reviewer answer)
+
     for i=1:5
         checkNeuralDBScanFw(conf, epsilon*i, minpts); % for Ext.Data.Fig.4-1
     end
@@ -96,11 +99,12 @@ function makeNeuralSC
 %    checkPre2postSynapseDistanceFw(conf, [int64(720575940644632087)]); % WAGN figure.5
 
     checkNeuralMorphDistFw(conf, epsilon*3, minpts);  % morphological distance based clustering (for reviewer answer)
+    checkSeparateIndexFw(conf, epsilon*3, minpts, '_neuralMorphDist', '_md'); % (for reviewer answer)
 
     for i=1:5
         checkNeuralDBScanFw(conf, epsilon*i, minpts); % DBScan based clustering (for Fig.4)
     end
-    checkSeparateIndexFw(conf, epsilon*3, minpts); % for Fig.4
+    checkSeparateIndexFw(conf, epsilon*3, minpts, '_neuralDBScan', ''); % for Fig.4
 
     checkNeuralReciprocalConnectionsFw(conf); % for Fig.4
 
@@ -462,10 +466,34 @@ end
 function checkNeuralMorphDistFw(conf, epsilon, minpts)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
-    distTh = epsilon + 3000; % to check graph based distance
-    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_1neuralMorphDist' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
+    distTh = epsilon + 1000; % to check graph based distance
+    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralMorphDist' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
     if exist(fname,'file'), return; end
 
+    % Combining split calculations
+    pfname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_1AneuralMorphDist' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
+    if exist(pfname,'file')
+        load(pfname);
+        parts = {'1A2','1B','2A','2A2','2A3','2B','2C','2C2','2D','2D2','2D3','3A','3B','3B2','3C','3C2','3C3','3C4','3C5','3C6','3D','3D2','3D3','4','4A'};
+        for i=1:length(parts)
+            pfname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_' parts{i} 'neuralMorphDist' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
+            if ~exist(pfname,'file'), continue; end
+            f=load(pfname);
+            idx = find(f.clcount(:,1)>0);
+            clcount(idx,:) = f.clcount(idx,:);
+            DBidx(idx) = f.DBidx(idx);
+            DBcount(idx) = f.DBcount(idx);
+        end
+        figure; plot(clcount(:,1));
+        % check with straight line version
+        f=load(['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralDBScan' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+        idx = find(f.clcount(:,1)>0);
+        idx2 = find(clcount(idx,1)==0); % this should not exist
+        if ~isempty(idx2), disp(['calculation does not match. len=' num2str(length(idx2))]); end
+        save(fname,'clcount','DBcount','DBidx','-v7.3');
+        return;
+    end
+    
     % read neuron info (id, connection number, size)
     Nid = [];
     load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
@@ -488,7 +516,7 @@ function checkNeuralMorphDistFw(conf, epsilon, minpts)
     clcount = zeros(nlen,3,'int16');
 %    for i=4641 % pre only1 case
 %    for i=1
-    parfor i=1:40000%nlen
+    for i=1:nlen
         prelogi = ismember(preNidx,i); % find pre-synapses which belong to target neurons
         poslogi = ismember(postNidx,i); % find pre-synapses which belong to target neurons
 
@@ -505,7 +533,7 @@ function checkNeuralMorphDistFw(conf, epsilon, minpts)
         else
             % get distance matrix
             D = pdist(X);
-            Z = squareform(D);
+            Z = single(squareform(D));
 
             % for detail plot, need to add Trees toolbox (https://www.treestoolbox.org/index.html)
             swc = loadSwc([conf.swcPath '/' num2str(nid) '.swc'], true);
@@ -547,7 +575,7 @@ function checkNeuralMorphDistFw(conf, epsilon, minpts)
             % replace straight line distance to graph based distance
             Ez = Z;
             for j = 1:size(Z,1)
-                for k = j+1:size(Z,2)
+                parfor k = j+1:size(Z,2)
                     if Z(j,k) < distTh
                         [path1, Ez(j,k)] = shortestpath(G, Ex(j), Ex(k));
 %{
@@ -591,11 +619,11 @@ function checkNeuralMorphDistFw(conf, epsilon, minpts)
     save(fname,'clcount','DBcount','DBidx','-v7.3');
 end
 
-function checkSeparateIndexFw(conf, epsilon, minpts)
+function checkSeparateIndexFw(conf, epsilon, minpts, diststr, mdstr)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
-    fname = [conf.neuSepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
-    syfname = [conf.sySepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
+    fname = [conf.neuSepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) mdstr '.mat'];
+    syfname = [conf.sySepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) mdstr '.mat'];
     if exist(fname,'file') && exist(syfname,'file'), return; end
 
     % FlyWire read neuron info
@@ -614,7 +642,7 @@ function checkSeparateIndexFw(conf, epsilon, minpts)
 
     % FlyWire read neural SC
     DBcount = {}; DBidx = {};
-    load(['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralDBScan' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+    load(['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) diststr num2str(epsilon) 'mi' num2str(minpts) '.mat']);
 
     % synapse count & calc pre-post-synapse separation index (PPSSI)
     slen = length(Sidx);
@@ -623,8 +651,8 @@ function checkSeparateIndexFw(conf, epsilon, minpts)
     NsywSepScore = nan(nlen,1,'half');
     NsywMixScore = nan(nlen,1,'half');
     spC = cell(nlen,1);
-    for i=1:nlen
-%    parfor i=1:nlen
+%    for i=1:nlen
+    parfor i=1:nlen
         if isempty(DBcount{i}), continue; end
 
         cmat = double(DBcount{i});
@@ -670,7 +698,7 @@ function checkSeparateIndexFw(conf, epsilon, minpts)
         vpostidx = int32(find(vpostlogi));
         spC{i} = {vpreidx,vpostidx,tspidx,prelen};
 
-        disp(['sepindex ' conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : process (' num2str(i) ') nid=' num2str(Nid(i)) ', clsz=' num2str(clsz) ' (' num2str(synumall) '/' num2str(prelen+postlen) ')']);
+        disp(['sepindex ' conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : process (' num2str(i) ') nid=' num2str(Nid(i)) ', clsz=' num2str(clsz) ' (' num2str(synumall) '/' num2str(prelen+postlen) ') PPSSI=' num2str(single(Nspidx(i))/10000)]);
 %}
     end
     save(fname, 'Nspidx', 'NsywMixScore', 'NsywSepScore');

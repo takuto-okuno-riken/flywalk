@@ -48,7 +48,9 @@ function plotNeuralFC
 
 %    showNeuralFCFw(conf, epsilon, minpts); % no use
 
-    showNeuralDBScanFw(conf, epsilon, minpts); % figure.4
+    showNeuralDBScanFw(conf, epsilon, minpts, '_neuralMorphDist', '_md'); % morphological distance based clustering (for reviewer answer)
+
+    showNeuralDBScanFw(conf, epsilon, minpts, '_neuralDBScan', ''); % figure.4
 %    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0 0.1]); % ext figure.4-2
 %    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0.9 1]); % ext figure.4-2
 %    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940644632087)); % WAGN figure.5h
@@ -231,7 +233,7 @@ function showNeuralFCFw(conf, epsilon, minpts)
     end
 end
 
-function showNeuralDBScanFw(conf, epsilon, minpts)
+function showNeuralDBScanFw(conf, epsilon, minpts, diststr, mdstr)
     tlabels = {'Unknown','DA','SER','GABA','GLUT','ACH','OCT'};
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
@@ -254,10 +256,10 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
 
     % FlyWire read neural SC
     DBcount = {};
-    load(['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralDBScan' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+    load(['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) diststr num2str(epsilon) 'mi' num2str(minpts) '.mat']);
 
     % pre-post-synapse separate index (PPSSI)
-    load([conf.neuSepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+    load([conf.neuSepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) mdstr '.mat']);
     Nspidx = double(Nspidx) / 10000;
     Nspidx(Nspidx<0) = nan;
 
@@ -387,7 +389,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
         tstr = [num2str(i) ') k=' num2str(k) ' nid=' num2str(nid) ' (' tlabels{Ntype(k)+1} ') sycount=' num2str(syCount(k,1)) ' (' num2str(syCount(k,2)) '/' num2str(syCount(k,3)) ';' num2str(syCount(k,6)) ')' ...
             ', PPSSI=' num2str(Nspidx(k)) ', syMIXscore=' num2str(NsywMixScore(k))];
         disp(tstr);
-        figure; plotBrainSwc(swc, mesh, conf.brainMeshView, loc1, loc2, tstr, [conf.scname 'syMix' num2str(i) '.png']);
+        figure; plotBrainSwc(swc, mesh, conf.brainMeshView, loc1, loc2, tstr, [conf.scname 'syMix' num2str(i) mdstr '.png']);
     end
 %}
     % show most separated and large synapse neurons
@@ -410,7 +412,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts)
         tstr = [num2str(i) ') k=' num2str(k) ' nid=' num2str(nid) ' (' tlabels{Ntype(k)+1} ') sycount=' num2str(syCount(k,1)) ' (' num2str(syCount(k,2)) '/' num2str(syCount(k,3)) ';' num2str(syCount(k,6)) ')' ...
             ', PPSSI=' num2str(Nspidx(k)) ', sySPscore=' num2str(NsywSepScore(k))];
         disp(tstr);
-        figure; plotBrainSwc(swc, mesh, conf.brainMeshView, loc1, loc2, tstr, [conf.scname 'sySP' num2str(i) '.png']);
+        figure; plotBrainSwc(swc, mesh, conf.brainMeshView, loc1, loc2, tstr, [conf.scname 'sySP' num2str(i) mdstr '.png']);
     end
 %}
 end
