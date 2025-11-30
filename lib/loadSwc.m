@@ -11,6 +11,11 @@ function swc = loadSwc(fname, isTrees)
         swc = load_tree(fname); % Trees toolbox
     elseif exist(fname,'file')
         X = readmatrix(fname,'FileType','text','OutputType','double');
+        % hmm. sometimes nan bug.
+        idx = find(isnan(X(:,1)));
+        if ~isempty(idx)
+            X(idx,:) = [];
+        end
         swc = nan(1,size(X,2)-1);
         idx = X(:,1);
         swc(idx,:) = nan;
