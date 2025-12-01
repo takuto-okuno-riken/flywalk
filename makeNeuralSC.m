@@ -15,16 +15,16 @@ function makeNeuralSC
 %    checkNeuralInputOutputVoxelsFw(conf); % no use
 
 %    checkNeuralInputOutputDistance(conf); % no use
-%%{
-    checkNeuralMorphDistFw(conf, epsilon*3, minpts);  % morphological distance based clustering (for reviewer answer)
-    checkSeparateIndexFw(conf, epsilon*3, minpts, '_neuralMorphDist', '_md'); % (for reviewer answer)
+%{
+    checkNeuralMorphDistFw(conf, epsilon*3, minpts);  % (new) for Ext.Data.Fig.4-1. morphological-based distance clustering (for reviewer answer)
+    checkSeparateIndexFw(conf, epsilon*3, minpts, '_neuralMorphDist', '_md'); % (new) for Ext.Data.Fig.4-1. (for reviewer answer)
 
-    for i=1:5
-        checkNeuralDBScanFw(conf, epsilon*i, minpts); % for Ext.Data.Fig.4-1
-    end
-    checkSeparateIndexFw(conf, epsilon*3, minpts); % for Ext.Data.Fig.4-1
-
-    checkNeuralReciprocalConnectionsFw(conf); % for Ext.Data.Fig.4-1
+%    for i=1:5
+%        checkNeuralDBScanFw(conf, epsilon*i, minpts); % (old) for Ext.Data.Fig.4-1
+%    end
+%    checkSeparateIndexFw(conf, epsilon*3, minpts); % (old) for Ext.Data.Fig.4-1
+%
+%    checkNeuralReciprocalConnectionsFw(conf); % for Ext.Data.Fig.4-1
 
 %    checkNeuralNetworkPropertiesFw(conf); % this is heavy to see
 
@@ -86,25 +86,25 @@ function makeNeuralSC
 
 %    checkNeuralInputOutputDistance(conf); % no use
 %{
-    g1 = [int64(720575940644632087)]; % WAGN figure.5
+    g1 = [int64(720575940644632087)]; % WAGN
     g2 = [int64(720575940635831438),int64(720575940635863214),int64(720575940613099493),int64(720575940628370732),int64(720575940622529574),int64(720575940621558762),int64(720575940624473918)]; % WPN Tier2/3
-    [spreloc1, spresidx1, spostloc1, spostsidx1] = checkSynapticListBetweenNeuronsFw(conf, g1, g2);
+    [spreloc1, spresidx1, spostloc1, spostsidx1] = checkSynapticListBetweenNeuronsFw(conf, g1, g2); % WPNb<->WAGN
 
-    g1 = [int64(720575940644632087)]; % WAGN figure.5
+    g1 = [int64(720575940644632087)]; % WAGN 
     g2 = [int64(720575940618260500),int64(720575940654220193),int64(720575940635668622),int64(720575940611932842),int64(720575940632015699),int64(720575940611904296),int64(720575940629901047),int64(720575940630151455),int64(720575940603882174),int64(720575940632118479),int64(720575940628894251),int64(720575940623817776),int64(720575940623755312),int64(720575940609984881),int64(720575940621106977),int64(720575940629264938),int64(720575940629630520),int64(720575940633209996),int64(720575940634627214),int64(720575940626651691),int64(720575940611603502),int64(720575940623685193)]; % AN neurons
-    [spreloc2, spresidx2, spostloc2, spostsidx2] = checkSynapticListBetweenNeuronsFw(conf, g1, g2);
-    checkSynapseDistanceBetweenGroupsFw(conf, spresidx1, spostsidx2); % WPNb<-WAGN<-ANs
-    checkSynapseDistanceBetweenGroupsFw(conf, spresidx1, spostsidx1); % WPNb<-WAGN<-WPNb Tier2/3
+    [spreloc2, spresidx2, spostloc2, spostsidx2] = checkSynapticListBetweenNeuronsFw(conf, g1, g2); % WAGN<->ANs
+    checkSynapseDistanceBetweenGroupsFw(conf, spresidx1, spostsidx2, g1); % WPNb<-WAGN<-ANs (Fig.5f)
+%    checkSynapseDistanceBetweenGroupsFw(conf, spresidx1, spostsidx1, g1); % WPNb<-WAGN<-WPNb Tier2/3
 %}
-%    checkPre2postSynapseDistanceFw(conf, [int64(720575940644632087)]); % WAGN figure.5
+%    checkPre2postSynapseDistanceFw(conf, [int64(720575940644632087)]); % (new) WAGN Fig.5
 
-    checkNeuralMorphDistFw(conf, epsilon*3, minpts);  % morphological distance based clustering (for reviewer answer)
-    checkSeparateIndexFw(conf, epsilon*3, minpts, '_neuralMorphDist', '_md'); % (for reviewer answer)
+    checkNeuralMorphDistFw(conf, epsilon*3, minpts);  % (new) for Fig.4. morphological-based distance clustering (for reviewer answer)
+    checkSeparateIndexFw(conf, epsilon*3, minpts, '_neuralMorphDist', '_md'); % (new) for Fig.4. (for reviewer answer)
 
-    for i=1:5
-        checkNeuralDBScanFw(conf, epsilon*i, minpts); % DBScan based clustering (for Fig.4)
-    end
-    checkSeparateIndexFw(conf, epsilon*3, minpts, '_neuralDBScan', ''); % for Fig.4
+%    for i=1:5
+%        checkNeuralDBScanFw(conf, epsilon*i, minpts); % (old) DBScan based clustering (for Fig.4)
+%    end
+%    checkSeparateIndexFw(conf, epsilon*3, minpts, '_neuralDBScan', ''); % (old) for Fig.4
 
     checkNeuralReciprocalConnectionsFw(conf); % for Fig.4
 
@@ -546,30 +546,7 @@ function checkNeuralMorphDistFw(conf, epsilon, minpts)
 %}
             Xa = []; Xb = []; % clear 
 
-            S = 1:size(swc,1)-1; % edge start
-            T = swc(S,end);      % edge target
-            F = [S',T];
-            Tm = (T<=0);
-            F(Tm,2) = 1; % set dummy
-            P1 = swc(F(:,1),2:4);
-            P2 = swc(F(:,2),2:4);
-            D = P1 - P2;
-            D(Tm,:) = inf;
-            D = sqrt(sum(D.*D,2)); % distance P1 to P2
-            S = []; T = []; P2 = []; %swc = []; % clear
-    
-            % undirected graph
-            G = graph(F(:,1),F(:,2),D);
-            D = []; % clear
-%            figure; plot(G);
-
-            % find nearest edge (point) on Graph from pre & post synapses
-            Ex = zeros(size(X,1),1,'int32'); % synapse edge
-            for j=1:size(X,1)
-                Dx = P1 - repmat(X(j,:),[size(P1,1) 1]);
-                Dx = sum(Dx.*Dx,2);
-                [~, Ex(j)] = min(Dx);
-            end
+            [G, Ex] = getGraphAndNearestEdge(X, swc); % P1 for figure. omit
     
             % replace straight line distance to graph based distance
             Ez = Z;
@@ -616,6 +593,33 @@ function checkNeuralMorphDistFw(conf, epsilon, minpts)
         disp(['dbscan ' conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : process (' num2str(i) ') nid=' num2str(Nid(i)) ', clsz=' num2str(clsz) ' (' num2str(inOnly) ', ' num2str(outOnly) ')']);
     end
     save(fname,'clcount','DBcount','DBidx','-v7.3');
+end
+
+function [G, Ex, P1] = getGraphAndNearestEdge(X, swc)
+    S = 1:size(swc,1)-1; % edge start
+    T = swc(S,end);      % edge target
+    F = [S',T];
+    Tm = (T<=0);
+    F(Tm,2) = 1; % set dummy
+    P1 = swc(F(:,1),2:4);
+    P2 = swc(F(:,2),2:4);
+    D = P1 - P2;
+    D(Tm,:) = inf;
+    D = sqrt(sum(D.*D,2)); % distance P1 to P2
+    clear S; clear T; clear P2; % clear
+
+    % undirected graph
+    G = graph(F(:,1),F(:,2),D);
+    clear D;
+%    figure; plot(G);
+
+    % find nearest edge (point) on Graph from pre & post synapses
+    Ex = zeros(size(X,1),1,'int32'); % synapse edge
+    for j=1:size(X,1)
+        Dx = P1 - repmat(X(j,:),[size(P1,1) 1]);
+        Dx = sum(Dx.*Dx,2);
+        [~, Ex(j)] = min(Dx);
+    end
 end
 
 function checkSeparateIndexFw(conf, epsilon, minpts, diststr, mdstr)
@@ -1303,11 +1307,12 @@ function [spreloc, spresidx, spostloc, spostsidx, prejson, postjson] = checkSyna
     postjson = jsonencode(table(point,type,id));
 end
 
-function checkSynapseDistanceBetweenGroupsFw(conf, sidx1, sidx2)
+function checkSynapseDistanceBetweenGroupsFw(conf, sidx1, sidx2, nid)
     tlabels = {'Unknown','DA','SER','GABA','GLUT','ACH','OCT'};
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
     scname = conf.scname;
+    distTh = 17000;
 
     % FlyWire read neuron info
     load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
@@ -1330,7 +1335,34 @@ function checkSynapseDistanceBetweenGroupsFw(conf, sidx1, sidx2)
     preP = repmat(preP,[1 size(postP,2) 1]);
     postP = repmat(postP,[size(preP,1) 1 1]);
     D = sqrt(sum((preP-postP).^2,3));
+    prelen = size(prelocs,1);
+    X = [prelocs; postlocs];
     clear preP; clear postP;
+
+    % load swc file.
+    swc = loadSwc([conf.swcPath '/' num2str(nid) '.swc'], true);
+    [G, Ex, P1] = getGraphAndNearestEdge(X, swc); % P1 for figure. omit it.
+
+    % replace straight line distance to graph based distance
+    Ez = D;
+    for j = 1:prelen
+        parfor k = 1:size(D,2)
+%        for k = 1:size(D,2)
+            if D(j,k) < distTh
+                [path1, Ez(j,k)] = shortestpath(G, Ex(j), Ex(prelen+k));
+%{
+                figure; plotSwc(swc, [0.7 0.7 1], 1, true); view(3); grid off; axis image; alpha(.1);
+                hold on; scatter3(X(j,1),X(j,2),X(j,3),8,'black','filled'); hold off;
+                pk = prelen+k;
+                hold on; scatter3(X(pk,1),X(pk,2),X(pk,3),8,'black','filled'); hold off;
+                Ft = [1:length(path1)-1; 2:length(path1)];
+                hold on; patch('Faces',[1 2],'Vertices',X([j, pk],:),'FaceColor','none','EdgeColor','r','LineWidth',0.5); hold off;
+                hold on; patch('Faces',Ft','Vertices',P1(path1,:),'FaceColor','none','EdgeColor','g','LineWidth',2); hold off;
+%}
+            end
+        end
+    end
+    D = Ez; clear Ez;
 
     % find minimum distance of pre and post (should be same reciprocal target neuron)
     [minD, idxD] = min(D,[],2,'omitnan');
@@ -1372,6 +1404,7 @@ function checkPre2postSynapseDistanceFw(conf, nids)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
     scname = conf.scname;
+    distTh = 10000;
 
     % FlyWire read neuron info
     load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
@@ -1401,6 +1434,8 @@ function checkPre2postSynapseDistanceFw(conf, nids)
         postlocs = single(Spostloc(postlogi & valid & score,:)) ./ conf.swcSize .* conf.voxelSize; % post-synapse on nid; 
         spresidx = Sidx(prelogi & valid & score);
         spostsidx = Sidx(postlogi & valid & score);
+        prelen = size(prelocs,1);
+        X = [prelocs; postlocs];
 
         preP = reshape(prelocs,[size(prelocs,1) 1 3]);
         postP = reshape(postlocs,[1 size(postlocs,1) 3]);
@@ -1408,6 +1443,31 @@ function checkPre2postSynapseDistanceFw(conf, nids)
         postP = repmat(postP,[size(preP,1) 1 1]);
         D = sqrt(sum((preP-postP).^2,3));
         clear preP; clear postP;
+
+        % load swc file.
+        swc = loadSwc([conf.swcPath '/' num2str(nid) '.swc'], true);
+        [G, Ex, P1] = getGraphAndNearestEdge(X, swc); % P1 for figure. omit it.
+
+        % replace straight line distance to graph based distance
+        Ez = D;
+        for j = 1:prelen
+            parfor k = 1:size(D,2)
+%            for k = 1:size(D,2)
+                if D(j,k) < distTh
+                    [path1, Ez(j,k)] = shortestpath(G, Ex(j), Ex(prelen+k));
+%{
+                    figure; plotSwc(swc, [0.7 0.7 1], 1, true); view(3); grid off; axis image; alpha(.1);
+                    hold on; scatter3(X(j,1),X(j,2),X(j,3),8,'black','filled'); hold off;
+                    pk = prelen+k;
+                    hold on; scatter3(X(pk,1),X(pk,2),X(pk,3),8,'black','filled'); hold off;
+                    Ft = [1:length(path1)-1; 2:length(path1)];
+                    hold on; patch('Faces',[1 2],'Vertices',X([j, pk],:),'FaceColor','none','EdgeColor','r','LineWidth',0.5); hold off;
+                    hold on; patch('Faces',Ft','Vertices',P1(path1,:),'FaceColor','none','EdgeColor','g','LineWidth',2); hold off;
+%}
+                end
+            end
+        end
+        D = Ez; clear Ez;
 
         % find minimum distance of pre and post (should be same reciprocal target neuron)
         [minD, idxD] = min(D,[],2,'omitnan');

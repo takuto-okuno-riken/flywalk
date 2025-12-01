@@ -48,14 +48,15 @@ function plotNeuralFC
 
 %    showNeuralFCFw(conf, epsilon, minpts); % no use
 
-    showNeuralDBScanFw(conf, epsilon, minpts, '_neuralMorphDist', '_md'); % morphological distance based clustering (for reviewer answer)
+%    showNeuralDBScanFw(conf, epsilon, minpts, '_neuralMorphDist', '_md'); % Fig.4 morphological-based distance clustering (for reviewer answer)
+%    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940644632087), '_neuralMorphDist', '_md'); % WAGN figure.5h
 
-    showNeuralDBScanFw(conf, epsilon, minpts, '_neuralDBScan', ''); % figure.4
-%    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0 0.1]); % ext figure.4-2
-%    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0.9 1]); % ext figure.4-2
-%    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940644632087)); % WAGN figure.5h
-%    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940628555270)); % T4
-%    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940628307026)); % AM1-R
+%    showNeuralDBScanFw(conf, epsilon, minpts, '_neuralDBScan', ''); % (old) figure.4
+%    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0 0.1]); % (old) ext figure.4-2
+%    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0.9 1]); % (old) ext figure.4-2
+%    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940644632087), '_neuralDBScan', ''); % (old) WAGN figure.5h
+%    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940628555270), '_neuralDBScan', ''); % T4
+%    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940628307026), '_neuralDBScan', ''); % AM1-R
 
 
     showReciprocalDistanceGraphFw(conf); % figure.4
@@ -372,7 +373,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts, diststr, mdstr)
     % show most mixed and large synapse neurons
 %%{
     [dsyMdbs,dIdx] = sort(NsywMixScore,'descend');
-    for i=1:10
+    for i=1:11
         k = dIdx(i);
         nid = Nid(k);
         if exist('Ncrop','var') && Ncrop(k)==1, continue; end % ignore cropped body.
@@ -395,7 +396,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts, diststr, mdstr)
     % show most separated and large synapse neurons
 %%{
     [dsySdbs,dIdx] = sort(NsywSepScore,'descend');
-    for i=1:10
+    for i=1:11
         k = dIdx(i);
         nid = Nid(k);
         if exist('Ncrop','var') && Ncrop(k)==1, continue; end % ignore cropped body.
@@ -444,7 +445,7 @@ function plotBrainSwc(swc, mesh, vp, loc1, loc2, tstr, savefile)
     end
 end
 
-function showNeuralDBScanSpidxFw(conf, epsilon, minpts, nids)
+function showNeuralDBScanSpidxFw(conf, epsilon, minpts, nids, diststr, mdstr)
     if nargin < 4, nids = []; end
 
     tlabels = {'Unknown','DA','SER','GABA','GLUT','ACH','OCT'};
@@ -469,13 +470,13 @@ function showNeuralDBScanSpidxFw(conf, epsilon, minpts, nids)
 
     % FlyWire read neural SC
     DBcount = {};
-    load(['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralDBScan' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+    load(['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) diststr num2str(epsilon) 'mi' num2str(minpts) '.mat']);
 
     % pre-post-synapse separate index
-    load([conf.neuSepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+    load([conf.neuSepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) mdstr '.mat']);
     Nspidx = double(Nspidx) / 10000;
     Nspidx(Nspidx<0) = nan;
-    load([conf.sySepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+    load([conf.sySepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) mdstr '.mat']);
     preSpidx = single(preSpidx) / 10000;
     preSpidx(preSpidx<0) = nan;
     postSpidx = single(postSpidx) / 10000;
@@ -502,7 +503,7 @@ function showNeuralDBScanSpidxFw(conf, epsilon, minpts, nids)
         spidx1 = preSpidx(prelogi & valid & score);
         spidx2 = postSpidx(postlogi & valid & score);
 
-        tstr = [num2str(i) ') k=' num2str(k) ' nid=' num2str(nid) ' (' tlabels{Ntype(k)+1} ') spidx=' num2str(Nspidx(k))];
+        tstr = [num2str(i) ') k=' num2str(k) ' nid=' num2str(nid) ' (' tlabels{Ntype(k)+1} ') PPSSI=' num2str(Nspidx(k))];
         disp(tstr);
 
         figure; plotSwc(swc, [0.7 0.7 1], 0.2, true); view(3); grid off; axis image; alpha(.1);
