@@ -514,8 +514,7 @@ function checkNeuralMorphDistFw(conf, epsilon, minpts)
     DBidx = cell(nlen,1);
     DBcount = cell(nlen,1);
     clcount = zeros(nlen,3,'int16');
-%    for i=4641 % pre only1 case
-%    for i=1
+%    for i=4641 % pre only1 case (FlyWire)
     for i=1:nlen
         prelogi = ismember(preNidx,i); % find pre-synapses which belong to target neurons
         poslogi = ismember(postNidx,i); % find pre-synapses which belong to target neurons
@@ -532,8 +531,8 @@ function checkNeuralMorphDistFw(conf, epsilon, minpts)
             dbidx = 1;
         else
             % get distance matrix
-            D = pdist(X);
-            Z = single(squareform(D));
+            D = single(pdist(X));
+            Z = single(squareform(D)); D = []; % clear
 
             % for detail plot, need to add Trees toolbox (https://www.treestoolbox.org/index.html)
             swc = loadSwc([conf.swcPath '/' num2str(nid) '.swc'], true);
