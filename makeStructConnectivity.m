@@ -174,7 +174,7 @@ function makeStructConnectivity
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs
-    % pre-post synapse separation index is applied for threshold
+    % cPPSSI is applied for threshold
 %{
     functype = 'fw'; %''; %
 %{
@@ -283,7 +283,9 @@ function makeStructConnectivity
             [roiIdxs, sz] = getHemiroiRoiIdxs();
 
             conf = getSCconfig('wire', synTh, fwSth);
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), k*100, epsilon, minpts, 0, rtype, rnum, [], mdstr);
+%            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), k*100, epsilon, minpts, 0, rtype, rnum, [], mdstr);
+            [ncountMat, sycountMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), k*100, epsilon, minpts, 0, rtype, rnum, [], mdstr);
+            nweightMat = []; outweightMat = []; syweightMat = [];
 
             countMat = []; weightMat = []; scver = 5;
         end
@@ -329,11 +331,11 @@ function makeStructConnectivity
 %    randrange = {[14e5, 1.5e5, 0, 0, 0],[18.5e5, 2e5, 0, 0, 0],[155.5e5, 8e5, 0, 0, 0]}; % old. old.
 %    randrange = {[19.5e5, 2e5, 0.4863, 0.015, 60],[32e5, 2e5, 0.4175, 0.015, 35]}; % old. straight-line distance
 %    randrange = {[19.5e5, 0, 0.4863, 0, 60],[32e5, 0, 0.4175, 0.015, 35]}; % old. for check histogram. straight-line distance
-    randrange = {[17e5, 1.5e5, 0.5203, 0.015, 35],[212e5, 8e5, 0.1027, 0.015, 150]}; % (new) morphological-based distance
-%    randrange = {[17e5, 0, 0.5203, 0, 35],[212e5, 0, 0.1027, 0, 150]}; % (new) for check histogram. morphological-based distance
-    for ii=1:length(randrange)
+    randrange = {[17e5, 1.5e5, 0.5203, 0.015, 35],[220e5, 8e5, 0, 0, 150]}; % (new) morphological-based distance
+%    randrange = {[17e5, 0, 0.5203, 0, 35],[220e5, 0, 0, 0, 150]}; % (new) for check histogram. morphological-based distance
+    for ii=2%1:length(randrange)
         param = randrange{ii};
-        for k=1:99
+        for k=62:4:99
             clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
 
             idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth) '_rd' num2str(param(1)/10000) '-' num2str(param(2)/10000)  '-' num2str(param(5)) '-' num2str(k)];

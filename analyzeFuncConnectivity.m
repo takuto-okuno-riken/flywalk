@@ -117,8 +117,11 @@ function analyzeFuncConnectivity
 %            'hemiroi_fw0sr140_rc20_xorand1','hemiroi_fw0sr140_rc20_xorand2','hemiroi_fw0sr140_rc20_xorand3'};  % for s0, poltcomp
 %    roitypes = {'hemiroi_hb0sr80fw_rd67-12','hemiroi_hb0sr80fw_rd140-15','hemiroi_hb0sr80fw_rd705-40', ...
 %            'hemiroi_fw0sr140_rd140-15','hemiroi_fw0sr140_rd185-20','hemiroi_fw0sr140_rd1560-80'};  % for s0, poltcomp, rNums
-%    roitypes = {'hemiroi_fw0sr140_rd195-20-60'};  % for s0, poltcomp, rNums (review answer)
-    roitypes = {'hemiroi_fw0sr140_rd320-20-35'};  % for s0, poltcomp, rNums (review answer)
+%    roitypes = {'hemiroi_fw0sr140_rd195-20-60'};  % for s0, poltcomp, rNums (old. review answer) 
+%    roitypes = {'hemiroi_fw0sr140_rd320-20-35'};  % for s0, poltcomp, rNums (old. review answer)
+    roitypes = {'hemiroi_fw0sr140_sp10db3000mi1_md_only1','hemiroi_fw0sr140_sp90db3000mi1_md'};  % for s0, poltcomp (morph-based dist)
+%    roitypes = {'hemiroi_fw0sr140_rd170-15-35'};  % for s0, poltcomp, rNums (review answer) (morph-based dist)
+    roitypes = {'hemiroi_fw0sr140_rd2200-80-150'};  % for s0, poltcomp, rNums (review answer) (morph-based dist)
     %to check scatter and AUC graph (need to comment out plot lines)
 %    roitypes = {'hemiroi_hb0sr80','hemiroi_hb0sr80_rc20_only1','hemiroi_hb0sr80_rn150_orand1','hemiroi_hb0sr80_rn10_orand1', ...
 %            'hemiroi_fw0sr140','hemiroi_fw0sr140_rc20_only1','hemiroi_fw0sr140_rn10_orand1'};  % for s0, poltcomp

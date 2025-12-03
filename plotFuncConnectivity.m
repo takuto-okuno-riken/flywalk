@@ -581,10 +581,12 @@ function checkRandSubsampleRankTestByHemiroi(vslabels)
 %    roitypes = {{'hemiroi','_hb0sr80fw_rd140-15'},{'hemiroi','_hb0sr80fw_rd705-40'},{'hemiroi','_hb0sr80fw_rd67-12'}, ...
 %       {'hemiroi','_fw0sr140_rd185-20'},{'hemiroi','_fw0sr140_rd1560-80'},{'hemiroi','_fw0sr140_rd140-15'},};
 %    roitypes = {{'hemiroi','_fw0sr140_rd185-20'},{'hemiroi','_fw0sr140_rd1560-80'},{'hemiroi','_fw0sr140_rd140-15'},};
-    roitypes = {{'hemiroi','_fw0sr140_rd320-20-35'},{'hemiroi','_fw0sr140_rd1560-80'},{'hemiroi','_fw0sr140_rd195-20-60'},};
+%    roitypes = {{'hemiroi','_fw0sr140_rd320-20-35'},{'hemiroi','_fw0sr140_rd1560-80'},{'hemiroi','_fw0sr140_rd195-20-60'},}; % (old) straight-line distance
+    roitypes = {{'hemiroi','_fw0sr140_rd170-15-35'},{'hemiroi','_fw0sr140_rd2200-80-150'},{'hemiroi','_fw0sr140_rd195-20-60'},}; % (old) straight-line distance
 %    targets = {{'hemiroi','_hb0sr80_sp10db3000mi1_only1'},{'hemiroi','_hb0sr80_sp90db3000mi1'},{'hemiroi','_hb0sr80_rc20_only1'}, ...
 %        {'hemiroi','_fw0sr140_sp10db3000mi1_only1'},{'hemiroi','_fw0sr140_sp90db3000mi1'},{'hemiroi','_fw0sr140_rc20_only1'},};
-    targets = {{'hemiroi','_fw0sr140_sp10db3000mi1_only1'},{'hemiroi','_fw0sr140_sp90db3000mi1'},{'hemiroi','_fw0sr140_rc20_only1'},};
+%    targets = {{'hemiroi','_fw0sr140_sp10db3000mi1_only1'},{'hemiroi','_fw0sr140_sp90db3000mi1'},{'hemiroi','_fw0sr140_rc20_only1'},}; % (old) straight-line distance
+    targets = {{'hemiroi','_fw0sr140_sp10db3000mi1_md_only1'},{'hemiroi','_fw0sr140_sp90db3000mi1_md'},{'hemiroi','_fw0sr140_rc20_only1'},}; % (new) morphological-based distance
     rNums = 1:99; % for random subsampling number
     pval = 0.05 / 6; % bonferroni correction
 
