@@ -235,14 +235,15 @@ function makeStructConnectivity
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs by FlyWire EM data.
-    % pre-post synapse separation index is applied for threshold
+    % cPPSSI is applied for threshold
 %{
-%{
+%%{
     rnum = 0;
     rtype = 0; % for spiTh=90, logi inversion ~(0<=spiTh<=90)
 %    rtype = 3; % for spiTh=10, logi as is (0<=spiTh<=10) '_only'
     ii = 1;
-    for k=[10 20 40 60 80 90]
+    mdstr = '_md'; % for morphological-based ''; % for straight-line distance
+    for k=90%[10 20 40 60 80 90]
 %}
 %{
     rnum = 0;
@@ -266,7 +267,7 @@ function makeStructConnectivity
         if rnum > 0
             idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth) '_rn' num2str(rnum/10000)];
         else
-            idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth) '_sp' num2str(k) 'db' num2str(epsilon) 'mi' num2str(minpts)];
+            idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth) '_sp' num2str(k) 'db' num2str(epsilon) 'mi' num2str(minpts) mdstr];
         end
         switch(rtype)
         case 1,  idstr = [idstr '_rand' num2str(ii)];
@@ -282,7 +283,7 @@ function makeStructConnectivity
             [roiIdxs, sz] = getHemiroiRoiIdxs();
 
             conf = getSCconfig('wire', synTh, fwSth);
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), k*100, epsilon, minpts, 0, rtype, rnum);
+            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), k*100, epsilon, minpts, 0, rtype, rnum, [], mdstr);
 
             countMat = []; weightMat = []; scver = 5;
         end

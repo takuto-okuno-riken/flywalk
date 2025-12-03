@@ -13,9 +13,11 @@ function plotNeuralFC
 
 %    showNeuralFCFw(conf, epsilon, minpts); % no use
 
-%    showNeuralDBScanFw(conf, epsilon, minpts); % ext figure.4-1
-%    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0 0.1]); % ext figure.4-2
-%    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0.9 1]); % ext figure.4-2
+%    showNeuralDBScanFw(conf, epsilon, minpts, '_neuralMorphDist', '_md'); % (new) ext figure.4-1 morphological-based distance clustering
+
+%    showNeuralDBScanFw(conf, epsilon, minpts, '_neuralDBScan', ''); % (old) ext figure.4-1
+%    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0 0.1]); % (old) ext figure.4-2
+%    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0.9 1]); % (old) ext figure.4-2
 
 %    showReciprocalDistanceGraphFw(conf); % ext figure.4-1
 %    showReciprocalDistanceSyCloudFw(conf, 2000); % ext figure.4-2
@@ -365,7 +367,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts, diststr, mdstr)
         loc2 = Spostloc(postlogi & valid & score,:);
 
         tstr = [num2str(i) ') k=' num2str(k) ' nid=' num2str(nid) ' (' tlabels{Ntype(k)+1} ') sycount=' num2str(syCount(k,1)) ' (' num2str(syCount(k,2)) '/' num2str(syCount(k,3)) ';' num2str(syCount(k,6)) ')' ...
-            ', nSPidx=' num2str(Nspidx(k)) ', syMIXscore=' num2str(NsywMixScore(k)) ', Ldbs=' num2str(Ldbs(k))];
+            ', PPSSI=' num2str(Nspidx(k)) ', syMIXscore=' num2str(NsywMixScore(k)) ', Ldbs=' num2str(Ldbs(k))];
         disp(tstr);
         figure; plotBrainSwc(swc, mesh, conf.brainMeshView, loc1, loc2, tstr);
     end

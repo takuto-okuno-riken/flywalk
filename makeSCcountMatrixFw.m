@@ -1,6 +1,7 @@
 % make SC neuron & synapse count matrix by FlyWire structure data.
 
-function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrixFw(roiIdxs, sz, conf, type, spiTh, epsilon, minpts, rcdistTh, rtype, rnum, spsubsamp)
+function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cnids] = makeSCcountMatrixFw(roiIdxs, sz, conf, type, spiTh, epsilon, minpts, rcdistTh, rtype, rnum, spsubsamp, mdstr)
+    if nargin < 12, mdstr = ''; end
     if nargin < 11, spsubsamp = []; end
     if nargin < 10, rnum = 0; end
     if nargin < 9, rtype = 0; end
@@ -59,7 +60,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
             load(rfile);
         else
             if spiTh > 0
-                load([conf.sySepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+                load([conf.sySepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) mdstr '.mat']);
                 spidx = randSubsampleFw(((postSpidx>=0 & postSpidx<spiTh) & (preSpidx>=0 & preSpidx<spiTh)), rtype, valid, score, 0);
             end
             if rcdistTh > 0

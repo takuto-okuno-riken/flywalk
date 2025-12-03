@@ -15,7 +15,7 @@ function makeNeuralSC
 %    checkNeuralInputOutputVoxelsFw(conf); % no use
 
 %    checkNeuralInputOutputDistance(conf); % no use
-%{
+%%{
     checkNeuralMorphDistFw(conf, epsilon*3, minpts);  % (new) for Ext.Data.Fig.4-1. morphological-based distance clustering (for reviewer answer)
     checkSeparateIndexFw(conf, epsilon*3, minpts, '_neuralMorphDist', '_md'); % (new) for Ext.Data.Fig.4-1. (for reviewer answer)
 
@@ -474,7 +474,7 @@ function checkNeuralMorphDistFw(conf, epsilon, minpts)
     pfname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_1AneuralMorphDist' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
     if exist(pfname,'file')
         load(pfname);
-        parts = {'1A2','1B','2A','2A2','2A3','2B','2C','2C2','2D','2D2','2D3','3A','3B','3B2','3C','3C2','3C3','3C4','3C5','3C6','3D','3D2','3D3','4','4A'};
+        parts = {'1A2','1B','1C','1C2','2A','2A2','2A3','2B','2C','2C2','2D','2D2','2D3','3A','3B','3B2','3C','3C2','3C3','3C4','3C5','3C6','3D','3D2','3D3','4','4A'};
         for i=1:length(parts)
             pfname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_' parts{i} 'neuralMorphDist' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
             if ~exist(pfname,'file'), continue; end
@@ -487,6 +487,7 @@ function checkNeuralMorphDistFw(conf, epsilon, minpts)
         figure; plot(clcount(:,1));
         % check with straight line version
         f=load(['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralDBScan' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+        figure; plot(f.clcount(:,1));
         idx = find(f.clcount(:,1)>0);
         idx2 = find(clcount(idx,1)==0); % this should not exist
         if ~isempty(idx2), disp(['calculation does not match. len=' num2str(length(idx2))]); end
@@ -627,7 +628,7 @@ function checkSeparateIndexFw(conf, epsilon, minpts, diststr, mdstr)
     scoreTh = conf.scoreTh;
     fname = [conf.neuSepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) mdstr '.mat'];
     syfname = [conf.sySepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) mdstr '.mat'];
-    if exist(fname,'file') && exist(syfname,'file'), return; end
+%    if exist(fname,'file') && exist(syfname,'file'), return; end
 
     % FlyWire read neuron info
     Nid = [];
@@ -654,8 +655,8 @@ function checkSeparateIndexFw(conf, epsilon, minpts, diststr, mdstr)
     NsywSepScore = nan(nlen,1,'half');
     NsywMixScore = nan(nlen,1,'half');
     spC = cell(nlen,1);
-%    for i=1:nlen
-    parfor i=1:nlen
+    for i=1:nlen
+%    parfor i=1:nlen
         if isempty(DBcount{i}), continue; end
 
         cmat = double(DBcount{i});
@@ -693,32 +694,36 @@ function checkSeparateIndexFw(conf, epsilon, minpts, diststr, mdstr)
 
         dbidx = DBidx{i};
         clsz = max(dbidx);
-        tspidx = zeros(length(dbidx),1,'int16');
+        cppssi = zeros(length(dbidx),1,'int16');
         for k=1:clsz
-            tspidx(dbidx==k) = int16(round(10000 * syspidx(k)));
+            cppssi(dbidx==k) = int16(round(10000 * syspidx(k)));
         end
         vpreidx = int32(find(vprelogi));
         vpostidx = int32(find(vpostlogi));
-        spC{i} = {vpreidx,vpostidx,tspidx,prelen};
+        spC{i} = {vpreidx,vpostidx,cppssi,prelen};
+        % PPSSI should equal to mean of all synapse cppssi
+        if mean(single(cppssi)) - single(Nspidx(i)) > 1
+            disp(['process (' num2str(i) ') nid=' num2str(Nid(i)) ' PPSSI does not equal to mean of all synapse cppssi']);
+        end
 
-        disp(['sepindex ' conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : process (' num2str(i) ') nid=' num2str(Nid(i)) ', clsz=' num2str(clsz) ' (' num2str(synumall) '/' num2str(prelen+postlen) ') PPSSI=' num2str(single(Nspidx(i))/10000)]);
+        disp(['PPSSI ' conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : process (' num2str(i) ') nid=' num2str(Nid(i)) ', clsz=' num2str(clsz) ' (' num2str(synumall) '/' num2str(prelen+postlen) ') PPSSI=' num2str(single(Nspidx(i))/10000)]);
 %}
     end
     save(fname, 'Nspidx', 'NsywMixScore', 'NsywSepScore');
 %%{
-    preSpidx = ones(slen,1,'int16') * -1;
-    postSpidx = ones(slen,1,'int16') * -1;
+    preSpidx = ones(slen,1,'int16') * -1; % cPPSSI for pre-synapses
+    postSpidx = ones(slen,1,'int16') * -1; % cPPSSI for post-synapses
     for i=1:nlen
         if isempty(DBcount{i}), continue; end
         vpreidx = spC{i}{1};
         vpostidx = spC{i}{2};
-        tspidx = spC{i}{3};
+        cppssi = spC{i}{3};
         prelen = spC{i}{4};
-        preSpidx(vpreidx) = tspidx(1:prelen);
-        postSpidx(vpostidx) = tspidx(prelen+1:end);
+        preSpidx(vpreidx) = cppssi(1:prelen);
+        postSpidx(vpostidx) = cppssi(prelen+1:end);
     end
     
-    save(syfname, 'preSpidx', 'postSpidx', '-v7.3');
+    save(syfname, 'preSpidx', 'postSpidx', '-v7.3'); % cPPSSI for pre- & post-synapses
 %}
 end
 
