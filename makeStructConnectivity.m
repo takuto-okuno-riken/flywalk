@@ -302,8 +302,8 @@ function makeStructConnectivity
 %%{
     functype = 'fw'; %''; %
 %    randrange = {[6.5e5, 1.5e5],[14e5, 1.5e5],[70.5e5, 4e5]}; % old. old.
-%    randrange = {[31e5, 2e5, 0.4233, 0.015, 40],[220e5, 8e5, 0, 0, 150]}; % (new) morphological-based distance
-    randrange = {[31e5, 0, 0.4233, 0, 40],[150e5, 0, 0.1585, 0, 100],[14e5, 0, 0.3850, 0, 100]}; % (new) for check histogram. morphological-based distance
+%    randrange = {[32e5, 2e5, 0.4233, 0.015, 40],[220e5, 8e5, 0, 0, 150]}; % (new) morphological-based distance
+    randrange = {[32e5, 0, 0.4233, 0, 40],[150e5, 0, 0.1585, 0, 100],[14e5, 0, 0.3850, 0, 100]}; % (new) for check histogram. morphological-based distance
     for ii=1:length(randrange)
         param = randrange{ii};
         for k=1:99
