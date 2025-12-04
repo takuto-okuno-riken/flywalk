@@ -12,7 +12,7 @@ function makeStructConnectivityWithConditions
     primaryIds = [107	16	59	68	65	78	4	49	106	87	100	27	43	5	57	89	101	97	50	58	113	10	32	66	30	67	19	76	31	82	93	54	52	8	7	42	1	63	95	112	98	33	18	103	15	20	111	34	51	62	47	24	38	22	75	41	2	45	80	102	56	28	91];
     roiNum = length(primaryIds);
     labelNames = roiname(primaryIds,1);
-%%{
+%{
     rateThs = [50 60 70 80 90];
     synThs = 0;
 %    rateThs = [60 80];
@@ -39,8 +39,37 @@ function makeStructConnectivityWithConditions
     end
 %}
     % ---------------------------------------------------------------------
-    % make structural connectivity matrix of hemibrain primary ROI atlas (flyem hemibrain) by FlyWire EM data.
+    % make structural connectivity matrix of hemibrain primary ROI atlas (FlyWire compatible format)
 %%{
+    rateThs = [80];
+    synThs = 0;
+%    rateThs = [80];
+%    synThs = 5;
+    for r=1:length(rateThs)
+        rateTh = rateThs(r);
+        for j=1:length(synThs)
+            synTh = synThs(j);
+            idstr = ['hemiroi_hb' num2str(synTh) 'sr' num2str(rateTh) 'fw'];
+            fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
+
+            clear ncountMat; clear sycountMat; clear nweightMat; scver = 1;
+            if exist(fname,'file')
+                load(fname);
+            else
+                [roiIdxs, sz] = getHemiroiRoiIdxs();
+
+                conf = getSCconfig('hemi', synTh, rateTh);
+                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr));
+        
+                countMat = []; weightMat = []; scver = 5;
+            end
+            checkScverAndSave(idstr, fname, [], countMat, weightMat, ncountMat, sycountMat, nweightMat, outweightMat, syweightMat, primaryIds, roiNum, scver);
+        end
+    end
+%}
+    % ---------------------------------------------------------------------
+    % make structural connectivity matrix of hemibrain primary ROI atlas (flyem hemibrain) by FlyWire EM data.
+%{
     rateThs = [50 70 100 130 140 150];
     synThs = 0;
 %    rateThs = [50 140];

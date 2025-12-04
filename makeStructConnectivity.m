@@ -181,8 +181,9 @@ function makeStructConnectivity
     rnum = 0;
     rtype = 0; % for spiTh=90, logi inversion ~(0<=spiTh<=90)
 %    rtype = 3; % for spiTh=10, logi as is (0<=spiTh<=10) '_only'
+    mdstr = '_md'; % for morphological-based ''; % for straight-line distance
     ii = 1;
-    for k=[10 20 40 60 80 90]
+    for k=90%[10 20 40 60 80 90]
 %}
 %{
     rnum = 0;
@@ -206,7 +207,7 @@ function makeStructConnectivity
         if rnum > 0
             idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) functype '_rn' num2str(rnum/10000)];
         else
-            idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) '_sp' num2str(k) 'db' num2str(epsilon) 'mi' num2str(minpts)];
+            idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) '_sp' num2str(k) 'db' num2str(epsilon) 'mi' num2str(minpts) mdstr];
         end
         switch(rtype)
         case 1,  idstr = [idstr '_rand' num2str(ii)];
@@ -225,7 +226,9 @@ function makeStructConnectivity
                 [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr), k*100, epsilon, minpts, 0, rtype, rnum, {2, 2});
             else
                 conf = getSCconfig('hemi', synTh, hbSth);
-                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), k*100, epsilon, minpts, 0, rtype, rnum);
+%                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), k*100, epsilon, minpts, 0, rtype, rnum);
+                [ncountMat, sycountMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), k*100, epsilon, minpts, 0, rtype, rnum, [], mdstr);
+                nweightMat = []; outweightMat = []; syweightMat = [];
             end
             countMat = []; weightMat = []; scver = 5;
         end
@@ -295,47 +298,59 @@ function makeStructConnectivity
 %}
     % ---------------------------------------------------------------------
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs
-    % random subsampling for parmutation test
-%{
+    % full random subsampling is not good. Setting sparsity constraints.
+%%{
     functype = 'fw'; %''; %
-    randrange = {[6.5e5, 1.5e5],[14e5, 1.5e5],[70.5e5, 4e5]};
+%    randrange = {[6.5e5, 1.5e5],[14e5, 1.5e5],[70.5e5, 4e5]}; % old. old.
+%    randrange = {[31e5, 2e5, 0.4233, 0.015, 40],[220e5, 8e5, 0, 0, 150]}; % (new) morphological-based distance
+    randrange = {[31e5, 0, 0.4233, 0, 40],[150e5, 0, 0.1585, 0, 100],[14e5, 0, 0.3850, 0, 100]}; % (new) for check histogram. morphological-based distance
     for ii=1:length(randrange)
         param = randrange{ii};
         for k=1:99
             clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
 
-            idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) functype '_rd' num2str(param(1)/10000) '-' num2str(param(2)/10000) '-' num2str(k)];
+            idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) functype '_rd' num2str(param(1)/10000) '-' num2str(param(2)/10000)  '-' num2str(param(5)) '-' num2str(k)];
             fname = ['results/sc/' lower(idstr) '_connectlist.mat'];
             if exist(fname,'file')
                 load(fname);
             else
-                rnum = param(1) + randn() * param(2);
+                rnum = int32(param(1) + randn() * param(2)); % subsampling number
+                spnum = param(3) + randn() * param(4); % sparcity rate
                 [roiIdxs, sz] = getHemiroiRoiIdxs();
+
+                if spnum > 0
+                    spmat = getSparseRandMatix(['results/sc/hemiroi_hb0sr80' functype '_connectlist.mat'], spnum, length(roiIdxs));
+                else
+                    spmat = [];
+                end
 
                 if isempty(functype)
                     [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr), 0, epsilon, minpts, 0, 4, rnum, {2, 2});
                 else
                     conf = getSCconfig('hemi', synTh, hbSth);
-                    [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), 0, epsilon, minpts, 0, 4, rnum);
+                    spsubsamp = getSparseSubsampSynFw(conf, ['hemiroi_hb0sr80' functype], spmat, param(5));
+%                    [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), 0, epsilon, minpts, 0, 4, rnum);
+                    [ncountMat, sycountMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), 0, epsilon, minpts, 0, 6, rnum, spsubsamp);
+                    nweightMat = []; outweightMat = []; syweightMat = [];
                 end
                 countMat = []; weightMat = []; scver = 5;
             end
             % not 52 ROIs, but this one is 63 ROIs
-            checkScverAndSave(idstr, fname, 'results/sc/hemiroi_hb0sr80_connectlist.mat', countMat, weightMat, ncountMat, sycountMat, nweightMat, outweightMat, syweightMat, primaryIds, roiNum, scver);
+            checkScverAndSave(idstr, fname, ['results/sc/hemiroi_hb0sr80' functype '_connectlist.mat'], countMat, weightMat, ncountMat, sycountMat, nweightMat, outweightMat, syweightMat, primaryIds, roiNum, scver);
         end
     end
 %}
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs by FlyWire EM data.
     % full random subsampling is not good. Setting sparsity constraints.
-%%{
+%{
 %    randrange = {[14e5, 1.5e5, 0, 0, 0],[18.5e5, 2e5, 0, 0, 0],[155.5e5, 8e5, 0, 0, 0]}; % old. old.
 %    randrange = {[19.5e5, 2e5, 0.4863, 0.015, 60],[32e5, 2e5, 0.4175, 0.015, 35]}; % old. straight-line distance
 %    randrange = {[19.5e5, 0, 0.4863, 0, 60],[32e5, 0, 0.4175, 0.015, 35]}; % old. for check histogram. straight-line distance
     randrange = {[17e5, 1.5e5, 0.5203, 0.015, 35],[220e5, 8e5, 0, 0, 150]}; % (new) morphological-based distance
 %    randrange = {[17e5, 0, 0.5203, 0, 35],[220e5, 0, 0, 0, 150]}; % (new) for check histogram. morphological-based distance
-    for ii=2%1:length(randrange)
+    for ii=1:length(randrange)
         param = randrange{ii};
-        for k=62:4:99
+        for k=1:99
             clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
 
             idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth) '_rd' num2str(param(1)/10000) '-' num2str(param(2)/10000)  '-' num2str(param(5)) '-' num2str(k)];
