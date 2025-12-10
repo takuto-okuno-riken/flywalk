@@ -28,9 +28,9 @@ function makeNeuralSC
 
 %    checkNeuralNetworkPropertiesFw(conf); % this is heavy to see
 
-    checkReciprocalSynapseDistanceFw(conf);
+%    checkReciprocalSynapseDistanceFw(conf); % for Ext.Data.Fig.4-1
 
-    checkReciprocalSynapseCountFw(conf, 1000:1000:3000); % three thresholds
+%    checkReciprocalSynapseCountFw(conf, 1000:1000:3000); % three thresholds for Ext.Data.Fig.4-1
 %}
 %{
     Cnames = {'SMP352'};
@@ -108,11 +108,11 @@ function makeNeuralSC
 
     checkNeuralReciprocalConnectionsFw(conf); % for Fig.4
 
-    checkNeuralNetworkPropertiesFw(conf); % this is heavy to see
+%    checkNeuralNetworkPropertiesFw(conf); % this is heavy to see
 
-    checkReciprocalSynapseDistanceFw(conf);
+    checkReciprocalSynapseDistanceFw(conf, '_neuralMorphDist', '_md'); % for Fig.4
 
-    checkReciprocalSynapseCountFw(conf, 1000:1000:3000); % three thresholds
+    checkReciprocalSynapseCountFw(conf, 1000:1000:3000); % three thresholds for Fig.4
 
     checkNeuralAutoConnectionsFw(conf);
 %{
@@ -628,7 +628,7 @@ function checkSeparateIndexFw(conf, epsilon, minpts, diststr, mdstr)
     scoreTh = conf.scoreTh;
     fname = [conf.neuSepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) mdstr '.mat'];
     syfname = [conf.sySepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) mdstr '.mat'];
-%    if exist(fname,'file') && exist(syfname,'file'), return; end
+    if exist(fname,'file') && exist(syfname,'file'), return; end
 
     % FlyWire read neuron info
     Nid = [];
@@ -1494,12 +1494,13 @@ function checkPre2postSynapseDistanceFw(conf, nids)
     end
 end
 
-function checkReciprocalSynapseDistanceFw(conf)
+function checkReciprocalSynapseDistanceFw(conf, diststr, mdstr)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
     scname = conf.scname;
+    distTh = 20000;
 
-    fname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalDistances.mat'];
+    fname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_1reciprocalDistances' mdstr '.mat'];
     if exist(fname,'file'), return; end
     syfname = [conf.syReciFile num2str(synTh) 'sr' num2str(scoreTh) '.mat'];
     rcfname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalConnections.mat'];
@@ -1530,7 +1531,7 @@ function checkReciprocalSynapseDistanceFw(conf)
     rcpreCloseSidx = cell(nlen,1);
     rcpostCloseDist = cell(nlen,1);
     rcpostCloseSidx = cell(nlen,1);
-    for i=1:nlen
+    for i=1:10000%nlen
         nids = rcNidx{i};
         if isempty(nids), continue; end
 
@@ -1541,7 +1542,9 @@ function checkReciprocalSynapseDistanceFw(conf)
         preP = repmat(preP,[1 size(postP,2) 1]);
         postP = repmat(postP,[size(preP,1) 1 1]);
         D = sqrt(sum((preP-postP).^2,3));
-        clear preP; clear postP;
+        prelen = size(prelocs,1);
+        X = [prelocs; postlocs];
+        clear preP; clear postP; clear prelocs; clear postlocs;
 
         rcNidx1 = postNidx(rcpreSidx{i});
         rcNidx2 = preNidx(rcpostSidx{i})';
@@ -1549,6 +1552,31 @@ function checkReciprocalSynapseDistanceFw(conf)
         rcNidx2 = repmat(rcNidx2,[size(rcNidx1,1) 1]);
         D(rcNidx1~=rcNidx2) = nan; % rcpre/rcpost synapse pair should be same reciprocal neurons.
         clear rcNidx1; clear rcNidx2;
+
+        % load swc file.
+        swc = loadSwc([conf.swcPath '/' num2str(Nid(i)) '.swc'], true);
+        [G, Ex, P1] = getGraphAndNearestEdge(X, swc); % P1 for figure. omit it.
+
+        % replace straight line distance to graph based distance
+        Ez = D;
+        for j = 1:prelen
+            parfor k = 1:size(D,2)
+%            for k = 1:size(D,2)
+                if D(j,k) < distTh
+                    [path1, Ez(j,k)] = shortestpath(G, Ex(j), Ex(prelen+k));
+%{
+                    figure; plotSwc(swc, [0.7 0.7 1], 1, true); view(3); grid off; axis image; alpha(.1);
+                    hold on; scatter3(X(j,1),X(j,2),X(j,3),8,'black','filled'); hold off;
+                    pk = prelen+k;
+                    hold on; scatter3(X(pk,1),X(pk,2),X(pk,3),8,'black','filled'); hold off;
+                    Ft = [1:length(path1)-1; 2:length(path1)];
+                    hold on; patch('Faces',[1 2],'Vertices',X([j, pk],:),'FaceColor','none','EdgeColor','r','LineWidth',0.5); hold off;
+                    hold on; patch('Faces',Ft','Vertices',P1(path1,:),'FaceColor','none','EdgeColor','g','LineWidth',2); hold off;
+%}
+                end
+            end
+        end
+        D = Ez; clear Ez;
 
         % find minimum distance of pre and post (should be same reciprocal target neuron)
         [minD, idxD] = min(D,[],2,'omitnan');
