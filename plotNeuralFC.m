@@ -13,17 +13,19 @@ function plotNeuralFC
 
 %    showNeuralFCFw(conf, epsilon, minpts); % no use
 
-%    showNeuralDBScanFw(conf, epsilon, minpts, '_neuralMorphDist', '_md'); % (new) ext figure.4-1 morphological-based distance clustering
+%    showNeuralDBScanFw(conf, epsilon, minpts, '_neuralMorphDist', '_md'); % ext figure.4-1 morphological-based distance clustering
+%    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0 0.1], '_neuralMorphDist', '_md'); % ext figure.4-2
+%    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0.9 1], '_neuralMorphDist', '_md'); % ext figure.4-2
 
 %    showNeuralDBScanFw(conf, epsilon, minpts, '_neuralDBScan', ''); % (old) ext figure.4-1
-%    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0 0.1]); % (old) ext figure.4-2
-%    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0.9 1]); % (old) ext figure.4-2
 
-%    showReciprocalDistanceGraphFw(conf); % ext figure.4-1
-%    showReciprocalDistanceSyCloudFw(conf, 2000); % ext figure.4-2
+%    showReciprocalDistanceGraphFw(conf, '_neuralMorphDist', '_md'); % ext figure.4-1
+%    showReciprocalDistanceSyCloudFw(conf, 2000, '_neuralMorphDist', '_md'); % ext figure.4-2
+%    showReciprocalDistanceGraphFw(conf, '_neuralDBScan', ''); % (old) ext figure.4-1
+%    showReciprocalDistanceSyCloudFw(conf, 2000, '_neuralDBScan', ''); % (old) ext figure.4-2
 
-%    showReciprocalDistanceFw(conf, uint64(425790257), 2000); % APL-R
-%    showReciprocalDistanceFw(conf, [], []); % ext figure.4-1
+%    showReciprocalDistanceFw(conf, uint64(425790257), 2000, '_neuralMorphDist', '_md'); % APL-R
+%    showReciprocalDistanceFw(conf, [], [], '_neuralMorphDist', '_md'); % ext figure.4-1
 %{
     for p12=1:2
         for p13=1:2
@@ -52,20 +54,22 @@ function plotNeuralFC
 
 %    showNeuralDBScanFw(conf, epsilon, minpts, '_neuralMorphDist', '_md'); % Fig.4 morphological-based distance clustering (for reviewer answer)
 %    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940644632087), '_neuralMorphDist', '_md'); % WAGN figure.5h
+%    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0 0.1], '_neuralMorphDist', '_md'); % ext figure.4-2
+%    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0.9 1], '_neuralMorphDist', '_md'); % ext figure.4-2
 
 %    showNeuralDBScanFw(conf, epsilon, minpts, '_neuralDBScan', ''); % (old) figure.4
-%    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0 0.1]); % (old) ext figure.4-2
-%    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0.9 1]); % (old) ext figure.4-2
 %    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940644632087), '_neuralDBScan', ''); % (old) WAGN figure.5h
 %    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940628555270), '_neuralDBScan', ''); % T4
 %    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940628307026), '_neuralDBScan', ''); % AM1-R
 
 
-    showReciprocalDistanceGraphFw(conf); % figure.4
-%    showReciprocalDistanceSyCloudFw(conf, 2000); % ext figure.4-2
+    showReciprocalDistanceGraphFw(conf, '_neuralMorphDist', '_md'); % figure.4
+    showReciprocalDistanceSyCloudFw(conf, 2000, '_neuralMorphDist', '_md'); % ext figure.4-2
+%    showReciprocalDistanceGraphFw(conf, '_neuralDBScan', ''); % (old) figure.4
+%    showReciprocalDistanceSyCloudFw(conf, 2000, '_neuralDBScan', ''); % (old) ext figure.4-2
 
-%    showReciprocalDistanceFw(conf, int64(720575940628908548), 2000); % CT1-R (2um is good threshold based on histogram) (ext figure.4-2).
-%    showReciprocalDistanceFw(conf, int64(720575940613583001), 2000); % APL-R (ext figure.4-2)
+%    showReciprocalDistanceFw(conf, int64(720575940628908548), 2000, '_neuralMorphDist', '_md'); % CT1-R (2um is good threshold based on histogram) (ext figure.4-2).
+%    showReciprocalDistanceFw(conf, int64(720575940613583001), 2000, '_neuralMorphDist', '_md'); % APL-R (ext figure.4-2)
  
 %    showReciprocalDistanceFw(conf, [], []); % show all neuron, top 3 closest
 %{
@@ -307,7 +311,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts, diststr, mdstr)
         end
     end
 
-    % show histogram
+    % show histogram (PPSSI)
     edges = 0:0.05:1;
     N = [];
     for i=1:length(tlabels)
@@ -516,10 +520,10 @@ function showNeuralDBScanSpidxFw(conf, epsilon, minpts, nids, diststr, mdstr)
     end
 end
 
-function showNeuralDBScanSyCloudFw(conf, epsilon, minpts, range)
+function showNeuralDBScanSyCloudFw(conf, epsilon, minpts, range, diststr, mdstr)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
-    fname = ['results/nifti/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '_spidx' num2str(range(1)) '-' num2str(range(2)) 'Synapses.nii'];
+    fname = ['results/nifti/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '_spidx' num2str(range(1)) '-' num2str(range(2)) mdstr 'Synapses.nii'];
     if exist([fname '.gz'],'file'), return; end
 
     % FlyWire read neuron info
@@ -532,7 +536,7 @@ function showNeuralDBScanSyCloudFw(conf, epsilon, minpts, range)
     valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
 
     % pre-post-synapse separate index
-    load([conf.sySepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
+    load([conf.sySepidxFile num2str(synTh) 'sr' num2str(scoreTh) '_' num2str(epsilon) 'mi' num2str(minpts) mdstr '.mat']);
     postSpidx = double(postSpidx) / 10000;
     postSpidx(postSpidx<0) = nan;
     preSpidx = double(preSpidx) / 10000;
@@ -570,13 +574,14 @@ function showNeuralDBScanSyCloudFw(conf, epsilon, minpts, range)
             disp(['out of bounds ) ' num2str(t)]);
         end
     end
+    V(1,1,1) = 500; % to share maximum
     niftiwrite(V,fname,info,'Compressed',true);
 end
 
-function showReciprocalDistanceSyCloudFw(conf, dist)
+function showReciprocalDistanceSyCloudFw(conf, dist, diststr, mdstr)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
-    fname = ['results/nifti/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_rcdist' num2str(dist) 'Synapses.nii'];
+    fname = ['results/nifti/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_rcdist' num2str(dist) mdstr 'Synapses.nii'];
     if exist([fname '.gz'],'file'), return; end
 
     % FlyWire read neuron info
@@ -589,7 +594,7 @@ function showReciprocalDistanceSyCloudFw(conf, dist)
     valid = (postNidx>0 & preNidx>0); % Find synapses belong to Traced neuron.
 
     % pre-post-synapse reciprocal distance index
-    load([conf.syReciFile num2str(synTh) 'sr' num2str(scoreTh) '.mat']);
+    load([conf.syReciFile num2str(synTh) 'sr' num2str(scoreTh) mdstr '.mat']);
 
     % read synapse location in FDA
     load(conf.syprelocFdaFile);
@@ -623,6 +628,7 @@ function showReciprocalDistanceSyCloudFw(conf, dist)
             disp(['out of bounds ) ' num2str(t)]);
         end
     end
+    V(1,1,1) = 800; % to share maximum
     niftiwrite(V,fname,info,'Compressed',true);
 end
 
@@ -761,7 +767,7 @@ function showReciprocalDistance(synTh, confTh)
     end
 end
 
-function showReciprocalDistanceFw(conf, targetNid, dth)
+function showReciprocalDistanceFw(conf, targetNid, dth, diststr, mdstr)
     tlabels = {'Unknown','DA','SER','GABA','GLUT','ACH','OCT'};
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
@@ -784,7 +790,7 @@ function showReciprocalDistanceFw(conf, targetNid, dth)
     % FlyWire read neural SC
     load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalConnections.mat']);
 %    load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_neural_Nin_Nout.mat']);
-    load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalDistances.mat']);
+    load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalDistances' mdstr '.mat']);
 
     if ~isempty(targetNid)
         idx = find(Nid==targetNid);
@@ -838,7 +844,8 @@ function showReciprocalDistanceFw(conf, targetNid, dth)
             hold on; scatter3(postclocs(didx,1),postclocs(didx,2),postclocs(didx,3),8,'blue','filled'); hold off; % post. input
             alpha(.5);
 
-            figure; histogram(rcDs); xlim([0 10000]);
+            figure; histogram(rcDs, 0:500:10000);
+            [N,edges] = histcounts(rcDs, 0:500:10000); % for excel
             title([num2str(i) ' nids=' num2str(Nid(i)) ' (' tlabels{Ntype(i)+1} ') reci distance histogram'])
         end
 
@@ -892,7 +899,7 @@ function showReciprocalDistanceFw(conf, targetNid, dth)
     end
 end
 
-function showReciprocalDistanceGraphFw(conf)
+function showReciprocalDistanceGraphFw(conf, diststr, mdstr)
     tlabels = {'Unknown','DA','SER','GABA','GLUT','ACH','OCT'};
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
@@ -910,7 +917,7 @@ function showReciprocalDistanceGraphFw(conf)
     % FlyWire read neural SC
     rcpreSidx = {};
     load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalConnections.mat']);
-    load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalDistances.mat']);
+    load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalDistances' mdstr '.mat']);
 
     allDs = []; allTypes = [];
     for i=1:length(Nid)

@@ -64,7 +64,7 @@ function [countMat, sycountMat, weightMat, outweightMat, syweightMat, Ncount, Cn
                 spidx = randSubsampleFw(((postSpidx>=0 & postSpidx<spiTh) & (preSpidx>=0 & preSpidx<spiTh)), rtype, valid, score, 0);
             end
             if rcdistTh > 0
-                load([conf.syReciFile num2str(synTh) 'sr' num2str(scoreTh) '.mat']);
+                load([conf.syReciFile num2str(synTh) 'sr' num2str(scoreTh) mdstr '.mat']);
                 rcdist = randSubsampleFw((SrcpreCloseDist<rcdistTh & SrcpostCloseDist<rcdistTh), rtype, valid, score, 0); % nan should be ignored by <.
             end
             if rnum > 0

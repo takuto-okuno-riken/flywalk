@@ -16,8 +16,8 @@ function makeNeuralSC
 
 %    checkNeuralInputOutputDistance(conf); % no use
 %%{
-    checkNeuralMorphDistFw(conf, epsilon*3, minpts);  % (new) for Ext.Data.Fig.4-1. morphological-based distance clustering (for reviewer answer)
-    checkSeparateIndexFw(conf, epsilon*3, minpts, '_neuralMorphDist', '_md'); % (new) for Ext.Data.Fig.4-1. (for reviewer answer)
+    checkNeuralMorphDistFw(conf, epsilon*3, minpts);  % for Ext.Data.Fig.4-1. morphological-based distance clustering (for reviewer answer)
+    checkSeparateIndexFw(conf, epsilon*3, minpts, '_neuralMorphDist', '_md'); % for Ext.Data.Fig.4-1. (for reviewer answer)
 
 %    for i=1:5
 %        checkNeuralDBScanFw(conf, epsilon*i, minpts); % (old) for Ext.Data.Fig.4-1
@@ -28,9 +28,9 @@ function makeNeuralSC
 
 %    checkNeuralNetworkPropertiesFw(conf); % this is heavy to see
 
-%    checkReciprocalSynapseDistanceFw(conf); % for Ext.Data.Fig.4-1
-
-%    checkReciprocalSynapseCountFw(conf, 1000:1000:3000); % three thresholds for Ext.Data.Fig.4-1
+    checkReciprocalSynapseDistanceFw(conf, '_neuralMorphDist', '_md'); % for Ext.Data.Fig.4-1
+return;
+    checkReciprocalSynapseCountFw(conf, 1000:1000:3000, '_neuralMorphDist', '_md'); % three thresholds for Ext.Data.Fig.4-1
 %}
 %{
     Cnames = {'SMP352'};
@@ -98,8 +98,8 @@ function makeNeuralSC
 %}
 %    checkPre2postSynapseDistanceFw(conf, [int64(720575940644632087)]); % (new) WAGN Fig.5
 
-    checkNeuralMorphDistFw(conf, epsilon*3, minpts);  % (new) for Fig.4. morphological-based distance clustering (for reviewer answer)
-    checkSeparateIndexFw(conf, epsilon*3, minpts, '_neuralMorphDist', '_md'); % (new) for Fig.4. (for reviewer answer)
+    checkNeuralMorphDistFw(conf, epsilon*3, minpts);  % for Fig.4. morphological-based distance clustering (for reviewer answer)
+    checkSeparateIndexFw(conf, epsilon*3, minpts, '_neuralMorphDist', '_md'); % for Fig.4. (for reviewer answer)
 
 %    for i=1:5
 %        checkNeuralDBScanFw(conf, epsilon*i, minpts); % (old) DBScan based clustering (for Fig.4)
@@ -112,7 +112,7 @@ function makeNeuralSC
 
     checkReciprocalSynapseDistanceFw(conf, '_neuralMorphDist', '_md'); % for Fig.4
 
-    checkReciprocalSynapseCountFw(conf, 1000:1000:3000); % three thresholds for Fig.4
+    checkReciprocalSynapseCountFw(conf, 1000:1000:3000, '_neuralMorphDist', '_md'); % three thresholds for Fig.4
 
     checkNeuralAutoConnectionsFw(conf);
 %{
@@ -1500,12 +1500,57 @@ function checkReciprocalSynapseDistanceFw(conf, diststr, mdstr)
     scname = conf.scname;
     distTh = 20000;
 
-    fname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_1reciprocalDistances' mdstr '.mat'];
+    fname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_0reciprocalDistances' mdstr '.mat'];
     if exist(fname,'file'), return; end
-    syfname = [conf.syReciFile num2str(synTh) 'sr' num2str(scoreTh) '.mat'];
+
+    syfname = [conf.syReciFile num2str(synTh) 'sr' num2str(scoreTh) mdstr '0.mat'];
     rcfname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalConnections.mat'];
     rcpreSidx = {}; rcpostSidx = {}; rcNidx = {};
     load(rcfname);
+
+    % Combining split calculations
+    pfname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_0reciprocalDistances' mdstr '.mat'];
+    if exist(pfname,'file')
+        load(pfname);
+        parts = {'1','2','3','4','5','6','7','8','9','10','11','12'};
+        for i=1:length(parts)
+            pfname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_' parts{i} 'reciprocalDistances' mdstr '.mat'];
+            if ~exist(pfname,'file'), continue; end
+            f=load(pfname);
+            logi = cellfun(@isempty,f.rcpreCloseDist);
+            idx = find(~logi);
+            rcpreCloseDist(idx) = f.rcpreCloseDist(idx);
+            rcpreCloseSidx(idx) = f.rcpreCloseSidx(idx);
+            rcpostCloseDist(idx) = f.rcpostCloseDist(idx);
+            rcpostCloseSidx(idx) = f.rcpostCloseSidx(idx);
+        end
+        logi1 = ~cellfun(@isempty,rcpreCloseDist);
+        figure; plot(logi1);
+        load(conf.synapseFile);
+        slen = length(Sid);
+        SrcpreCloseDist = nan(slen,1,'single');
+        SrcpreCloseSidx = zeros(slen,1,'int32');
+        SrcpostCloseDist = nan(slen,1,'single');
+        SrcpostCloseSidx = zeros(slen,1,'int32');
+        for i=1:length(rcpreCloseDist)
+            nids = rcNidx{i};
+            if isempty(nids), continue; end
+            SrcpreCloseDist(rcpreSidx{i}) = rcpreCloseDist{i};
+            SrcpreCloseSidx(rcpreSidx{i}) = rcpreCloseSidx{i};
+            SrcpostCloseDist(rcpostSidx{i}) = rcpostCloseDist{i};
+            SrcpostCloseSidx(rcpostSidx{i}) = rcpostCloseSidx{i};
+            disp(['find closest reciprocal synapses (' num2str(i) ') nid=']);
+        end
+
+        % check with straight line version
+        f=load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalDistances.mat']);
+        logi2 = ~cellfun(@isempty,f.rcpreCloseDist);
+        figure; plot(logi2);
+        if sum(abs(logi1-logi2))>0, disp(['calculation does not match']); end
+        save(fname,'rcpreCloseDist','rcpreCloseSidx','rcpostCloseDist','rcpostCloseSidx','-v7.3');
+        save(syfname, 'SrcpreCloseDist', 'SrcpreCloseSidx', 'SrcpostCloseDist', 'SrcpostCloseSidx', '-v7.3');
+        return;
+    end
 
     % FlyWire read neuron info
     load(conf.neuronFile); % type, da(1),ser(2),gaba(3),glut(4),ach(5),oct(6)
@@ -1598,16 +1643,16 @@ function checkReciprocalSynapseDistanceFw(conf, diststr, mdstr)
     save(syfname, 'SrcpreCloseDist', 'SrcpreCloseSidx', 'SrcpostCloseDist', 'SrcpostCloseSidx', '-v7.3');
 end
 
-function checkReciprocalSynapseCountFw(conf, rcDistThs)
+function checkReciprocalSynapseCountFw(conf, rcDistThs, diststr, mdstr)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
     scname = conf.scname;
 
-    fname = [conf.neuReciFile num2str(synTh) 'sr' num2str(scoreTh) '.mat'];
+    fname = [conf.neuReciFile num2str(synTh) 'sr' num2str(scoreTh) mdstr '.mat'];
     if exist(fname,'file'), return; end
     rcpreSidx = {}; rcpostSidx = {}; rcpreCloseSidx = {}; rcpostCloseSidx = {}; rcpreCloseDist = {}; rcpostCloseDist = {};
     load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalConnections.mat']);
-    load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalDistances.mat']);
+    load(['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalDistances' mdstr '.mat']);
 
     % FlyWire read neuron info
     Nid = [];
