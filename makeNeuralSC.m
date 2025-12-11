@@ -17,6 +17,7 @@ function makeNeuralSC
 %    checkNeuralInputOutputDistance(conf); % no use
 %%{
     checkNeuralMorphDistFw(conf, epsilon*3, minpts);  % for Ext.Data.Fig.4-1. morphological-based distance clustering (for reviewer answer)
+return;
     checkSeparateIndexFw(conf, epsilon*3, minpts, '_neuralMorphDist', '_md'); % for Ext.Data.Fig.4-1. (for reviewer answer)
 
 %    for i=1:5
@@ -29,7 +30,6 @@ function makeNeuralSC
 %    checkNeuralNetworkPropertiesFw(conf); % this is heavy to see
 
     checkReciprocalSynapseDistanceFw(conf, '_neuralMorphDist', '_md'); % for Ext.Data.Fig.4-1
-return;
     checkReciprocalSynapseCountFw(conf, 1000:1000:3000, '_neuralMorphDist', '_md'); % three thresholds for Ext.Data.Fig.4-1
 %}
 %{
@@ -467,14 +467,14 @@ function checkNeuralMorphDistFw(conf, epsilon, minpts)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
     distTh = epsilon + 1000; % to check graph based distance
-    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralMorphDist' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
+    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_0neuralMorphDist' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
     if exist(fname,'file'), return; end
 
     % Combining split calculations
-    pfname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_1AneuralMorphDist' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
+    pfname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_0neuralMorphDist' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
     if exist(pfname,'file')
         load(pfname);
-        parts = {'1A2','1B','1C','1C2','2A','2A2','2A3','2B','2C','2C2','2D','2D2','2D3','3A','3B','3B2','3C','3C2','3C3','3C4','3C5','3C6','3D','3D2','3D3','4','4A'};
+        parts = {'0','1','2','3','4','5','6','7','8','9','10','11','12','13'};
         for i=1:length(parts)
             pfname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_' parts{i} 'neuralMorphDist' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
             if ~exist(pfname,'file'), continue; end
@@ -516,7 +516,7 @@ function checkNeuralMorphDistFw(conf, epsilon, minpts)
     DBcount = cell(nlen,1);
     clcount = zeros(nlen,3,'int16');
 %    for i=4641 % pre only1 case (FlyWire)
-    for i=1:nlen
+    for i=1:10000%nlen
         prelogi = ismember(preNidx,i); % find pre-synapses which belong to target neurons
         poslogi = ismember(postNidx,i); % find pre-synapses which belong to target neurons
 
@@ -537,7 +537,8 @@ function checkNeuralMorphDistFw(conf, epsilon, minpts)
 
             % for detail plot, need to add Trees toolbox (https://www.treestoolbox.org/index.html)
             swc = loadSwc([conf.swcPath '/' num2str(nid) '.swc'], true);
-    
+            swc(:,2:4) = swc(:,2:4) ./ conf.swcSize .* conf.voxelSize; 
+
             % check swc and synapse location
 %{
             figure; plotSwc(swc, [0.7 0.7 1], 1, true); view(3); grid off; axis image; alpha(.1);
@@ -547,7 +548,7 @@ function checkNeuralMorphDistFw(conf, epsilon, minpts)
 %}
             Xa = []; Xb = []; % clear 
 
-            [G, Ex] = getGraphAndNearestEdge(X, swc); % P1 for figure. omit
+            [G, Ex, P1] = getGraphAndNearestEdge(X, swc); % P1 for figure. omit
     
             % replace straight line distance to graph based distance
             Ez = Z;
@@ -1346,6 +1347,7 @@ function checkSynapseDistanceBetweenGroupsFw(conf, sidx1, sidx2, nid)
 
     % load swc file.
     swc = loadSwc([conf.swcPath '/' num2str(nid) '.swc'], true);
+    swc(:,2:4) = swc(:,2:4) ./ conf.swcSize .* conf.voxelSize;
     [G, Ex, P1] = getGraphAndNearestEdge(X, swc); % P1 for figure. omit it.
 
     % replace straight line distance to graph based distance
@@ -1451,6 +1453,7 @@ function checkPre2postSynapseDistanceFw(conf, nids)
 
         % load swc file.
         swc = loadSwc([conf.swcPath '/' num2str(nid) '.swc'], true);
+        swc(:,2:4) = swc(:,2:4) ./ conf.swcSize .* conf.voxelSize;
         [G, Ex, P1] = getGraphAndNearestEdge(X, swc); % P1 for figure. omit it.
 
         % replace straight line distance to graph based distance
@@ -1600,16 +1603,17 @@ function checkReciprocalSynapseDistanceFw(conf, diststr, mdstr)
 
         % load swc file.
         swc = loadSwc([conf.swcPath '/' num2str(Nid(i)) '.swc'], true);
+        swc(:,2:4) = swc(:,2:4) ./ conf.swcSize .* conf.voxelSize;
         [G, Ex, P1] = getGraphAndNearestEdge(X, swc); % P1 for figure. omit it.
 
         % replace straight line distance to graph based distance
         Ez = D;
         for j = 1:prelen
-            parfor k = 1:size(D,2)
-%            for k = 1:size(D,2)
+%            parfor k = 1:size(D,2)
+            for k = 1:size(D,2)
                 if D(j,k) < distTh
                     [path1, Ez(j,k)] = shortestpath(G, Ex(j), Ex(prelen+k));
-%{
+%%{
                     figure; plotSwc(swc, [0.7 0.7 1], 1, true); view(3); grid off; axis image; alpha(.1);
                     hold on; scatter3(X(j,1),X(j,2),X(j,3),8,'black','filled'); hold off;
                     pk = prelen+k;
