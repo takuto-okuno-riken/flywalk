@@ -179,11 +179,11 @@ function makeStructConnectivity
     functype = 'fw'; %''; %
 %{
     rnum = 0;
-    rtype = 0; % for spiTh=90, logi inversion ~(0<=spiTh<=90)
-%    rtype = 3; % for spiTh=10, logi as is (0<=spiTh<=10) '_only'
+%    rtype = 0; % for spiTh=90, logi inversion ~(0<=spiTh<=90)
+    rtype = 3; % for spiTh=10, logi as is (0<=spiTh<=10) '_only'
     mdstr = '_md'; % for morphological-based ''; % for straight-line distance
     ii = 1;
-    for k=90%[10 20 40 60 80 90]
+    for k=10%[10 20 40 60 80 90]
 %}
 %{
     rnum = 0;
@@ -299,11 +299,11 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs
     % full random subsampling is not good. Setting sparsity constraints.
-%{
+%%{
     functype = 'fw'; %''; %
 %    randrange = {[6.5e5, 1.5e5],[14e5, 1.5e5],[70.5e5, 4e5]}; % old. old.
-    randrange = {[32e5, 2e5, 0.4233, 0.015, 40],[42.5e5, 3.5e5, 0, 0, 150],[7.5e5, 1.5e5, 0.3850, 0.015, 120]}; % (new) morphological-based distance
-%    randrange = {[32e5, 0, 0.4233, 0, 40],[42.5e5, 0, 0, 0, 150],[7.5e5, 0, 0.3850, 0, 120]}; % (new) for check histogram. morphological-based distance
+%    randrange = {[20e5, 2e5, 0.4495, 0.015, 41],[42.5e5, 3.5e5, 0, 0, 150],[7.5e5, 1.5e5, 0.3850, 0.015, 120]}; % (new) morphological-based distance
+    randrange = {[20e5, 0, 0.4495, 0, 41],[42.5e5, 0, 0, 0, 150],[7.5e5, 0, 0.3850, 0, 120]}; % (new) for check histogram. morphological-based distance
     for ii=1:length(randrange)
         param = randrange{ii};
         for k=1:99

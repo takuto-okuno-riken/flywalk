@@ -17,7 +17,7 @@ function makeNeuralSC
 %    checkNeuralInputOutputDistance(conf); % no use
 %%{
     checkNeuralMorphDistFw(conf, epsilon*3, minpts);  % for Ext.Data.Fig.4-1. morphological-based distance clustering (for reviewer answer)
-return;
+
     checkSeparateIndexFw(conf, epsilon*3, minpts, '_neuralMorphDist', '_md'); % for Ext.Data.Fig.4-1. (for reviewer answer)
 
 %    for i=1:5
@@ -467,14 +467,14 @@ function checkNeuralMorphDistFw(conf, epsilon, minpts)
     synTh = conf.synTh;
     scoreTh = conf.scoreTh;
     distTh = epsilon + 1000; % to check graph based distance
-    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_0neuralMorphDist' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
+    fname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralMorphDist' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
     if exist(fname,'file'), return; end
 
     % Combining split calculations
     pfname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_0neuralMorphDist' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
     if exist(pfname,'file')
         load(pfname);
-        parts = {'0','1','2','3','4','5','6','7','8','9','10','11','12','13'};
+        parts = {'0','0A','1','1A','2','2A','3','4','5','6','7','7A','7B','7C','8','8A','9','9A','10','11','12','13'};
         for i=1:length(parts)
             pfname = ['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_' parts{i} 'neuralMorphDist' num2str(epsilon) 'mi' num2str(minpts) '.mat'];
             if ~exist(pfname,'file'), continue; end
@@ -485,6 +485,9 @@ function checkNeuralMorphDistFw(conf, epsilon, minpts)
             DBcount(idx) = f.DBcount(idx);
         end
         figure; plot(clcount(:,1));
+        % old ver
+%        f=load(['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralMorphDist' num2str(epsilon) 'mi' num2str(minpts) '-old.mat']);
+%        figure; plot(f.clcount(:,1));
         % check with straight line version
         f=load(['results/neuralsc/' conf.scname num2str(synTh) 'sr' num2str(scoreTh) '_neuralDBScan' num2str(epsilon) 'mi' num2str(minpts) '.mat']);
         figure; plot(f.clcount(:,1));
@@ -516,13 +519,13 @@ function checkNeuralMorphDistFw(conf, epsilon, minpts)
     DBcount = cell(nlen,1);
     clcount = zeros(nlen,3,'int16');
 %    for i=4641 % pre only1 case (FlyWire)
-    for i=1:10000%nlen
+    for i=1:nlen
         prelogi = ismember(preNidx,i); % find pre-synapses which belong to target neurons
         poslogi = ismember(postNidx,i); % find pre-synapses which belong to target neurons
 
-        Xa = double(Spreloc(prelogi & valid & score,:))./ conf.swcSize .* conf.voxelSize;    % pre-synapse on Nid(i); FlyWire original space (unit is nano meter) (int32)
+        Xa = single(Spreloc(prelogi & valid & score,:))./ conf.swcSize .* conf.voxelSize;    % pre-synapse on Nid(i); FlyWire original space (unit is nano meter) (int32)
         prelen = size(Xa,1);
-        Xb = double(Spostloc(poslogi & valid & score,:)) ./ conf.swcSize .* conf.voxelSize; % post-synapse on Nid(i); 
+        Xb = single(Spostloc(poslogi & valid & score,:)) ./ conf.swcSize .* conf.voxelSize; % post-synapse on Nid(i); 
         X = [Xa; Xb];
         if isempty(X), continue; end
 
@@ -656,8 +659,8 @@ function checkSeparateIndexFw(conf, epsilon, minpts, diststr, mdstr)
     NsywSepScore = nan(nlen,1,'half');
     NsywMixScore = nan(nlen,1,'half');
     spC = cell(nlen,1);
-    for i=1:nlen
-%    parfor i=1:nlen
+%    for i=1:nlen
+    parfor i=1:nlen
         if isempty(DBcount{i}), continue; end
 
         cmat = double(DBcount{i});
