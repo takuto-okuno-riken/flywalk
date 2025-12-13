@@ -1612,11 +1612,11 @@ function checkReciprocalSynapseDistanceFw(conf, diststr, mdstr)
         % replace straight line distance to graph based distance
         Ez = D;
         for j = 1:prelen
-%            parfor k = 1:size(D,2)
-            for k = 1:size(D,2)
+            parfor k = 1:size(D,2)
+%            for k = 1:size(D,2)
                 if D(j,k) < distTh
                     [path1, Ez(j,k)] = shortestpath(G, Ex(j), Ex(prelen+k));
-%%{
+%{
                     figure; plotSwc(swc, [0.7 0.7 1], 1, true); view(3); grid off; axis image; alpha(.1);
                     hold on; scatter3(X(j,1),X(j,2),X(j,3),8,'black','filled'); hold off;
                     pk = prelen+k;
