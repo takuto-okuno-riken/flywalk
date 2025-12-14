@@ -1506,10 +1506,10 @@ function checkReciprocalSynapseDistanceFw(conf, diststr, mdstr)
     scname = conf.scname;
     distTh = 20000;
 
-    fname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_0reciprocalDistances' mdstr '.mat'];
+    fname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalDistances' mdstr '.mat'];
     if exist(fname,'file'), return; end
 
-    syfname = [conf.syReciFile num2str(synTh) 'sr' num2str(scoreTh) mdstr '0.mat'];
+    syfname = [conf.syReciFile num2str(synTh) 'sr' num2str(scoreTh) mdstr '.mat'];
     rcfname = ['results/neuralsc/' scname num2str(synTh) 'sr' num2str(scoreTh) '_reciprocalConnections.mat'];
     rcpreSidx = {}; rcpostSidx = {}; rcNidx = {};
     load(rcfname);

@@ -52,8 +52,8 @@ function plotNeuralFC
 
 %    showNeuralFCFw(conf, epsilon, minpts); % no use
 
-%    showNeuralDBScanFw(conf, epsilon, minpts, '_neuralMorphDist', '_md'); % Fig.4 morphological-based distance clustering (for reviewer answer)
-%    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940644632087), '_neuralMorphDist', '_md'); % WAGN figure.5h
+    showNeuralDBScanFw(conf, epsilon, minpts, '_neuralMorphDist', '_md'); % Fig.4 morphological-based distance clustering (for reviewer answer)
+    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940644632087), '_neuralMorphDist', '_md'); % WAGN figure.5h
 %    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0 0.1], '_neuralMorphDist', '_md'); % ext figure.4-2
 %    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0.9 1], '_neuralMorphDist', '_md'); % ext figure.4-2
 
@@ -64,7 +64,7 @@ function plotNeuralFC
 
 
     showReciprocalDistanceGraphFw(conf, '_neuralMorphDist', '_md'); % figure.4
-    showReciprocalDistanceSyCloudFw(conf, 2000, '_neuralMorphDist', '_md'); % ext figure.4-2
+%    showReciprocalDistanceSyCloudFw(conf, 2000, '_neuralMorphDist', '_md'); % ext figure.4-2
 %    showReciprocalDistanceGraphFw(conf, '_neuralDBScan', ''); % (old) figure.4
 %    showReciprocalDistanceSyCloudFw(conf, 2000, '_neuralDBScan', ''); % (old) ext figure.4-2
 
@@ -574,7 +574,7 @@ function showNeuralDBScanSyCloudFw(conf, epsilon, minpts, range, diststr, mdstr)
             disp(['out of bounds ) ' num2str(t)]);
         end
     end
-    V(1,1,1) = 500; % to share maximum
+    V(1,1,1) = 800; % to share maximum
     niftiwrite(V,fname,info,'Compressed',true);
 end
 
@@ -628,7 +628,7 @@ function showReciprocalDistanceSyCloudFw(conf, dist, diststr, mdstr)
             disp(['out of bounds ) ' num2str(t)]);
         end
     end
-    V(1,1,1) = 800; % to share maximum
+    V(1,1,1) = 500; % to share maximum
     niftiwrite(V,fname,info,'Compressed',true);
 end
 
@@ -933,7 +933,8 @@ function showReciprocalDistanceGraphFw(conf, diststr, mdstr)
         rcprenum = length(unique(presidxs)); rcpostnum = length(unique(postsidxs));
     end
 
-    % show histogram (full range)
+    % show histogram (full range). no data for this.
+%{
     edges = 0:10000:600000;
     N = [];
     for i=1:length(tlabels)
@@ -943,7 +944,7 @@ function showReciprocalDistanceGraphFw(conf, diststr, mdstr)
     end
     figure; bar(N,'stacked','LineWidth',0.1); legend(tlabels); xlabel('distance [*10um]'); ylabel('synapse count');
     title([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : reciprocal synapse distance histogram']);
-
+%}
     % show histogram (less than 20 um)
     edges = 0:1000:20000;
     N = [];
