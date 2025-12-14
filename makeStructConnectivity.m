@@ -342,7 +342,7 @@ function makeStructConnectivity
 %}
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs by FlyWire EM data.
     % full random subsampling is not good. Setting sparsity constraints.
-%%{
+%{
 %    randrange = {[14e5, 1.5e5, 0, 0, 0],[18.5e5, 2e5, 0, 0, 0],[155.5e5, 8e5, 0, 0, 0]}; % old. old.
 %    randrange = {[19.5e5, 2e5, 0.4863, 0.015, 60],[32e5, 2e5, 0.4175, 0.015, 35]}; % old. straight-line distance
 %    randrange = {[19.5e5, 0, 0.4863, 0, 60],[32e5, 0, 0.4175, 0.015, 35]}; % old. for check histogram. straight-line distance
