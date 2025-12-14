@@ -207,7 +207,7 @@ function makeStructConnectivity
         if rnum > 0
             idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) functype '_rn' num2str(rnum/10000)];
         else
-            idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) '_sp' num2str(k) 'db' num2str(epsilon) 'mi' num2str(minpts) mdstr];
+            idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) functype '_sp' num2str(k) 'db' num2str(epsilon) 'mi' num2str(minpts) mdstr];
         end
         switch(rtype)
         case 1,  idstr = [idstr '_rand' num2str(ii)];
@@ -302,9 +302,9 @@ function makeStructConnectivity
 %%{
     functype = 'fw'; %''; %
 %    randrange = {[6.5e5, 1.5e5],[14e5, 1.5e5],[70.5e5, 4e5]}; % old. old.
-    randrange = {[20e5, 2e5, 0.4495, 0.015, 41],[70e5, 5e5, 0, 0, 150],[7.5e5, 1.5e5, 0.3850, 0.015, 120]}; % (new) morphological-based distance
-%    randrange = {[20e5, 0, 0.4495, 0, 41],[70e5, 0, 0, 0, 150],[7.5e5, 0, 0.3850, 0, 120]}; % (new) for check histogram. morphological-based distance
-    for ii=1:length(randrange)
+    randrange = {[20e5, 2e5, 0.4495, 0.015, 41],[70e5, 5e5, 0, 0, 150],[11e5, 1.1e5, 0.3754, 0.015, 110]}; % (new) morphological-based distance
+%    randrange = {[20e5, 0, 0.4495, 0, 41],[70e5, 0, 0, 0, 150],[11e5, 0, 0.3754, 0, 110]}; % (new) for check histogram. morphological-based distance
+    for ii=3%1:length(randrange)
         param = randrange{ii};
         for k=1:99
             clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
@@ -385,12 +385,13 @@ function makeStructConnectivity
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs
     % reciprocal synapse distance is applied for threshold
 %{
-    functype = ''; %'fw'; %
+    functype = 'fw'; %''; %
 %{
     rnum = 0;
-    rtype = 3;
+    rtype = 3; % for k=20, logi as is (rc20) '_only'
+    mdstr = '_md'; % for morphological-based ''; % for straight-line distance
     ii = 1;
-    for k=[20 40 100 500 1000 10000]
+    for k=20%[20 40 100 500 1000 10000]
 %}
 %{
     rnum = 0;
@@ -398,15 +399,17 @@ function makeStructConnectivity
     k = 20;
     for ii=1:3
 %}
+%{
     rnum = 100000;
     rtype = 4;
     k = 0;
     for ii=1:3
+%}
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         if rnum > 0
             idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) functype '_rn' num2str(rnum/10000)];
         else
-            idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) functype '_rc' num2str(k)];
+            idstr = ['hemiroi_hb'  num2str(synTh) 'sr' num2str(hbSth) functype '_rc' num2str(k) mdstr];
         end
         switch(rtype)
         case 1,  idstr = [idstr '_rand' num2str(ii)];
@@ -425,7 +428,9 @@ function makeStructConnectivity
                 [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrix(roiIdxs, sz, hbSth/100, synTh, lower(idstr), 0, epsilon, minpts, k*100, rtype, rnum, {2, 2});
             else
                 conf = getSCconfig('hemi', synTh, hbSth);
-                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), 0, epsilon, minpts, k*100, rtype, rnum);
+%                [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), 0, epsilon, minpts, k*100, rtype, rnum);
+                [ncountMat, sycountMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), 0, epsilon, minpts, k*100, rtype, rnum, [], mdstr);
+                nweightMat = []; outweightMat = []; syweightMat = [];
             end
 
             countMat = []; weightMat = []; scver = 5;
@@ -440,9 +445,10 @@ function makeStructConnectivity
 %{
 %{
     rnum = 0;
-    rtype = 3;
+    rtype = 3; % for k=20, logi as is (rc20) '_only'
+    mdstr = '_md'; % for morphological-based ''; % for straight-line distance
     ii = 1;
-    for k=[20 40 100 500 1000 10000]
+    for k=20%[20 40 100 500 1000 10000]
 %}
 %{
     rnum = 0;
@@ -450,15 +456,17 @@ function makeStructConnectivity
     k = 20;
     for ii=1:3
 %}
+%{
     rnum = 100000;
     rtype = 4;
     k = 0;
     for ii=1:3
+%}
         clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
         if rnum > 0
             idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth) '_rn' num2str(rnum/10000)];
         else
-            idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth) '_rc' num2str(k)];
+            idstr = ['hemiroi_fw'  num2str(synTh) 'sr' num2str(fwSth) '_rc' num2str(k) mdstr];
         end
         switch(rtype)
         case 1,  idstr = [idstr '_rand' num2str(ii)];
@@ -474,8 +482,10 @@ function makeStructConnectivity
             [roiIdxs, sz] = getHemiroiRoiIdxs();
 
             conf = getSCconfig('wire', synTh, fwSth);
-            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), 0, epsilon, minpts, k*100, rtype, rnum);
-    
+%            [ncountMat, sycountMat, nweightMat, outweightMat, syweightMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), 0, epsilon, minpts, k*100, rtype, rnum);
+            [ncountMat, sycountMat] = makeSCcountMatrixFw(roiIdxs, sz, conf, lower(idstr), 0, epsilon, minpts, k*100, rtype, rnum, [], mdstr);
+            nweightMat = []; outweightMat = []; syweightMat = [];
+
             countMat = []; weightMat = []; scver = 5;
         end
         % not 52 ROIs, but this one is 63 ROIs
