@@ -299,12 +299,12 @@ function makeStructConnectivity
     % ---------------------------------------------------------------------
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs
     % full random subsampling is not good. Setting sparsity constraints.
-%%{
+%{
     functype = 'fw'; %''; %
 %    randrange = {[6.5e5, 1.5e5],[14e5, 1.5e5],[70.5e5, 4e5]}; % old. old.
     randrange = {[20e5, 2e5, 0.4495, 0.015, 41],[70e5, 5e5, 0, 0, 150],[11e5, 1.1e5, 0.3754, 0.015, 110]}; % (new) morphological-based distance
 %    randrange = {[20e5, 0, 0.4495, 0, 41],[70e5, 0, 0, 0, 150],[11e5, 0, 0.3754, 0, 110]}; % (new) for check histogram. morphological-based distance
-    for ii=3%1:length(randrange)
+    for ii=1:length(randrange)
         param = randrange{ii};
         for k=1:99
             clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
@@ -342,13 +342,13 @@ function makeStructConnectivity
 %}
     % make structural connectivity matrix of flyem hemibrain neuropil ROIs by FlyWire EM data.
     % full random subsampling is not good. Setting sparsity constraints.
-%{
+%%{
 %    randrange = {[14e5, 1.5e5, 0, 0, 0],[18.5e5, 2e5, 0, 0, 0],[155.5e5, 8e5, 0, 0, 0]}; % old. old.
 %    randrange = {[19.5e5, 2e5, 0.4863, 0.015, 60],[32e5, 2e5, 0.4175, 0.015, 35]}; % old. straight-line distance
 %    randrange = {[19.5e5, 0, 0.4863, 0, 60],[32e5, 0, 0.4175, 0.015, 35]}; % old. for check histogram. straight-line distance
-    randrange = {[17e5, 1.5e5, 0.5203, 0.015, 35],[220e5, 8e5, 0, 0, 150]}; % (new) morphological-based distance
-%    randrange = {[17e5, 0, 0.5203, 0, 35],[220e5, 0, 0, 0, 150]}; % (new) for check histogram. morphological-based distance
-    for ii=1:length(randrange)
+    randrange = {[17e5, 1.5e5, 0.5203, 0.015, 35],[220e5, 8e5, 0, 0, 150],[11e5, 1.1e5, 0.4573, 0.015, 70]}; % (new) morphological-based distance
+%    randrange = {[17e5, 0, 0.5203, 0, 35],[220e5, 0, 0, 0, 150],[11e5, 0, 0.4573, 0, 70]}; % (new) for check histogram. morphological-based distance
+    for ii=3%1:length(randrange)
         param = randrange{ii};
         for k=1:99
             clear countMat2; clear ncountMat; clear sycountMat; clear weightMat2; scver = 1;
