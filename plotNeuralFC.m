@@ -53,7 +53,7 @@ function plotNeuralFC
 %    showNeuralFCFw(conf, epsilon, minpts); % no use
 
     showNeuralDBScanFw(conf, epsilon, minpts, '_neuralMorphDist', '_md'); % Fig.4 morphological-based distance clustering (for reviewer answer)
-    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940644632087), '_neuralMorphDist', '_md'); % WAGN figure.5h
+%    showNeuralDBScanSpidxFw(conf, epsilon, minpts, int64(720575940644632087), '_neuralMorphDist', '_md'); % WAGN figure.5h
 %    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0 0.1], '_neuralMorphDist', '_md'); % ext figure.4-2
 %    showNeuralDBScanSyCloudFw(conf, epsilon, minpts, [0.9 1], '_neuralMorphDist', '_md'); % ext figure.4-2
 
@@ -325,7 +325,8 @@ function showNeuralDBScanFw(conf, epsilon, minpts, diststr, mdstr)
     xline(20 * nanmean(Nspidx),'r'); 
 %    figure; histogram(Ldbs);
 
-    % show histogram (segregation index)
+    % show histogram (segregation index) for Ext. Data Fig.
+%{
     edges = 0:0.05:1;
     N = [];
     for i=1:length(tlabels)
@@ -338,7 +339,7 @@ function showNeuralDBScanFw(conf, epsilon, minpts, diststr, mdstr)
     title([conf.scname num2str(synTh) 'sr' num2str(scoreTh) ' : pre-post-synapse segregation index histogram']);
     xline(20 * nanmean(H),'r'); 
 %    figure; histogram(Ldbs);
-
+%}
     Nspidx(isnan(Nspidx)) = -1;
     NsywMixScore(isnan(NsywMixScore)) = -1;
     NsywSepScore(isnan(NsywSepScore)) = -1;
