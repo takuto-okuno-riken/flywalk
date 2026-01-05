@@ -60,7 +60,7 @@ function plotFuncConnectivity
     % check large smoothing size in several ROI nums and poltcomp (s0 to 300, roi 20 to 1000, '' & poltcomp)
     % Cm,Dist are used in figure.2
     % roitype: Cm,CmR1w1,Dist,
-%    checkLargeSmoothingPoltcompByRoinum(vslabels);
+    checkLargeSmoothingPoltcompByRoinum(vslabels);
 
     % check high-pass filter in several ROI nums and poltcomp (s230, roi 20 to 1000, poltcomp)
     % Dist are used in ext figure.2
@@ -1205,14 +1205,14 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
                     for k=1:length(smooth)
                         pftype = [smooth{k} hpfstr nuisance{n} preproc roitypes{r}{1} num2str(roinums(rr)) roitypes{r}{2}];
                         xlabels{ii} = [smooth{k} nuisance{n} 'roi' num2str(roinums(rr))]; ii=ii+1;
+                        SR = nan(1,24,'single'); % for compatibility
+                        GR = nan(1,24,'single'); % for compatibility
                         aucmat = ['results/auc/' pftype '-fcauc.mat'];
                         if exist(aucmat,'file')
                             load(aucmat);
                         else
                             A = nan(size(Am,1),100);
                             R = nan(1,size(Rm,1));
-                            SR = nan(1,size(SRm,1));
-                            GR = nan(1,size(GRm,1));
                         end
                         AA = cat(3,AA,A);
                         Am = [Am,nanmean(A,2)];
