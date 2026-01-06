@@ -1,5 +1,5 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-success.svg)](https://opensource.org/licenses/MIT)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15532272.svg)](https://doi.org/10.5281/zenodo.15532272)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15532271.svg)](https://doi.org/10.5281/zenodo.15532271)
 
 # Fly FC-SC analysis scripts
 Scripts for a manuscipt of ["Functional connectivity, structural connectivity, and inter-individual variability in Drosophila melanogaster,"](https://www.yahoo.com/)
@@ -24,7 +24,7 @@ Takuto Okuno, Alexander Woodward, Hideyuki Okano, Junichi Hata (in submisstion)
 <b>Demo 1</b><br/>
 
 The first demo shows the structural connectivity (SC) of hemibrain primary 63, 52 ROIs, CmKm and DistKm ROIs in Drosophila melanogaster (Fig.1a, Fig.2a).
-Pre-processed connect list and other files should be downloaded from [zenodo](https://doi.org/10.5281/zenodo.15532272), and extracted a zip file to overwrite 'data' and 'results' directories in <work_path>/flywalk-main before running this code.<br/>
+Pre-processed connect list and other files should be downloaded from [zenodo](https://doi.org/10.5281/zenodo.15532271), and extracted a zip file to overwrite 'data' and 'results' directories in <work_path>/flywalk-main before running this code.<br/>
 (Please confirm to update data, results and swc directories.)
 
 ~~~
