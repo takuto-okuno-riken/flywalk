@@ -14,8 +14,8 @@ function analyzeFuncConnectivity
 %    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80', 's90', 's100', 's110', 's120', 's130', 's140', 's150', 's160', 's170', 's180', 's190', 's200', 's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
 %    smooth = {'', 's30', 's80', 's150','s230','s300'};
 %    smooth = {'', 's30', 's40', 's60', 's80', 's100', 's150'};
-%    smooth = {'s230'}; % DistKm
-    smooth = {''}; % hemiroi
+    smooth = {'s230'}; % DistKm
+%    smooth = {''}; % hemiroi
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
         '6hmacomp','6hmgmacomp','6hmgmgsacomp','6hmtcomp','6hmtacomp', ... %22
@@ -30,8 +30,8 @@ function analyzeFuncConnectivity
     nuisance = {'poltcomp'}; % good for hemiroi, DistKm
 
     % file number setting for random subsampling
-%    rNums = [0]; % no number setting
-    rNums = 1:99; % for random subsampling number
+    rNums = [0]; % no number setting
+%    rNums = 1:99; % for random subsampling number
 
     % using subjects (flys). sbj 7 shows NaN row in FC matrix
     sbjids = [1 2 3 4 5 6 8 9];
@@ -44,8 +44,8 @@ function analyzeFuncConnectivity
 %    roitypes = {'hemiBranson7065km20','hemiBranson7065km30','hemiBranson7065km50','hemiBranson7065km100','hemiBranson7065km200', ...
 %        'hemiBranson7065km300','hemiBranson7065km500','hemiBranson7065km300'};
 %    roitypes = {'hemiCmkm10','hemiDistKm10','hemiCmkm10r1w1'};
-%    roitypes = {'hemiCmkm20','hemiCmkm30','hemiCmkm50','hemiCmkm100','hemiCmkm200', ...
-%        'hemiCmkm500','hemiCmkm1000'};
+    roitypes = {'hemiCmkm20','hemiCmkm30','hemiCmkm50','hemiCmkm100','hemiCmkm200', ...
+        'hemiCmkm500','hemiCmkm1000'};
 %        'hemiCmkm300','hemiCmkm500','hemiCmkm1000'};
 %    roitypes = {'hemiCmkm20r1w1','hemiCmkm30r1w1','hemiCmkm50r1w1','hemiCmkm100r1w1','hemiCmkm200r1w1', ...
 %        'hemiCmkm300r1w1','hemiCmkm500r1w1','hemiCmkm1000r1w1'};
@@ -177,14 +177,16 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids, isp
         Swb = syweightMat(ids,ids,2);
     end
 
-    % check sparse rate (for reviewer comment)
+    % check sparsity rate (for reviewer comment)
 %%{
     fname = ['results/sc/' roitype '_sparserate.mat'];
     if ~exist(fname,'file')
         neuSparseRate = sum(C2b==0,'all') / numel(C2b);
         synSparseRate = sum(Sb==0,'all') / numel(Sb);
+        neuOneCount = sum(C2b==1,'all');
+        synOneCount = sum(Sb==1,'all');
         synCount = sum(Sb,'all');
-        save(fname,'neuSparseRate','synSparseRate','synCount');
+        save(fname,'neuSparseRate','synSparseRate','neuOneCount','synOneCount','synCount');
     end
 %}
     % show corr between neurons v. synapse weight

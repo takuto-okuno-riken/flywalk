@@ -315,7 +315,7 @@ function makeStructConnectivity
                 load(fname);
             else
                 rnum = int32(param(1) + randn() * param(2)); % subsampling number
-                spnum = param(3) + randn() * param(4); % sparcity rate
+                spnum = param(3) + randn() * param(4); % sparsity rate
                 [roiIdxs, sz] = getHemiroiRoiIdxs();
 
                 if spnum > 0
@@ -359,7 +359,7 @@ function makeStructConnectivity
                 load(fname);
             else
                 rnum = int32(param(1) + randn() * param(2)); % subsampling number
-                spnum = param(3) + randn() * param(4); % sparcity rate
+                spnum = param(3) + randn() * param(4); % sparsity rate
                 [roiIdxs, sz] = getHemiroiRoiIdxs();
 
                 if spnum > 0

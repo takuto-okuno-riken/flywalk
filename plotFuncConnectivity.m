@@ -57,6 +57,11 @@ function plotFuncConnectivity
     % roitype: hemiroi68-59-87-106-50-27-54 (mushroom body)
 %    checkSmoothingNuisanceMushroomBody(vslabels);
 
+    % check sparsity rate (roi 20 to 10000)
+    % Cm,Dist are used in Ext.Data Fig.2-2
+    % roitype: Cm,Dist,
+    checkSparsityRateByRoinum(vslabels);
+
     % check large smoothing size in several ROI nums and poltcomp (s0 to 300, roi 20 to 1000, '' & poltcomp)
     % Cm,Dist are used in figure.2
     % roitype: Cm,CmR1w1,Dist,
@@ -1312,6 +1317,28 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
     end
     figure; plot(X); legend(slabels); title(['FC-SC detection results by threshold in ' ylabels{i}]);
 %}
+end
+
+function checkSparsityRateByRoinum(vslabels)
+    roinums = [20 50 100 200 500 1000 5000 10000];
+    roitypes = {{'hemiCmkm',''},{'hemiDistKm',''}};
+
+    SpR = []; OneR = [];
+    for r = 1:length(roitypes)
+        SpRn = []; OneRn = [];
+        for rr=1:length(roinums)
+            roinum = roinums(rr);
+            fname = ['results/sc/' roitypes{r}{1} num2str(roinum) roitypes{r}{2} '_sparserate.mat'];
+            if exist(fname,'file')
+                load(fname);
+                SpRn = [SpRn; neuSparseRate];
+                OneRn = [OneRn; neuOneCount / (roinum*roinum)];
+            end
+        end
+        SpR = [SpR, SpRn];
+        OneR = [OneR, OneRn];
+    end
+    % copy and paste SpR and OneR to excel (poltcomp-roi20-10000.xlsx).
 end
 
 function checkHighpassFilterPoltcompByRoinum(vslabels)
