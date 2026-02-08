@@ -2,8 +2,8 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15532271.svg)](https://doi.org/10.5281/zenodo.15532271)
 
 # Fly FC-SC analysis scripts
-Scripts for a manuscipt of ["Functional connectivity, structural connectivity, and inter-individual variability in Drosophila melanogaster,"](https://www.yahoo.com/)
-Takuto Okuno, Alexander Woodward, Hideyuki Okano, Junichi Hata (in submisstion)
+Scripts for a manuscipt of ["Functional connectivity, structural connectivity, and inter-individual variability in Drosophila melanogaster,"](https://elifesciences.org/reviewed-preprints/107990v1)
+Takuto Okuno, Alexander Woodward, Hideyuki Okano, Junichi Hata (2025) eLife
 
 <div align="center">
 <img src="data/img/fig1.jpg" width="70%">
