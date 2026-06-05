@@ -11,7 +11,7 @@ function analyzeFuncConnectivity
     hpfTh = [0]; % high-pass filter threshold
 %    hpfTh = [0, 0.1, 0.05, 0.025, 0.02, 0.01, 0.009, 0.008, 0.005, 0.001]; % high-pass filter threshold
 %    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80'};
-%    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80', 's90', 's100', 's110', 's120', 's130', 's140', 's150', 's160', 's170', 's180', 's190', 's200', 's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
+    smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80', 's90', 's100', 's110', 's120', 's130', 's140', 's150', 's160', 's170', 's180', 's190', 's200', 's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
 %    smooth = {'', 's30', 's80', 's150','s230','s300'};
 %    smooth = {'', 's30', 's40', 's60', 's80', 's100', 's150'};
     smooth = {'s230'}; % DistKm
@@ -119,14 +119,14 @@ function analyzeFuncConnectivity
 %            'hemiroi_fw0sr140_rd140-15','hemiroi_fw0sr140_rd185-20','hemiroi_fw0sr140_rd1560-80'};  % for s0, poltcomp, rNums
 %    roitypes = {'hemiroi_fw0sr140_rd195-20-60'};  % for s0, poltcomp, rNums (old. review answer) 
 %    roitypes = {'hemiroi_fw0sr140_rd320-20-35'};  % for s0, poltcomp, rNums (old. review answer)
-    roitypes = {'hemiroi_fw0sr140_sp10db3000mi1_md_only1','hemiroi_fw0sr140_sp90db3000mi1_md','hemiroi_fw0sr140_rc20_md_only1'};  % for s0, poltcomp (morph-based dist)
-    roitypes = {'hemiroi_hb0sr80fw_sp10db3000mi1_md_only1','hemiroi_hb0sr80fw_sp90db3000mi1_md','hemiroi_hb0sr80fw_rc20_md_only1'};  % for s0, poltcomp (morph-based dist)
+%    roitypes = {'hemiroi_fw0sr140_sp10db3000mi1_md_only1','hemiroi_fw0sr140_sp90db3000mi1_md','hemiroi_fw0sr140_rc20_md_only1'};  % for s0, poltcomp (morph-based dist)
+%    roitypes = {'hemiroi_hb0sr80fw_sp10db3000mi1_md_only1','hemiroi_hb0sr80fw_sp90db3000mi1_md','hemiroi_hb0sr80fw_rc20_md_only1'};  % for s0, poltcomp (morph-based dist)
 %    roitypes = {'hemiroi_fw0sr140_rd170-15-35'};  % for s0, poltcomp, rNums (review answer) (morph-based dist)
 %    roitypes = {'hemiroi_fw0sr140_rd2200-80-150'};  % for s0, poltcomp, rNums (review answer) (morph-based dist)
-    roitypes = {'hemiroi_fw0sr140_rd110-11-70'};  % for s0, poltcomp, rNums (review answer) (morph-based dist)
+%    roitypes = {'hemiroi_fw0sr140_rd110-11-70'};  % for s0, poltcomp, rNums (review answer) (morph-based dist)
 %    roitypes = {'hemiroi_hb0sr80fw_rd200-20-41'};  % for s0, poltcomp, rNums (review answer) (morph-based dist)
 %    roitypes = {'hemiroi_hb0sr80fw_rd700-50-150'};  % for s0, poltcomp, rNums (review answer) (morph-based dist)
-    roitypes = {'hemiroi_hb0sr80fw_rd110-11-110'};  % for s0, poltcomp, rNums (review answer) (morph-based dist)
+%    roitypes = {'hemiroi_hb0sr80fw_rd110-11-110'};  % for s0, poltcomp, rNums (review answer) (morph-based dist)
     %to check scatter and AUC graph (need to comment out plot lines)
 %    roitypes = {'hemiroi_hb0sr80','hemiroi_hb0sr80_rc20_only1','hemiroi_hb0sr80_rn150_orand1','hemiroi_hb0sr80_rn10_orand1', ...
 %            'hemiroi_fw0sr140','hemiroi_fw0sr140_rc20_only1','hemiroi_fw0sr140_rn10_orand1'};  % for s0, poltcomp
@@ -143,7 +143,7 @@ function analyzeFuncConnectivity
 end
 
 function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids, isplot)
-    AUCVER = 4;
+    AUCVER = 5;
 
     % load structural connectivity matrix (from makeStructConnectivity.m)
     switch(roitype)
@@ -212,14 +212,16 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids, isp
     lW2b = log10(W2b); lW2b(lW2b<0) = 0;
 
     % gaussian resampling cjHoney et al. (2009)
-    rs = randn(length(C2b(:)),1) * 0.1 + 0.5; % gaussian distribution [0 1]
+    % elements replaced by sorted gaussian distribution except zero.
+    nzidx = find(C2b~=0);
+    rs = randn(length(nzidx),1) * 0.1 + 0.5; % gaussian distribution [0 1]
     rs = sort(rs);
-    [B,idx] = sort(C2b(:)); % B = C2b(idx)
+    [B,idx] = sort(C2b(nzidx)); % B = C2b(idx)
     [~,iidx] = sort(idx);
-    gC2b = rs(iidx);
-    [B,idx] = sort(Sb(:)); % B = Sb(idx)
+    gC2b=C2b; gC2b(nzidx) = rs(iidx);
+    [B,idx] = sort(Sb(nzidx)); % B = Sb(idx)
     [~,iidx] = sort(idx);
-    gSb = rs(iidx);
+    gSb=Sb; gSb(nzidx) = rs(iidx);
 
 %    figure; imagesc(lC2); colorbar; title('lC2'); % to check ordered matrix
 
@@ -240,6 +242,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids, isp
                 % load ROI time-series (from extractROItimeseries.m)
                 str = split(pftype,'_');
                 load(['results/ts/' str{1} '-ts.mat']); % FlyWire SC calculation.
+%                load(['e:\work\flywalk\results/ts/' str{1} '-ts.mat']); % FlyWire SC calculation.
     
                 CM = {};
                 for i=1:length(sbjids)
@@ -334,6 +337,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids, isp
                 nF = tanh(mFz .* E);
                 GR(7) = corr(gC2b(:),nF(:),'Rows','complete'); % Traced vs. m-FCz
                 disp(['prefix=' pftype ' : gaussian(neurons2b) vs. m-FCz = ' num2str(GR(7))]);
+                % Extended Data Fig.2-2 with s30, poltcomp, hemiCmkm10000
 %                figure; scatter(gC2b(:),nF(:),18,'x'); xlabel('gaussian(neurons2b)'); ylabel('m-FCz'); title([pftype ' r=' num2str(GR(7))]); xlim([0 1]);
                 GR(9) = corr(gSb(:),nF(:),'Rows','complete');
                 disp(['prefix=' pftype ' : gaussian(synapses b) vs. m-FCz = ' num2str(GR(9))]);

@@ -63,7 +63,7 @@ function plotFuncConnectivity
     checkSparsityRateByRoinum(vslabels);
 
     % check large smoothing size in several ROI nums and poltcomp (s0 to 300, roi 20 to 1000, '' & poltcomp)
-    % Cm,Dist are used in figure.2
+    % Cm,Dist are used in figure.2, Ext.Data Fig.2-2
     % roitype: Cm,CmR1w1,Dist,
     checkLargeSmoothingPoltcompByRoinum(vslabels);
 
@@ -1186,7 +1186,7 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
         's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
 %    nuisance = {'','poltcomp'};
     nuisance = {'poltcomp'};
-    roinums = [20 50 100 200 500 1000];% 5000 10000];
+    roinums = [20 50 100 200 500 1000]; % 5000 10000]; % 5000, 10000 is for Extended Data Fig.2-2
 %    roitypes = {{'hemiCmkm',''},{'hemiCmkm','r1w1'},{'hemiDistKm',''}};
 %    roitypelabels = {'Cm','CmR1w1','Dist'};
     roitypes = {{'hemiCmkm',''},{'hemiDistKm',''}};
@@ -1230,7 +1230,7 @@ function checkLargeSmoothingPoltcompByRoinum(vslabels)
                         GRm2 = [GRm2,GR(I)'];
                     end
                     R3r = [R3r;Rm2]; SR3r = [SR3r;SRm2]; GR3r = [GR3r;GRm2]; A3r = [A3r;Am2];
-                    R3rm = [R3rm;nanmax(Rm2,[],2)']; GR3rm = [GR3rm;nanmax(GRm2,[],2)'];
+                    R3rm = [R3rm;nanmax(Rm2,[],2)']; GR3rm = [GR3rm;nanmax(GRm2,[],2)']; % copy and paste GR3rm to excel (poltcomp-roi20-10000.xlsx) (Extended Data Fig.2-2)
                 end
             end
         end
