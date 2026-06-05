@@ -14,7 +14,7 @@ function analyzeFuncConnectivity
     smooth = {'', 's10', 's20', 's30', 's40', 's50', 's60', 's70', 's80', 's90', 's100', 's110', 's120', 's130', 's140', 's150', 's160', 's170', 's180', 's190', 's200', 's210', 's220', 's230', 's240', 's250', 's260', 's270', 's280', 's290', 's300'};
 %    smooth = {'', 's30', 's80', 's150','s230','s300'};
 %    smooth = {'', 's30', 's40', 's60', 's80', 's100', 's150'};
-    smooth = {'s230'}; % DistKm
+%    smooth = {'s230'}; % DistKm
 %    smooth = {''}; % hemiroi
     nuisance = {'','gm','gmgs','nui','6hm','6hmgm','6hmgmgs','6hmnui','24hm','24hmgm','24hmgmgs','24hmnui', ... %12
         'acomp','gmacomp','gmgsacomp','tcomp','tacomp', ... %17
@@ -335,10 +335,10 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids, isp
                 SR(9) = corr(Sb(:),abs(mFz(:)),'Type','Spearman');
                 disp(['prefix=' pftype ' : synapses b vs. m-FCz (spearman) = ' num2str(SR(9))]);
                 nF = tanh(mFz .* E); % z-form to [-1 1] range
-                GR(7) = corr(gC2b(:),nF(:),'Rows','complete'); % Traced vs. m-FCz
+                GR(7) = corr(gC2b(nzidx),nF(nzidx),'Rows','complete'); % Traced vs. m-FCz
                 disp(['prefix=' pftype ' : gaussian(neurons2b) vs. m-FCz = ' num2str(GR(7))]);
                 % Extended Data Fig.2-2 with s30, poltcomp, hemiCmkm10000
-%                figure; scatter(gC2b(:),nF(:),18,'x'); xlabel('gaussian(neurons2b)'); ylabel('m-FCz'); title([pftype ' r=' num2str(GR(7))]); xlim([0 1]);
+%                figure; scatter(gC2b(nzidx),nF(nzidx),18,'x'); xlabel('gaussian(neurons2b)'); ylabel('m-FCz'); title([pftype ' r=' num2str(GR(7))]); xlim([0 1]);
                 GR(9) = corr(gSb(:),nF(:),'Rows','complete');
                 disp(['prefix=' pftype ' : gaussian(synapses b) vs. m-FCz = ' num2str(GR(9))]);
                 if isw2
