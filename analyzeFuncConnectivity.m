@@ -334,7 +334,7 @@ function analyzeFcROItype(roitype, preproc, hpfTh, smooth, nuisance, sbjids, isp
                 disp(['prefix=' pftype ' : neurons2b vs. m-FCz (spearman) = ' num2str(SR(7))]);
                 SR(9) = corr(Sb(:),abs(mFz(:)),'Type','Spearman');
                 disp(['prefix=' pftype ' : synapses b vs. m-FCz (spearman) = ' num2str(SR(9))]);
-                nF = tanh(mFz .* E);
+                nF = tanh(mFz .* E); % z-form to [-1 1] range
                 GR(7) = corr(gC2b(:),nF(:),'Rows','complete'); % Traced vs. m-FCz
                 disp(['prefix=' pftype ' : gaussian(neurons2b) vs. m-FCz = ' num2str(GR(7))]);
                 % Extended Data Fig.2-2 with s30, poltcomp, hemiCmkm10000
