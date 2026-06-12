@@ -11,7 +11,8 @@ function analyzeStructConnectivity
 
     % check mushroom body huge GABA neuron (APL-R) FlyEM, FlyWire
     checkAPLneuron();
-    checkAPLneuronFw();
+    checkAPLneuronFw(140); % FlyWire synapse score threshold
+    checkAPLneuronFw(50); % FlyWire synapse score threshold
 end
 
 function checkAPLneuron()
@@ -115,8 +116,7 @@ function checkAPLneuron()
     clear SlocFc; clear Nid; clear Nstatus; clear Sdir; clear Sid;
 end
 
-function checkAPLneuronFw()
-    scoreTh = 140; % FlyWire synapse score threshold
+function checkAPLneuronFw(scoreTh)
     conf = getSCconfig('wire', 0, scoreTh);
 
     % FlyWire read neuron info
@@ -144,7 +144,7 @@ function checkAPLneuronFw()
     sz = size(Vt);
 
     % get connected post-synapse counts from APL pre-synapses (output)
-    fname = 'results/nifti/wireAplOutputSynapses.nii';
+    fname = ['results/nifti/wireAplOutputSynapses_sc' num2str(scoreTh) '.nii'];
     if ~exist([fname '.gz'],'file')
         conSlocFc = SpostlocFc(presidx,:); V = Vt; % get (pre-post) 3D location in FDA Cal template.
         for j=1:size(conSlocFc,1)
@@ -159,13 +159,13 @@ function checkAPLneuronFw()
     else
         V = niftiread([fname '.gz']);
     end
-    fname = 'results/nifti/wireAplOutputSynapsesMask.nii';
+    fname = ['results/nifti/wireAplOutputSynapsesMask_sc' num2str(scoreTh) '.nii'];
     if ~exist([fname '.gz'],'file')
         V(V>0) = 1;
         niftiwrite(V,fname,info,'Compressed',true);
     end
 
-    fname = 'results/nifti/wireAplInputSynapses.nii';
+    fname = ['results/nifti/wireAplInputSynapses_sc' num2str(scoreTh) '.nii'];
     if ~exist([fname '.gz'],'file')
         conSlocFc = SpostlocFc(postsidx,:); V = Vt; % get (pre-post) 3D location in FDA Cal template.
         for j=1:size(conSlocFc,1)
@@ -180,7 +180,7 @@ function checkAPLneuronFw()
     end
 
     % get connected post-synapse counts from all traced neurons
-    fname = 'results/nifti/wireTracedNeuronOutputSynapses.nii';
+    fname = ['results/nifti/wireTracedNeuronOutputSynapses_sc' num2str(scoreTh) '.nii'];
     if ~exist([fname '.gz'],'file')
         presidx = Sidx((preNidx>0) & valid & score);
 
@@ -193,6 +193,13 @@ function checkAPLneuronFw()
                 disp(['out of bounds ) ' num2str(t)]);
             end
         end
+        niftiwrite(V,fname,info,'Compressed',true);
+    else
+        V = niftiread([fname '.gz']);
+    end
+    fname = ['results/nifti/wireTracedNeuronOutputSynapsesMask_sc' num2str(scoreTh) '.nii'];
+    if ~exist([fname '.gz'],'file')
+        V(V>0) = 1;
         niftiwrite(V,fname,info,'Compressed',true);
     end
     clear SpostlocFc;
